@@ -6,7 +6,8 @@ COMPILE
 
 RUN TESTS
 
-> npx hardhat test
+> npx hardhat test  
+> npm run coverage:local `with coverage`
 
 DEPLOY CONTRACTS TO SPECIFIED NETWORK
 
