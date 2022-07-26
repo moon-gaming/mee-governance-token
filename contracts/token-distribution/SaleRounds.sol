@@ -227,18 +227,15 @@ abstract contract SaleRounds is TokenDistribution {
     }
 
     // @_amount is going be decimals() == default(18) digits
-    function mintTokensForPublic(string calldata _roundType, address _to, uint _amount) public payable 
-        isRoundActive(_roundType) {
+    function mintTokensForPublic(string calldata _roundType, address _to, uint _amount) public 
+        onlyGameOwner isRoundActive(_roundType) {
         RoundType roundType = getRoundTypeByKey(_roundType);
 
         require(roundType == RoundType.PUBLIC , "round type is not valid");
-        require(tokenPriceMap[roundType] > 0, "token price is not enough");
         require(roundDistribution[roundType].totalRemaining >= _amount, "total remaining amount is not enough" );
-        require(msg.value >= tokenPriceMap[roundType] * _amount, "not enough paid");
 
         roundDistribution[roundType].totalRemaining -= _amount;
         _mint(_to, _amount);
-        payable(owner()).transfer(msg.value);
     }
 
     function claimTokens(string calldata _roundType, address _to) public 
