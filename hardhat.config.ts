@@ -59,8 +59,8 @@ export default {
     version: "0.8.13",
     settings: {
       optimizer: {
-        enabled: false,
-        runs: 1000,
+        enabled: true,
+        runs: 1,
       },
     },
   },
