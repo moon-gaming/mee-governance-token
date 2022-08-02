@@ -5,7 +5,7 @@ import "./TokenDistribution.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
-import 'hardhat/console.sol';
+// import 'hardhat/console.sol';
 
 abstract contract SaleRounds is TokenDistribution {
 
@@ -268,8 +268,8 @@ abstract contract SaleRounds is TokenDistribution {
         //Maybe we don't care, but there may be a fractional holding and we want people to be able to just collect that. It's a tiny, tiny value (31.5*10^-12 tokens on 18 decimals)
         //So maybe remove.
         if (claimInfo.vestingForUserPerSecond == 0) balanceToRelease = unClaimedBalance;
-        console.logString("BALANCE TO RELEASE");
-        console.logUint(balanceToRelease);
+        // console.logString("BALANCE TO RELEASE");
+        // console.logUint(balanceToRelease);
         _mint(_to, balanceToRelease);
         claimedBalances[roundType][_to] += balanceToRelease;
         emit ClaimEvent(_roundType, balanceToRelease, _to);
@@ -278,14 +278,14 @@ abstract contract SaleRounds is TokenDistribution {
     function calculateCliffTimeDiff(ClaimInfo memory claimInfo) private view returns(uint){
         //How many seconds since the cliff? (negative if before cliff)
         (, uint timeDiff) = (block.timestamp - claimInfo.startTime).trySub(claimInfo.cliff);
-        console.logString("BLOCK TIME");
-        console.logUint(block.timestamp);
-        console.logString("START TIME");
-        console.logUint(claimInfo.startTime);
-        console.logString("CLIFF TIME");
-        console.logUint(claimInfo.cliff);
-        console.logString("TIME DIFF");
-        console.logUint(timeDiff);
+        // console.logString("BLOCK TIME");
+        // console.logUint(block.timestamp);
+        // console.logString("START TIME");
+        // console.logUint(claimInfo.startTime);
+        // console.logString("CLIFF TIME");
+        // console.logUint(claimInfo.cliff);
+        // console.logString("TIME DIFF");
+        // console.logUint(timeDiff);
         return timeDiff;
     }
 
@@ -293,21 +293,21 @@ abstract contract SaleRounds is TokenDistribution {
         //We divide the balance by the number of seconds in the entire vesting period (vesting unit is seconds!).
         // require(claimInfo.vesting > 0, "vesting schedule not configured for this round");
         (, uint vestingForUserPerSecond) = claimInfo.balance.tryDiv(claimInfo.vesting);
-        console.logString('VESTING PER SECOND');
-        console.logUint(vestingForUserPerSecond);
+        // console.logString('VESTING PER SECOND');
+        // console.logUint(vestingForUserPerSecond);
         return vestingForUserPerSecond;
     }
 
     function getMaximalRelease(ClaimInfo memory claimInfo) private view returns(uint256) {
         // 1 for each fully spent period - if period is months, 1 per month, if period is days, 1 per day, etc. sample: 10 days or 2 months 
         ( , uint periodsVested) = claimInfo.secondsVested.tryDiv(claimInfo.periodGranularity);
-        console.logString("PERIODS VESTED");
-        console.logUint(periodsVested);
+        // console.logString("PERIODS VESTED");
+        // console.logUint(periodsVested);
         
         //By calculating it this way instead of directly, we don't pay out any incompete periods. instead of: secondsVested * vestingForUserPerSecond
         ( , uint releasePerFullPeriod) = claimInfo.vestingForUserPerSecond.tryMul(claimInfo.periodGranularity);
-        console.logString("RELEASE PER FULL PERIOD");
-        console.logUint(releasePerFullPeriod);
+        // console.logString("RELEASE PER FULL PERIOD");
+        // console.logUint(releasePerFullPeriod);
         return periodsVested * releasePerFullPeriod; //this is like "4.55%"
     }
 
@@ -315,15 +315,15 @@ abstract contract SaleRounds is TokenDistribution {
         //technically the precondition / postcondions of the contract prevent this overflow - maybe investigate?
         require(claimInfo.claimedBalance < claimInfo.balance, "already claimed everything");
         (,uint unClaimedBalance) = claimInfo.balance.trySub(claimInfo.claimedBalance);
-        console.logString("BALANCE");
-        console.logUint(claimInfo.balance);
-        console.logString("CLAIMED BALANCE");
-        console.logUint(claimInfo.claimedBalance);
+        // console.logString("BALANCE");
+        // console.logUint(claimInfo.balance);
+        // console.logString("CLAIMED BALANCE");
+        // console.logUint(claimInfo.claimedBalance);
         require(unClaimedBalance >= 0 , "unsopported unclamined balance");
-        console.logString("UNCLAIMED BALANCE");
-        console.logUint(unClaimedBalance);
-        console.logString("MAXIMAL RELEASE");
-        console.logUint(maximalRelease);
+        // console.logString("UNCLAIMED BALANCE");
+        // console.logUint(unClaimedBalance);
+        // console.logString("MAXIMAL RELEASE");
+        // console.logUint(maximalRelease);
         return (unClaimedBalance.min(maximalRelease), unClaimedBalance);                
     }
 

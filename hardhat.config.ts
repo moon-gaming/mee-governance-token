@@ -6,7 +6,7 @@ import './tasks/accounts'
 import './tasks/balance'
 import './tasks/governance'
 
-//require solidity-coverage
+//require solidity-coverage for unit test coverage
 require('solidity-coverage');
 require('hardhat-abi-exporter');
 
@@ -37,12 +37,13 @@ export default {
     matic: {
       url: "https://rpc-mumbai.maticvigil.com",
       //url: "https://matic-mumbai.chainstacklabs.com",
-      accounts: [process.env.OWNER, process.env.GAME_OWNER, process.env.BUYER, process.env.SIGNATORY],
+      accounts: [process.env.OWNER, process.env.GAME_OWNER, process.env.BUYER, process.env.SIGNATORY,
+        process.env.BUYER, process.env.BUYER, process.env.BUYER, process.env.BUYER, process.env.BUYER, process.env.BUYER],
       allowUnlimitedContractSize: true,
-      //blockGasLimit: 0x1fffffffffffff,
+      blockGasLimit: 0x1fffffffffffff,
       //timeout: 180000,
       //chainId: 80001,
-      //gas: 12000000
+      gas: 12000000
     }
   },
   etherscan: {
@@ -59,7 +60,7 @@ export default {
     version: "0.8.13",
     settings: {
       optimizer: {
-        enabled: true,
+        enabled: false,
         runs: 1,
       },
     },

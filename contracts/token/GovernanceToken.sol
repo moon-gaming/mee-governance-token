@@ -5,9 +5,6 @@ import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../token-distribution/SaleRounds.sol";
-import "./GameToken.sol";
-import "../token-distribution/TokenDistribution.sol";
-import "hardhat/console.sol";
 
 contract GovernanceToken is IERC165, SaleRounds {
     using ERC165Checker for address; 
