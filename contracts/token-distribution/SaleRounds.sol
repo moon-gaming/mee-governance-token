@@ -4,10 +4,9 @@ pragma solidity ^0.8.13;
 import "./TokenDistribution.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
-
-// import 'hardhat/console.sol';
-
-abstract contract SaleRounds is TokenDistribution {
+import "../token/GameToken.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+abstract contract SaleRounds is TokenDistribution, GameToken, ERC20  {
 
     using SafeMath for uint;
     using Math for uint;
@@ -36,20 +35,8 @@ abstract contract SaleRounds is TokenDistribution {
     Distribution private teamDistribution;
     Distribution private treasuryDistribution;
 
-    struct WalletAddressInfo {
-        address advisorWalletAddress;
-        address exhangesWalletAddress; 
-        address playAndEarnWalletAddress;
-        address socialWalletAdrdress;
-        address teamWalletAdrdress;
-        address treasuryWalletAddress;
-    }
-
-    WalletAddressInfo private walletAddressInfo;
-
     uint constant private DAY_TO_SECONDS = 24 * 60 * 60;
     uint constant private MONTH_TO_SECONDS = 30 * DAY_TO_SECONDS;
-
     struct ClaimInfo {
         uint cliff;
         uint vesting;
@@ -60,12 +47,12 @@ abstract contract SaleRounds is TokenDistribution {
         uint secondsVested;
         uint vestingForUserPerSecond;
     }
+    constructor( string memory _tokenName, string memory _tokenSymbol, uint _maxSupply, uint _decimalUnits,
+                 address _gameOwnerAddress, address _signatory)  
+            ERC20(_tokenName, _tokenSymbol) 
+            GameToken(_gameOwnerAddress, _signatory) {
 
-    constructor(uint _maxSupply, uint _decimalUnits, address[] memory walletAddresses) {
         setActiveRoundInternally(RoundType.SEED);
-
-        walletAddressInfo = WalletAddressInfo({advisorWalletAddress: walletAddresses[0], exhangesWalletAddress: walletAddresses[1], playAndEarnWalletAddress: walletAddresses[2],
-        socialWalletAdrdress: walletAddresses[3], teamWalletAdrdress: walletAddresses[4], treasuryWalletAddress: walletAddresses[5]});
 
         // FUNDING ROUNDS
         seedDistribution = Distribution(
@@ -107,15 +94,23 @@ abstract contract SaleRounds is TokenDistribution {
         roundDistribution[RoundType.ADVISOR] = advisorsDistribution;
 
         maxSupply = _maxSupply * (10 ** _decimalUnits);
+    }
 
-        // ALLOCATIONS WITH WALLET CONSTANT
-        reserveTokensInternal(RoundType.PLAYANDEARN, walletAddressInfo.playAndEarnWalletAddress, playAndEarnDistribution.supply);
-        reserveTokensInternal(RoundType.SOCIAL, walletAddressInfo.socialWalletAdrdress, socialDistribution.supply);
-        reserveTokensInternal(RoundType.TEAM, walletAddressInfo.teamWalletAdrdress, teamDistribution.supply);
-        reserveTokensInternal(RoundType.TREASURY, walletAddressInfo.treasuryWalletAddress, treasuryDistribution.supply);
+    function initialReservAndMint (address[] memory walletAddresses ) onlyGameOwner public {
+        address exhangesWalletAddress = walletAddresses[0];
+        address playAndEarnWalletAddress = walletAddresses[1];
+        address socialWalletAddress = walletAddresses[2];
+        address teamWalletAdrdress = walletAddresses[3];
+        address treasuryWalletAddress = walletAddresses[4];
+
+        //ALLOCATIONS WITH WALLET CONSTANT
+        reserveTokensInternal(RoundType.PLAYANDEARN, playAndEarnWalletAddress, playAndEarnDistribution.supply);
+        reserveTokensInternal(RoundType.SOCIAL, socialWalletAddress, socialDistribution.supply);
+        reserveTokensInternal(RoundType.TEAM, teamWalletAdrdress, teamDistribution.supply);
+        reserveTokensInternal(RoundType.TREASURY, treasuryWalletAddress, treasuryDistribution.supply);
         
-        // NO VESTING TIME SO DIRECT MINTING -- PUBLIC IS NOT SCOPED HERE
-        _mint(walletAddressInfo.exhangesWalletAddress, exchangesDistribution.supply);
+        //NO VESTING TIME SO DIRECT MINTING -- PUBLIC IS NOT SCOPED HERE
+        _mint(exhangesWalletAddress, exchangesDistribution.supply);
     }
 
     modifier isEligibleToReserveToken(string calldata _roundType){
@@ -149,18 +144,6 @@ abstract contract SaleRounds is TokenDistribution {
         _;
     }
 
-    function setTokenPriceMap(string calldata _roundType, uint256 _tokenPrice) public onlyGameOwner {
-        RoundType roundType = getRoundTypeByKey(_roundType);
-
-        tokenPriceMap[roundType] = _tokenPrice;
-    }
-
-    function getTokenPriceMap(string calldata _roundType) public view onlyGameOwner returns(uint256) {
-        RoundType roundType = getRoundTypeByKey(_roundType);
-
-        return tokenPriceMap[roundType];
-    }
-
     function setActiveRound(string calldata _roundType) public onlyGameOwner {
         RoundType roundType = getRoundTypeByKey(_roundType);
         require(activeRound[roundType] == false, "Round is already active");
@@ -172,15 +155,13 @@ abstract contract SaleRounds is TokenDistribution {
         roundDistribution[_roundType].startTime = block.timestamp;
     }
 
-    function addAddressForDistribution(string calldata _roundType, address[] calldata _addresses) public 
+    function addAddressForDistribution(string calldata _roundType, address _address) public 
         onlyGameOwner isRoundActive(_roundType) returns(bool) {
 
         RoundType roundType = getRoundTypeByKey(_roundType);
-        uint size = _addresses.length;
-        for(uint i=0; i<size; i++){
-            addressMap[roundType][_addresses[i]] = true;
-            addressList[roundType].push(_addresses[i]);
-        }
+        addressMap[roundType][_address] = true;
+        addressList[roundType].push(_address);
+        
         return true;
     }
 
@@ -241,6 +222,7 @@ abstract contract SaleRounds is TokenDistribution {
     function claimTokens(string calldata _roundType, address _to) public 
         isRoundActive(_roundType) claimableRound(_roundType) {
         RoundType roundType = getRoundTypeByKey(_roundType);
+        require(_msgSender() == _to, "Sender is not a recipient");
 
         ClaimInfo memory claimInfo = ClaimInfo({cliff: roundDistribution[roundType].cliff,
                                                 vesting: roundDistribution[roundType].vesting,
@@ -268,8 +250,6 @@ abstract contract SaleRounds is TokenDistribution {
         //Maybe we don't care, but there may be a fractional holding and we want people to be able to just collect that. It's a tiny, tiny value (31.5*10^-12 tokens on 18 decimals)
         //So maybe remove.
         if (claimInfo.vestingForUserPerSecond == 0) balanceToRelease = unClaimedBalance;
-        // console.logString("BALANCE TO RELEASE");
-        // console.logUint(balanceToRelease);
         _mint(_to, balanceToRelease);
         claimedBalances[roundType][_to] += balanceToRelease;
         emit ClaimEvent(_roundType, balanceToRelease, _to);
@@ -278,53 +258,30 @@ abstract contract SaleRounds is TokenDistribution {
     function calculateCliffTimeDiff(ClaimInfo memory claimInfo) private view returns(uint){
         //How many seconds since the cliff? (negative if before cliff)
         (, uint timeDiff) = (block.timestamp - claimInfo.startTime).trySub(claimInfo.cliff);
-        // console.logString("BLOCK TIME");
-        // console.logUint(block.timestamp);
-        // console.logString("START TIME");
-        // console.logUint(claimInfo.startTime);
-        // console.logString("CLIFF TIME");
-        // console.logUint(claimInfo.cliff);
-        // console.logString("TIME DIFF");
-        // console.logUint(timeDiff);
         return timeDiff;
     }
 
-    function calculateVestingForUserPerSecond(ClaimInfo memory claimInfo) private view returns(uint){
+    function calculateVestingForUserPerSecond(ClaimInfo memory claimInfo) private pure returns(uint){
         //We divide the balance by the number of seconds in the entire vesting period (vesting unit is seconds!).
-        // require(claimInfo.vesting > 0, "vesting schedule not configured for this round");
         (, uint vestingForUserPerSecond) = claimInfo.balance.tryDiv(claimInfo.vesting);
-        // console.logString('VESTING PER SECOND');
-        // console.logUint(vestingForUserPerSecond);
         return vestingForUserPerSecond;
     }
 
-    function getMaximalRelease(ClaimInfo memory claimInfo) private view returns(uint256) {
+    function getMaximalRelease(ClaimInfo memory claimInfo) private pure returns(uint256) {
         // 1 for each fully spent period - if period is months, 1 per month, if period is days, 1 per day, etc. sample: 10 days or 2 months 
         ( , uint periodsVested) = claimInfo.secondsVested.tryDiv(claimInfo.periodGranularity);
-        // console.logString("PERIODS VESTED");
-        // console.logUint(periodsVested);
         
         //By calculating it this way instead of directly, we don't pay out any incompete periods. instead of: secondsVested * vestingForUserPerSecond
         ( , uint releasePerFullPeriod) = claimInfo.vestingForUserPerSecond.tryMul(claimInfo.periodGranularity);
-        // console.logString("RELEASE PER FULL PERIOD");
-        // console.logUint(releasePerFullPeriod);
         return periodsVested * releasePerFullPeriod; //this is like "4.55%"
     }
 
-    function getBalanceToRelease(uint maximalRelease, ClaimInfo memory claimInfo) private view returns(uint256, uint256) {
+    function getBalanceToRelease(uint maximalRelease, ClaimInfo memory claimInfo) private pure returns(uint256, uint256) {
         //technically the precondition / postcondions of the contract prevent this overflow - maybe investigate?
         require(claimInfo.claimedBalance < claimInfo.balance, "already claimed everything");
         (,uint unClaimedBalance) = claimInfo.balance.trySub(claimInfo.claimedBalance);
-        // console.logString("BALANCE");
-        // console.logUint(claimInfo.balance);
-        // console.logString("CLAIMED BALANCE");
-        // console.logUint(claimInfo.claimedBalance);
         require(unClaimedBalance >= 0 , "unsopported unclamined balance");
-        // console.logString("UNCLAIMED BALANCE");
-        // console.logUint(unClaimedBalance);
-        // console.logString("MAXIMAL RELEASE");
-        // console.logUint(maximalRelease);
-        return (unClaimedBalance.min(maximalRelease), unClaimedBalance);                
+        return (unClaimedBalance.min(maximalRelease), unClaimedBalance);           
     }
 
     function getTotalClaimedForAllRounds() public view returns(uint256){
@@ -345,6 +302,18 @@ abstract contract SaleRounds is TokenDistribution {
         RoundType roundType = getRoundTypeByKey(_roundType);
 
         return reservedBalances[roundType][_to];
+    }
+
+    function setCliffTime(string calldata _roundType, uint256 _amount) public onlyGameOwner {
+        RoundType roundType =  getRoundTypeByKey(_roundType);
+
+        roundDistribution[roundType].cliff = _amount;
+    }
+
+    function getCliffTime(string calldata _roundType) public view onlyGameOwner returns(uint256){
+        RoundType roundType =  getRoundTypeByKey(_roundType);
+
+        return roundDistribution[roundType].cliff;
     }
 
 }

@@ -6,10 +6,10 @@ task("buyHeroByGovernance")
     .setAction(async(args, {ethers}) => {
         
     try{
-        const governanceToken = await initGovernanceToken(ethers, process.env.OWNER!);
+        const governanceToken = await initGovernanceToken(ethers, process.env.OWNER_PK_PK!);
         // const signer = await getSigner(ethers, process.env.BUYER!);
-        const signer = await getAccount(ethers, process.env.SIGNATORY!);
-        const sender = await getAccount(ethers, process.env.OWNER!);
+        const signer = await getAccount(ethers, process.env.SIGNATORY_PK!);
+        const sender = await getAccount(ethers, process.env.OWNER_PK!);
 
         console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
         console.log("TOKEN ID", args.tokenid);
@@ -40,8 +40,7 @@ task("setMEEPrice")
     .setAction(async(args, {ethers}) => {
         
     try{
-        const governanceToken = await initGovernanceToken(ethers, process.env.OWNER!);
-        const signer = await getAccount(ethers, process.env.OWNER!);
+        const governanceToken = await initGovernanceToken(ethers, process.env.OWNER_PK!);
 
         console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
         console.log("PRICE", args.price);
@@ -52,13 +51,41 @@ task("setMEEPrice")
     }
 })
 
+task("getGameOwner")
+    .setAction(async(args, {ethers}) => {
+        
+    try{
+        const governanceToken = await initGovernanceToken(ethers, process.env.OWNER_PK!);
+
+        console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
+    
+        console.log("GAME OWNER ADDRESS", await governanceToken?.callStatic.getGameOwnerAddress());
+    }catch(err){
+      console.error("GET GAME OWNER ERR:", err);
+    }
+})
+
+task("getSignatory")
+    .setAction(async(args, {ethers}) => {
+        
+    try{
+        const governanceToken = await initGovernanceToken(ethers, process.env.OWNER_PK!);
+
+        console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
+    
+        console.log("GAME SIGNATORY", await governanceToken?.callStatic.getSignatory());
+    }catch(err){
+      console.error("GET SIGNATORY ERR:", err);
+    }
+})
+
 task("setTokenPrice")
     .addParam("round", "round type")
     .addParam("price", "MEE token price")
     .setAction(async(args, {ethers}) => {
         
     try{
-        const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER!);
+        const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER_PK!);
 
         console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
         console.log("ROUND TYPE", args.round);
@@ -75,7 +102,7 @@ task("getTokenPrice")
     .setAction(async(args, {ethers}) => {
         
     try{
-        const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER!);
+        const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER_PK!);
 
         console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
         console.log("ROUND TYPE", args.round);
@@ -91,7 +118,7 @@ task("setActiveRound")
     .setAction(async(args, {ethers}) => {
         
     try{
-        const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER!);
+        const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER_PK!);
 
         console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
         console.log("ROUND TYPE", args.round);
@@ -104,18 +131,17 @@ task("setActiveRound")
 
 task("addAddress")
     .addParam("round", "round type")
-    .addParam("address", "address list", "", types.string)
+    .addParam("address", "address", "", types.string)
     .setAction(async(args, {ethers}) => {
         
     try{
-        const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER!);
+        const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER_PK!);
 
         console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
         console.log("ROUND TYPE", args.round);
-        const addressList = args.address.split(',');
-        console.log("ADDRESS LIST", addressList);
+        console.log("ADDRESS", args.address);
     
-        console.log("RESULT:", await governanceToken?.addAddressForDistribution(args.round, addressList));
+        console.log("RESULT:", await governanceToken?.addAddressForDistribution(args.round, args.address));
     }catch(err){
       console.error("ADD ADDRESS ERR:", err);
     }
@@ -128,7 +154,7 @@ task("deleteAddress")
     .setAction(async(args, {ethers}) => {
         
     try{
-        const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER!);
+        const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER_PK!);
 
         console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
         console.log("ROUND TYPE", args.round);
@@ -144,7 +170,7 @@ task("getAddressList")
     .setAction(async(args, {ethers}) => {
         
     try{
-        const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER!);
+        const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER_PK!);
 
         console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
         console.log("ROUND TYPE", args.round);
@@ -162,7 +188,7 @@ task("reserveTokens")
     .setAction(async(args, {ethers}) => {
         
     try{
-        const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER!);
+        const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER_PK!);
 
         console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
         console.log("ROUND TYPE", args.round);
@@ -181,7 +207,7 @@ task("totalPending")
     .setAction(async(args, {ethers}) => {
         
     try{
-        const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER!);
+        const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER_PK!);
 
         console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
         console.log("ROUND TYPE", args.round);
@@ -198,7 +224,7 @@ task("totalRemainingForSpecificRound")
     .setAction(async(args, {ethers}) => {
         
     try{
-        const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER!);
+        const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER_PK!);
 
         console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
         console.log("ROUND TYPE", args.round);
@@ -213,7 +239,7 @@ task("totalRemainingForAllRounds")
     .setAction(async(args, {ethers}) => {
         
     try{
-        const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER!);
+        const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER_PK!);
 
         console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
     
@@ -227,7 +253,7 @@ task("totalClaimedForAllRounds")
     .setAction(async(args, {ethers}) => {
         
     try{
-        const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER!);
+        const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER_PK!);
 
         console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
     
@@ -235,5 +261,22 @@ task("totalClaimedForAllRounds")
     }catch(err){
       console.error("GET TOTAL CLAIMED FOR ALL ROUNDS ERR:", err);
     }
+})
+
+task("initialReservAndMint")
+  .setAction(async(args, {ethers}) => {
+    
+  try{
+      const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER_PK!);
+
+      console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
+
+      const addressList = [process.env.EXCHANGES_WALLET_ADDRESS, process.env.PLAYANDEARN_WALLET_ADDRESS,
+      process.env.SOCIAL_WALLET_ADDRESS, process.env.TEAM_WALLET_ADDRESS, process.env.TREASURY_WALLET_ADDRESS ];
+
+      await governanceToken?.initialReservAndMint(addressList);
+  }catch(err){
+    console.error("initialReservAndMint ERR:", err);
+  }
 })
 

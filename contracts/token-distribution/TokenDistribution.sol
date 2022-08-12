@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import "../token/GameToken.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-
-abstract contract TokenDistribution is GameToken, ERC20 {
+abstract contract TokenDistribution {
 
     enum RoundType{
         SEED, PRIVATE, PUBLIC, PLAYANDEARN, EXCHANGES, TREASURY, ADVISOR, TEAM, SOCIAL

@@ -17,14 +17,13 @@ SAMPLE COMMANDS
 
 > npx hardhat accounts  
 > npx hardhat setGameOwner --address 0x41F30b058ec6aff3d858eE16FC16B9275affdb81 `optional command`  
-> npx hardhat getGameOwner `optional command`  
+> npx hardhat getGameOwner `optional command`
+> npx hardhat getsignatory
 > npx hardhat balance  
-> npx hardhat setTokenPrice --round seed --price 150  
-> npx hardhat getHeroTokenPrice --round seed  
-> npx hardhat setMEEPrice --price 10  
+> npx hardhat setTokenPrice --round seed --price 150
 > npx hardhat setActiveRound --round exhange  
-> npx hardhat addAddress --round seed --address 0x00.. 0x01.. 0x02..  
-> npx hardhat deleteAddress --round seed --address 0x00..  
+> npx hardhat addAddress --round seed --address 0x00..
+> npx hardhat deleteAddress --round seed --address 0x00.. --index 0
 > npx hardhat setActiveRound --round private  
 > npx hardhat addAddress --round private --address '0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199,0xdD2FD4581271e230360230F9337D5c0430Bf44C0'  
 > npx hardhat getAddressList --round private  

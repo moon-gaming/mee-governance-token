@@ -18,10 +18,8 @@ contract GovernanceToken is IERC165, SaleRounds {
 
     constructor(uint256 _initialAmount, string memory _tokenName,
                 uint8 _decimalUnits, string memory _tokenSymbol,
-                address _gameOwnerAddress, address _signatory, address[] memory walletAddresses )
-                ERC20(_tokenName, _tokenSymbol)
-                SaleRounds(_initialAmount, _decimalUnits, walletAddresses)
-                GameToken(_gameOwnerAddress, _signatory){
+                address _gameOwnerAddress, address _signatory)
+                SaleRounds(_tokenName, _tokenSymbol, _initialAmount, _decimalUnits, _gameOwnerAddress, _signatory){
 
         decimalUnits = _decimalUnits;
     }
@@ -29,14 +27,7 @@ contract GovernanceToken is IERC165, SaleRounds {
     function decimals() public view virtual override returns (uint8) {
         return decimalUnits;
     }
-
-    function setMEEPrice(uint256 _newPrice) public onlyGameOwner {
-       meePrice = _newPrice;
-    }
-
-    function getMEEPrice() external onlyGameOwner view returns (uint256){
-        return meePrice;
-    }
+    
     function isERC20() external view returns (bool) {
         return address(this).supportsInterface(IID_IERC20);
     }

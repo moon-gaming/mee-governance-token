@@ -9,6 +9,8 @@ import './tasks/governance'
 //require solidity-coverage for unit test coverage
 require('solidity-coverage');
 require('hardhat-abi-exporter');
+require('hardhat-contract-sizer');
+require('hardhat-gas-reporter');
 
 require("dotenv").config();
 
@@ -35,15 +37,15 @@ export default {
       timeout: 18000
     },
     matic: {
-      url: "https://rpc-mumbai.maticvigil.com",
-      //url: "https://matic-mumbai.chainstacklabs.com",
-      accounts: [process.env.OWNER, process.env.GAME_OWNER, process.env.BUYER, process.env.SIGNATORY,
-        process.env.BUYER, process.env.BUYER, process.env.BUYER, process.env.BUYER, process.env.BUYER, process.env.BUYER],
+      //url: "https://rpc-mumbai.matic.today",
+      //url: "https://rpc-mumbai.maticvigil.com",
+      url: "https://matic-mumbai.chainstacklabs.com",
+      accounts: [process.env.OWNER_PK, process.env.GAME_OWNER_PK, process.env.BUYER_PK, process.env.SIGNATORY_PK],
       allowUnlimitedContractSize: true,
-      blockGasLimit: 0x1fffffffffffff,
-      //timeout: 180000,
+      //blockGasLimit: 0x1fffffffffffff,
+      timeout: 180000,
       //chainId: 80001,
-      gas: 12000000
+      //gas: 12000000
     }
   },
   etherscan: {
@@ -60,8 +62,8 @@ export default {
     version: "0.8.13",
     settings: {
       optimizer: {
-        enabled: false,
-        runs: 1,
+        enabled: true,
+        runs: 1000,
       },
     },
   },
@@ -73,5 +75,12 @@ export default {
     target: 'ethers-v5',
     alwaysGenerateOverloads: false, // should overloads with full signatures like deposit(uint256) be generated always, even if there are no overloads?
     externalArtifacts: ['externalArtifacts/*.json'], // optional array of glob patterns with external artifacts to process (for example external libs from node_modules)
+  },
+  contractSizer: {
+    alphaSort: true,
+    disambiguatePaths: false,
+    runOnCompile: true,
+    strict: true,
+    only: [],
   }
 };
