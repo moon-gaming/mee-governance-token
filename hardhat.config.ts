@@ -57,7 +57,7 @@ export default {
     tests: "./test",
     cache: "./cache",
     artifacts: "./artifacts",
-    tasks: "./tasks"
+    //tasks: "./tasks"
   },
   solidity: {
     version: "0.8.13",

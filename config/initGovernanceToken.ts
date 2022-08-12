@@ -3,7 +3,6 @@ import getAccount from './initAccount'
 export async function initGovernanceToken(ethers: any, privateKey: string) {
     // call smart contract top mirror the record on blockchain
     const abi = [
-        "function setMEEPrice(uint256 _newPrice) public",
         "function setTokenPriceMap(string _roundType, uint256 _tokenPrice) public",
         "function getTokenPriceMap(string _roundType) public view returns(uint256)",
         "function balanceOf(address _address) public view returns(uint256)",

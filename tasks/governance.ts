@@ -35,22 +35,6 @@ task("buyHeroByGovernance")
     }
 })
 
-task("setMEEPrice")
-    .addParam("price", "MEE price")
-    .setAction(async(args, {ethers}) => {
-        
-    try{
-        const governanceToken = await initGovernanceToken(ethers, process.env.OWNER_PK!);
-
-        console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
-        console.log("PRICE", args.price);
-    
-        await governanceToken?.setMEEPrice(args.price);
-    }catch(err){
-      console.error("SET MEE PRICE ERR:", err);
-    }
-})
-
 task("getGameOwner")
     .setAction(async(args, {ethers}) => {
         

@@ -2,10 +2,6 @@ import { ethers } from "hardhat";
 import hre from "hardhat";
 
 async function main() {
-/*    enum RoundType{
-      SEED, PRIVATE, PUBLIC, PLAYANDEARN, EXCHANGES, TREASURY, ADVISOR, TEAM, SOCIAL
-    }*/
-
     const [deployer, gameOwner, ...addrs] = await ethers.getSigners();
   
     console.log("Deploying contracts with the account:", deployer.address);
@@ -27,9 +23,6 @@ async function main() {
 
     await governanceToken.connect(gameOwner).initialReservAndMint(addressList, {gasLimit: 5e5});
     console.log("Governance token initial reserv and minting has been completed");
-
-    await governanceToken.connect(gameOwner).setMEEPrice(1, {gasLimit: 4e4});
-    console.log("Governance token MEE Price has been setted");
   }
 
   main()
