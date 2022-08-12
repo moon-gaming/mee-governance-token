@@ -1,9 +1,10 @@
 import { ethers } from "hardhat";
+import hre from "hardhat";
 
 async function main() {
-    enum RoundType{
+/*    enum RoundType{
       SEED, PRIVATE, PUBLIC, PLAYANDEARN, EXCHANGES, TREASURY, ADVISOR, TEAM, SOCIAL
-    }
+    }*/
 
     const [deployer, gameOwner, ...addrs] = await ethers.getSigners();
   
@@ -30,11 +31,10 @@ async function main() {
     await governanceToken.connect(gameOwner).setMEEPrice(1, {gasLimit: 4e4});
     console.log("Governance token MEE Price has been setted");
   }
-  
+
   main()
     .then(() => process.exit(0))
     .catch((error) => {
       console.error(error);
       process.exit(1);
     });
-  

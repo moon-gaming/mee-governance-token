@@ -2,6 +2,7 @@ import path from 'path';
 import '@typechain/hardhat'
 import '@nomiclabs/hardhat-ethers'
 import '@nomiclabs/hardhat-waffle'
+import '@nomiclabs/hardhat-etherscan'
 import './tasks/accounts'
 import './tasks/balance'
 import './tasks/governance'
@@ -15,8 +16,8 @@ require('hardhat-gas-reporter');
 require("dotenv").config();
 
 process.env.ENV = process.env.ENV || "dev";
-const envPath = require("fs").existsSync(`${process.env.ENV}.env`) 
-? `${process.env.ENV}.env` : `${process.env.ENV}.env.local`
+const envPath = require("fs").existsSync(`${process.env.ENV}.env`)
+    ? `${process.env.ENV}.env` : `${process.env.ENV}.env.local`
 
 require("dotenv").config({ path: path.resolve(__dirname, envPath)});
 
@@ -56,7 +57,7 @@ export default {
     tests: "./test",
     cache: "./cache",
     artifacts: "./artifacts",
-    //tasks: "./tasks"
+    tasks: "./tasks"
   },
   solidity: {
     version: "0.8.13",
