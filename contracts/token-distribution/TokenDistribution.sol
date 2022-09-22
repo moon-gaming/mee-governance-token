@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.16;
 
 abstract contract TokenDistribution {
 
@@ -19,17 +19,17 @@ abstract contract TokenDistribution {
 
     function getRoundTypeByKey(string memory _roundType) internal pure returns (RoundType) {
         bytes memory roundType = bytes(_roundType);
-        bytes32 Hash = keccak256(roundType);
+        bytes32 hash = keccak256(roundType);
 
-        if (Hash == keccak256("SEED") || Hash == keccak256("seed")) return RoundType.SEED;
-        if (Hash == keccak256("PRIVATE") || Hash == keccak256("private")) return RoundType.PRIVATE;
-        if (Hash == keccak256("PUBLIC") || Hash == keccak256("public")) return RoundType.PUBLIC;
-        if (Hash == keccak256("PLAYANDEARN") || Hash == keccak256("playandearn")) return RoundType.PLAYANDEARN;
-        if (Hash == keccak256("EXCHANGES") || Hash == keccak256("exchanges")) return RoundType.EXCHANGES;
-        if (Hash == keccak256("TREASURY") || Hash == keccak256("treasury")) return RoundType.TREASURY;
-        if (Hash == keccak256("ADVISOR") || Hash == keccak256("advisor")) return RoundType.ADVISOR;
-        if (Hash == keccak256("TEAM") || Hash == keccak256("team")) return RoundType.TEAM;
-        if (Hash == keccak256("SOCIAL") || Hash == keccak256("social")) return RoundType.SOCIAL;
+        if (hash == keccak256("SEED") || hash == keccak256("seed")) return RoundType.SEED;
+        if (hash == keccak256("PRIVATE") || hash == keccak256("private")) return RoundType.PRIVATE;
+        if (hash == keccak256("PUBLIC") || hash == keccak256("public")) return RoundType.PUBLIC;
+        if (hash == keccak256("PLAYANDEARN") || hash == keccak256("playandearn")) return RoundType.PLAYANDEARN;
+        if (hash == keccak256("EXCHANGES") || hash == keccak256("exchanges")) return RoundType.EXCHANGES;
+        if (hash == keccak256("TREASURY") || hash == keccak256("treasury")) return RoundType.TREASURY;
+        if (hash == keccak256("ADVISOR") || hash == keccak256("advisor")) return RoundType.ADVISOR;
+        if (hash == keccak256("TEAM") || hash == keccak256("team")) return RoundType.TEAM;
+        if (hash == keccak256("SOCIAL") || hash == keccak256("social")) return RoundType.SOCIAL;
         revert();
     }
 }

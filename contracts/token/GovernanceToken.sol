@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.16;
 
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
@@ -7,12 +7,11 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../token-distribution/SaleRounds.sol";
 
 contract GovernanceToken is IERC165, SaleRounds {
-    using ERC165Checker for address; 
+    using ERC165Checker for address;
 
     bytes4 public constant IID_IERC20 = type(IERC20).interfaceId;
     bytes4 public constant IID_IERC165 = type(IERC165).interfaceId;
 
-    uint256 private meePrice;
     uint8 private decimalUnits;
     uint constant private MAX_UINT256 = type(uint256).max;
 
@@ -27,7 +26,7 @@ contract GovernanceToken is IERC165, SaleRounds {
     function decimals() public view virtual override returns (uint8) {
         return decimalUnits;
     }
-    
+
     function isERC20() external view returns (bool) {
         return address(this).supportsInterface(IID_IERC20);
     }

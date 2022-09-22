@@ -41,7 +41,7 @@ export default {
       //url: "https://rpc-mumbai.matic.today",
       //url: "https://rpc-mumbai.maticvigil.com",
       url: "https://matic-mumbai.chainstacklabs.com",
-      accounts: [process.env.OWNER_PK, process.env.GAME_OWNER_PK, process.env.BUYER_PK, process.env.SIGNATORY_PK],
+      accounts: [process.env.OWNER, process.env.GAME_OWNER, process.env.BUYER, process.env.SIGNATORY],
       allowUnlimitedContractSize: true,
       //blockGasLimit: 0x1fffffffffffff,
       timeout: 180000,
@@ -60,7 +60,7 @@ export default {
     //tasks: "./tasks"
   },
   solidity: {
-    version: "0.8.13",
+    version: "0.8.16",
     settings: {
       optimizer: {
         enabled: true,
@@ -70,6 +70,7 @@ export default {
   },
   namedAccounts: {
     deployer: 0,
+    gameOwner: 1,
   },
   typechain: {
     outDir: 'src/types',

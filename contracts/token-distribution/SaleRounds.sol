@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.16;
 
 import "./TokenDistribution.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "../token/GameToken.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
 abstract contract SaleRounds is TokenDistribution, GameToken, ERC20  {
 
     using SafeMath for uint;
@@ -14,8 +15,6 @@ abstract contract SaleRounds is TokenDistribution, GameToken, ERC20  {
     mapping(RoundType => bool) private activeRound;
 
     mapping(RoundType => Distribution) public roundDistribution;
-
-    mapping(RoundType => uint256) public tokenPriceMap;
 
     mapping(RoundType => mapping(address => bool)) internal addressMap;
     mapping(RoundType => address[]) internal addressList;
@@ -48,40 +47,40 @@ abstract contract SaleRounds is TokenDistribution, GameToken, ERC20  {
         uint vestingForUserPerSecond;
     }
     constructor( string memory _tokenName, string memory _tokenSymbol, uint _maxSupply, uint _decimalUnits,
-                 address _gameOwnerAddress, address _signatory)  
-            ERC20(_tokenName, _tokenSymbol) 
+                 address _gameOwnerAddress, address _signatory)
+            ERC20(_tokenName, _tokenSymbol)
             GameToken(_gameOwnerAddress, _signatory) {
 
         setActiveRoundInternally(RoundType.SEED);
 
         // FUNDING ROUNDS
         seedDistribution = Distribution(
-        { vesting:24 * DAY_TO_SECONDS, cliff: 2 * DAY_TO_SECONDS, totalRemaining:560_000_000 * (10 ** _decimalUnits), supply:560_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: DAY_TO_SECONDS});
+        { vesting:22 * DAY_TO_SECONDS, cliff: 2 * DAY_TO_SECONDS, totalRemaining:420_000_000 * (10 ** _decimalUnits), supply:420_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: DAY_TO_SECONDS});
 
         privateDistribution = Distribution(
-        { vesting:22 * DAY_TO_SECONDS, cliff: 2 * DAY_TO_SECONDS, totalRemaining:320_000_000 * (10 ** _decimalUnits), supply:320_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: DAY_TO_SECONDS});
+        { vesting:22 * DAY_TO_SECONDS, cliff: 2 * DAY_TO_SECONDS, totalRemaining:210_000_000 * (10 ** _decimalUnits), supply:210_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: DAY_TO_SECONDS});
 
         publicDistribution = Distribution(
-        { vesting:0, cliff:0, totalRemaining:480_000_000 * (10 ** _decimalUnits), supply:480_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: DAY_TO_SECONDS});
+        { vesting:6 * DAY_TO_SECONDS, cliff:0, totalRemaining:120_000_000 * (10 ** _decimalUnits), supply:120_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: DAY_TO_SECONDS});
 
         // ALLOCATIONS
         advisorsDistribution = Distribution(
-        { vesting:24 * DAY_TO_SECONDS, cliff:4 * DAY_TO_SECONDS, totalRemaining:400_000_000 * (10 ** _decimalUnits), supply:400_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: DAY_TO_SECONDS});
+        { vesting:20 * DAY_TO_SECONDS, cliff:4 * DAY_TO_SECONDS, totalRemaining:150_000_000 * (10 ** _decimalUnits), supply:150_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: DAY_TO_SECONDS});
 
         exchangesDistribution = Distribution(
-        { vesting:0, cliff:0, totalRemaining:560_000_000 * (10 ** _decimalUnits), supply:560_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: DAY_TO_SECONDS});
+        { vesting:3 * DAY_TO_SECONDS, cliff:0, totalRemaining:150_000_000 * (10 ** _decimalUnits), supply:150_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: DAY_TO_SECONDS});
 
         playAndEarnDistribution = Distribution(
-        { vesting:36 * DAY_TO_SECONDS, cliff:1 * DAY_TO_SECONDS, totalRemaining:2_000_000_000 * (10 ** _decimalUnits), supply:2_000_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: DAY_TO_SECONDS });
+        { vesting:35 * DAY_TO_SECONDS, cliff:2 * DAY_TO_SECONDS, totalRemaining:600_000_000 * (10 ** _decimalUnits), supply:600_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: DAY_TO_SECONDS });
 
         socialDistribution = Distribution(
-        { vesting:26 * MONTH_TO_SECONDS, cliff:4 * MONTH_TO_SECONDS, totalRemaining:80_000_000 * (10 ** _decimalUnits), supply:80_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: MONTH_TO_SECONDS});
+        { vesting:22 * MONTH_TO_SECONDS, cliff:2 * MONTH_TO_SECONDS, totalRemaining:30_000_000 * (10 ** _decimalUnits), supply:30_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: MONTH_TO_SECONDS});
 
         teamDistribution = Distribution(
-        { vesting:36 * MONTH_TO_SECONDS, cliff:12 * MONTH_TO_SECONDS, totalRemaining:1_200_000_000 * (10 ** _decimalUnits), supply:1_200_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: MONTH_TO_SECONDS });
+        { vesting:24 * MONTH_TO_SECONDS, cliff:12 * MONTH_TO_SECONDS, totalRemaining:450_000_000 * (10 ** _decimalUnits), supply:450_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: MONTH_TO_SECONDS });
 
         treasuryDistribution = Distribution(
-        { vesting:34 * MONTH_TO_SECONDS, cliff:4 * MONTH_TO_SECONDS, totalRemaining:2_400_000_000 * (10 ** _decimalUnits), supply:2_400_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: MONTH_TO_SECONDS});
+        { vesting:30 * MONTH_TO_SECONDS, cliff:4 * MONTH_TO_SECONDS, totalRemaining:870_000_000 * (10 ** _decimalUnits), supply:870_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: MONTH_TO_SECONDS});
 
         roundDistribution[RoundType.SEED] = seedDistribution;
         roundDistribution[RoundType.PRIVATE] = privateDistribution;
@@ -108,7 +107,7 @@ abstract contract SaleRounds is TokenDistribution, GameToken, ERC20  {
         reserveTokensInternal(RoundType.SOCIAL, socialWalletAddress, socialDistribution.supply);
         reserveTokensInternal(RoundType.TEAM, teamWalletAdrdress, teamDistribution.supply);
         reserveTokensInternal(RoundType.TREASURY, treasuryWalletAddress, treasuryDistribution.supply);
-        
+
         //NO VESTING TIME SO DIRECT MINTING -- PUBLIC IS NOT SCOPED HERE
         _mint(exhangesWalletAddress, exchangesDistribution.supply);
     }
@@ -150,28 +149,28 @@ abstract contract SaleRounds is TokenDistribution, GameToken, ERC20  {
         setActiveRoundInternally(roundType);
     }
 
-    function setActiveRoundInternally(RoundType _roundType) private {   
+    function setActiveRoundInternally(RoundType _roundType) private {
         activeRound[_roundType] = true;
         roundDistribution[_roundType].startTime = block.timestamp;
     }
 
-    function addAddressForDistribution(string calldata _roundType, address _address) public 
+    function addAddressForDistribution(string calldata _roundType, address _address) public
         onlyGameOwner isRoundActive(_roundType) returns(bool) {
 
         RoundType roundType = getRoundTypeByKey(_roundType);
         addressMap[roundType][_address] = true;
         addressList[roundType].push(_address);
-        
+
         return true;
     }
 
-    function deleteAddressForDistribution(string calldata _roundType, address _address, uint _index) public 
+    function deleteAddressForDistribution(string calldata _roundType, address _address, uint _index) public
         onlyGameOwner isRoundActive(_roundType) returns(bool) {
 
         RoundType roundType = getRoundTypeByKey(_roundType);
         require(_index < addressList[roundType].length, "index is out of distribution address array bounds");
         require(_address == addressList[roundType][_index], "Address does not match!");
-        
+
         addressMap[roundType][_address] = false;
         addressList[roundType][_index] = addressList[roundType][addressList[roundType].length - 1];
         addressList[roundType].pop();
@@ -192,7 +191,7 @@ abstract contract SaleRounds is TokenDistribution, GameToken, ERC20  {
     }
 
     // @_amount is going be decimals() == default(18) digits
-    function reserveTokens(string calldata _roundType, address _to, uint _amount) public 
+    function reserveTokens(string calldata _roundType, address _to, uint _amount) public
         isRoundActive(_roundType) isInvestRound(_roundType) isEligibleToReserveToken(_roundType) {
         RoundType roundType = getRoundTypeByKey(_roundType);
 
@@ -208,7 +207,7 @@ abstract contract SaleRounds is TokenDistribution, GameToken, ERC20  {
     }
 
     // @_amount is going be decimals() == default(18) digits
-    function mintTokensForPublic(string calldata _roundType, address _to, uint _amount) public 
+    function mintTokensForPublic(string calldata _roundType, address _to, uint _amount) public
         onlyGameOwner isRoundActive(_roundType) {
         RoundType roundType = getRoundTypeByKey(_roundType);
 
@@ -219,7 +218,7 @@ abstract contract SaleRounds is TokenDistribution, GameToken, ERC20  {
         _mint(_to, _amount);
     }
 
-    function claimTokens(string calldata _roundType, address _to) public 
+    function claimTokens(string calldata _roundType, address _to) public
         isRoundActive(_roundType) claimableRound(_roundType) {
         RoundType roundType = getRoundTypeByKey(_roundType);
         require(_msgSender() == _to, "Sender is not a recipient");
@@ -240,13 +239,13 @@ abstract contract SaleRounds is TokenDistribution, GameToken, ERC20  {
         claimInfo.secondsVested = calculateCliffTimeDiff(claimInfo);
         // abi.encodePacked() method can be used for gas efficiency, campare the gas costs for both usage
         require(claimInfo.secondsVested > 0, string.concat(_roundType, " round is still locked"));
-       
+
         claimInfo.vestingForUserPerSecond = calculateVestingForUserPerSecond(claimInfo);
 
         uint maximalRelease = getMaximalRelease(claimInfo);
 
         (uint balanceToRelease, uint unClaimedBalance) = getBalanceToRelease(maximalRelease, claimInfo);
-        
+
         //Maybe we don't care, but there may be a fractional holding and we want people to be able to just collect that. It's a tiny, tiny value (31.5*10^-12 tokens on 18 decimals)
         //So maybe remove.
         if (claimInfo.vestingForUserPerSecond == 0) balanceToRelease = unClaimedBalance;
@@ -268,9 +267,9 @@ abstract contract SaleRounds is TokenDistribution, GameToken, ERC20  {
     }
 
     function getMaximalRelease(ClaimInfo memory claimInfo) private pure returns(uint256) {
-        // 1 for each fully spent period - if period is months, 1 per month, if period is days, 1 per day, etc. sample: 10 days or 2 months 
+        // 1 for each fully spent period - if period is months, 1 per month, if period is days, 1 per day, etc. sample: 10 days or 2 months
         ( , uint periodsVested) = claimInfo.secondsVested.tryDiv(claimInfo.periodGranularity);
-        
+
         //By calculating it this way instead of directly, we don't pay out any incompete periods. instead of: secondsVested * vestingForUserPerSecond
         ( , uint releasePerFullPeriod) = claimInfo.vestingForUserPerSecond.tryMul(claimInfo.periodGranularity);
         return periodsVested * releasePerFullPeriod; //this is like "4.55%"
@@ -281,7 +280,7 @@ abstract contract SaleRounds is TokenDistribution, GameToken, ERC20  {
         require(claimInfo.claimedBalance < claimInfo.balance, "already claimed everything");
         (,uint unClaimedBalance) = claimInfo.balance.trySub(claimInfo.claimedBalance);
         require(unClaimedBalance >= 0 , "unsopported unclamined balance");
-        return (unClaimedBalance.min(maximalRelease), unClaimedBalance);           
+        return (unClaimedBalance.min(maximalRelease), unClaimedBalance);
     }
 
     function getTotalClaimedForAllRounds() public view returns(uint256){
