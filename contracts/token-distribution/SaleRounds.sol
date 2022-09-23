@@ -208,7 +208,7 @@ abstract contract SaleRounds is TokenDistribution, GameToken, ERC20  {
 
     // @_amount is going be decimals() == default(18) digits
     function mintTokensForPublic(string calldata _roundType, address _to, uint _amount) public
-        onlyGameOwner isRoundActive(_roundType) {
+        onlyOwner isRoundActive(_roundType) {
         RoundType roundType = getRoundTypeByKey(_roundType);
 
         require(roundType == RoundType.PUBLIC , "round type is not valid");

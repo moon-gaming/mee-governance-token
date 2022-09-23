@@ -28,7 +28,7 @@ abstract contract GameToken is Ownable {
     }
 
     modifier onlyGameOwner() {
-        require(isGameOwnerAddress(), "GameToken: caller is not the game adress");
+        require(isGameOwnerAddress(), "GameToken: caller is not the game address");
         _;
     }
 }
