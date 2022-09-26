@@ -15,7 +15,7 @@ async function main() {
     await governanceToken.deployed();
 
     console.log("Governance Token deployment completed");
-    console.log("Governance Token balance of deployer:", await governanceToken.balanceOf(deployer.address));
+    console.log("Governance Token balance of deployer:", (await governanceToken.balanceOf(deployer.address).toString()));
 
     const addressList = [process.env.EXCHANGES_WALLET_ADDRESS, process.env.PLAYANDEARN_WALLET_ADDRESS,
         process.env.SOCIAL_WALLET_ADDRESS, process.env.TEAM_WALLET_ADDRESS, process.env.TREASURY_WALLET_ADDRESS];

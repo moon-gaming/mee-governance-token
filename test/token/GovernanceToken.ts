@@ -60,40 +60,40 @@ const publicDistribution: Distribution = {
 
 const playAndEarnDistribution: Distribution = {
     type: RoundType[RoundType.PLAYANDEARN],
-    vesting: 36 * DAY_TO_SECONDS,
-    cliff: 1 * DAY_TO_SECONDS,
-    totalRemaining: BigNumber.from("2000000000").mul(pow18),
-    supply: BigNumber.from("2000000000").mul(pow18),
+    vesting: 35 * DAY_TO_SECONDS,
+    cliff: 2 * DAY_TO_SECONDS,
+    totalRemaining: BigNumber.from("6000000000").mul(pow18),
+    supply: BigNumber.from("6000000000").mul(pow18),
     vestingGranularity: DAY_TO_SECONDS,
     externalReserve: false
 }
 
 const socialDistribution: Distribution = {
     type: RoundType[RoundType.SOCIAL],
-    vesting: 26 * MONTH_TO_SECONDS,
-    cliff: 4 * MONTH_TO_SECONDS,
-    totalRemaining: BigNumber.from("80000000").mul(pow18),
-    supply: BigNumber.from("80000000").mul(pow18),
+    vesting: 22 * MONTH_TO_SECONDS,
+    cliff: 2 * MONTH_TO_SECONDS,
+    totalRemaining: BigNumber.from("30000000").mul(pow18),
+    supply: BigNumber.from("30000000").mul(pow18),
     vestingGranularity: MONTH_TO_SECONDS,
     externalReserve: false
 }
 
 const teamDistribution: Distribution = {
     type: RoundType[RoundType.TEAM],
-    vesting: 36 * MONTH_TO_SECONDS,
+    vesting: 24 * MONTH_TO_SECONDS,
     cliff: 12 * MONTH_TO_SECONDS,
-    totalRemaining: BigNumber.from("1200000000").mul(pow18),
-    supply: BigNumber.from("1200000000").mul(pow18),
+    totalRemaining: BigNumber.from("4500000000").mul(pow18),
+    supply: BigNumber.from("4500000000").mul(pow18),
     vestingGranularity: MONTH_TO_SECONDS,
     externalReserve: false
 }
 
 const treasuryDistribution: Distribution = {
     type: RoundType[RoundType.TREASURY],
-    vesting: 34 * MONTH_TO_SECONDS,
+    vesting: 30 * MONTH_TO_SECONDS,
     cliff: 4 * MONTH_TO_SECONDS,
-    totalRemaining: BigNumber.from("2400000000").mul(pow18),
-    supply: BigNumber.from("2400000000").mul(pow18),
+    totalRemaining: BigNumber.from("8700000000").mul(pow18),
+    supply: BigNumber.from("8700000000").mul(pow18),
     vestingGranularity: MONTH_TO_SECONDS,
     externalReserve: false
 }
@@ -455,7 +455,7 @@ describe("Governance Token contract", function () {
             it("claiming token after cliff time has passed", async () => {
                 const tokenAmount = BigNumber.from("10").mul(pow18);
                 const claimObj: ClaimObj = {
-                    totalClaimedAmount: BigNumber.from("420000000").mul(pow18),
+                    totalClaimedAmount: BigNumber.from("150000000").mul(pow18),
                     claimedAmount: BigNumber.from(0)
                 }
 
@@ -473,7 +473,7 @@ describe("Governance Token contract", function () {
             it("additional claiming token without reserving after cliff time has passed", async () => {
                 const tokenAmount = BigNumber.from("416666666666620800").mul(5);
                 const claimObj: ClaimObj = {
-                    totalClaimedAmount: BigNumber.from("420000000").mul(pow18),
+                    totalClaimedAmount: BigNumber.from("150000000").mul(pow18),
                     claimedAmount: BigNumber.from(0)
                 }
 
@@ -491,7 +491,7 @@ describe("Governance Token contract", function () {
             it("claiming token having vestingForUserPerSecond == 0 after cliff time has passed", async () => {
                 const tokenAmount = BigNumber.from("1");
                 const claimObj: ClaimObj = {
-                    totalClaimedAmount: BigNumber.from("420000000").mul(pow18),
+                    totalClaimedAmount: BigNumber.from("150000000").mul(pow18),
                     claimedAmount: BigNumber.from(0)
                 }
 
