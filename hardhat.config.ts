@@ -41,7 +41,7 @@ export default {
       //url: "https://rpc-mumbai.matic.today",
       //url: "https://rpc-mumbai.maticvigil.com",
       url: "https://matic-mumbai.chainstacklabs.com",
-      accounts: [process.env.OWNER, process.env.GAME_OWNER, process.env.BUYER, process.env.SIGNATORY],
+      accounts: [process.env.OWNER, process.env.GAME_OWNER, process.env.BUYER],
       allowUnlimitedContractSize: true,
       //blockGasLimit: 0x1fffffffffffff,
       timeout: 180000,

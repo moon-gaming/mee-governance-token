@@ -9,7 +9,7 @@ async function main() {
     const governanceTokenFactory = await ethers.getContractFactory("GovernanceToken");
 
     const governanceToken = await governanceTokenFactory.deploy(
-        8000000000000000, "AoE Governance Token", 18, "MEE", process.env.GAME_OWNER_ADDRESS, process.env.SIGNATORY_ADDRESS, {gasLimit: 6e6});
+        8000000000000000, "AoE Governance Token", 18, "MEE", process.env.GAME_OWNER_ADDRESS, {gasLimit: 6e6});
 
     console.log("Governance Token deployment in Progress:", governanceToken.address);
     await governanceToken.deployed();

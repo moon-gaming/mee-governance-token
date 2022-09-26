@@ -8,7 +8,7 @@ task("buyHeroByGovernance")
         try {
             const governanceToken = await initGovernanceToken(ethers, process.env.OWNER_PK_PK!);
             // const signer = await getSigner(ethers, process.env.BUYER!);
-            const signer = await getAccount(ethers, process.env.SIGNATORY_PK!);
+            // const signer = await getAccount(ethers, process.env.SIGNATORY_PK!);
             const sender = await getAccount(ethers, process.env.OWNER_PK!);
 
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
@@ -27,9 +27,9 @@ task("buyHeroByGovernance")
             console.log("MESSAGE PACKED", message);
 
             const messageHash = ethers.utils.solidityKeccak256(['bytes'], [message]);
-            let signature = await signer?.signMessage(ethers.utils.arrayify(messageHash));
+            // let signature = await signer?.signMessage(ethers.utils.arrayify(messageHash));
 
-            await governanceToken?.buyHeroByGovernance(signature, args.tokenid, nonceNumber, {gasLimit: 500000});
+            await governanceToken?.buyHeroByGovernance(args.tokenid, nonceNumber, {gasLimit: 500000});
         } catch (err) {
             console.error("BUY HERO BY TOKEN ERR:", err);
         }
@@ -46,20 +46,6 @@ task("getGameOwner")
             console.log("GAME OWNER ADDRESS", await governanceToken?.callStatic.getGameOwnerAddress());
         } catch (err) {
             console.error("GET GAME OWNER ERR:", err);
-        }
-    })
-
-task("getSignatory")
-    .setAction(async (args, {ethers}) => {
-
-        try {
-            const governanceToken = await initGovernanceToken(ethers, process.env.OWNER_PK!);
-
-            console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
-
-            console.log("GAME SIGNATORY", await governanceToken?.callStatic.getSignatory());
-        } catch (err) {
-            console.error("GET SIGNATORY ERR:", err);
         }
     })
 

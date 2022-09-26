@@ -17,9 +17,8 @@ contract GovernanceToken is IERC165, SaleRounds {
 
     constructor(uint256 _initialAmount, string memory _tokenName,
                 uint8 _decimalUnits, string memory _tokenSymbol,
-                address _gameOwnerAddress, address _signatory)
-                SaleRounds(_tokenName, _tokenSymbol, _initialAmount, _decimalUnits, _gameOwnerAddress, _signatory){
-
+                address _gameOwnerAddress)
+                SaleRounds(_tokenName, _tokenSymbol, _initialAmount, _decimalUnits, _gameOwnerAddress) {
         decimalUnits = _decimalUnits;
     }
 

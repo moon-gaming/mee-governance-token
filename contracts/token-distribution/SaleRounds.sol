@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import "./TokenDistribution.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
-import "../token/GameToken.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "./TokenDistribution.sol";
+import "../utils/GameOwner.sol";
 
-abstract contract SaleRounds is TokenDistribution, GameToken, ERC20  {
-
+contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     using SafeMath for uint;
     using Math for uint;
 
@@ -47,9 +46,9 @@ abstract contract SaleRounds is TokenDistribution, GameToken, ERC20  {
         uint vestingForUserPerSecond;
     }
     constructor( string memory _tokenName, string memory _tokenSymbol, uint _maxSupply, uint _decimalUnits,
-                 address _gameOwnerAddress, address _signatory)
+                 address _gameOwnerAddress)
             ERC20(_tokenName, _tokenSymbol)
-            GameToken(_gameOwnerAddress, _signatory) {
+            GameOwner(_gameOwnerAddress) {
 
         setActiveRoundInternally(RoundType.SEED);
 
@@ -112,7 +111,7 @@ abstract contract SaleRounds is TokenDistribution, GameToken, ERC20  {
         _mint(exhangesWalletAddress, exchangesDistribution.supply);
     }
 
-    modifier isEligibleToReserveToken(string calldata _roundType){
+    modifier isEligibleToReserveToken(string calldata _roundType) {
         RoundType roundType = getRoundTypeByKey(_roundType);
 
         require(roundType != RoundType.PUBLIC, "reservation is not supported for this round");
@@ -254,13 +253,13 @@ abstract contract SaleRounds is TokenDistribution, GameToken, ERC20  {
         emit ClaimEvent(_roundType, balanceToRelease, _to);
     }
 
-    function calculateCliffTimeDiff(ClaimInfo memory claimInfo) private view returns(uint){
+    function calculateCliffTimeDiff(ClaimInfo memory claimInfo) private view returns(uint) {
         //How many seconds since the cliff? (negative if before cliff)
         (, uint timeDiff) = (block.timestamp - claimInfo.startTime).trySub(claimInfo.cliff);
         return timeDiff;
     }
 
-    function calculateVestingForUserPerSecond(ClaimInfo memory claimInfo) private pure returns(uint){
+    function calculateVestingForUserPerSecond(ClaimInfo memory claimInfo) private pure returns(uint) {
         //We divide the balance by the number of seconds in the entire vesting period (vesting unit is seconds!).
         (, uint vestingForUserPerSecond) = claimInfo.balance.tryDiv(claimInfo.vesting);
         return vestingForUserPerSecond;
@@ -283,21 +282,21 @@ abstract contract SaleRounds is TokenDistribution, GameToken, ERC20  {
         return (unClaimedBalance.min(maximalRelease), unClaimedBalance);
     }
 
-    function getTotalClaimedForAllRounds() public view returns(uint256){
+    function getTotalClaimedForAllRounds() public view returns(uint256) {
        return totalSupply();
     }
 
-    function getTotalRemainingForAllRounds() public view returns(uint256){
+    function getTotalRemainingForAllRounds() public view returns(uint256) {
        (, uint val) = maxSupply.trySub(totalSupply());
        return val;
     }
 
-    function getTotalRemainingForSpecificRound(string calldata _roundType) public view returns(uint256){
+    function getTotalRemainingForSpecificRound(string calldata _roundType) public view returns(uint256) {
         RoundType roundType = getRoundTypeByKey(_roundType);
         return roundDistribution[roundType].totalRemaining;
     }
 
-    function getTotalPending(string calldata _roundType, address _to) public view returns(uint256){
+    function getTotalPending(string calldata _roundType, address _to) public view returns(uint256) {
         RoundType roundType = getRoundTypeByKey(_roundType);
 
         return reservedBalances[roundType][_to];
@@ -309,7 +308,7 @@ abstract contract SaleRounds is TokenDistribution, GameToken, ERC20  {
         roundDistribution[roundType].cliff = _amount;
     }
 
-    function getCliffTime(string calldata _roundType) public view onlyGameOwner returns(uint256){
+    function getCliffTime(string calldata _roundType) public view onlyGameOwner returns(uint256) {
         RoundType roundType =  getRoundTypeByKey(_roundType);
 
         return roundDistribution[roundType].cliff;
