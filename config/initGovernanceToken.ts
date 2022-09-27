@@ -19,14 +19,14 @@ export async function initGovernanceToken(ethers: any, privateKey: string) {
         "function getSignatory() public view returns(address)",
         "function initialReservAndMint() public"
     ];
-    
+
     let governanceTokenContract;
-    try{
+    try {
         governanceTokenContract = new ethers.Contract(process.env.GOVERNANCE_TOKEN, abi, await getAccount(ethers, privateKey));
-    }catch (err){
+    } catch (err) {
         console.error("Governance Contract init err:", err);
     }
-    
+
     return governanceTokenContract;
 }
 
