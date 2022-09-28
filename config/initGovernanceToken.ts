@@ -17,7 +17,7 @@ export async function initGovernanceToken(ethers: any, privateKey: string) {
         "function getTotalPending(string _roundType, address _to) public view returns(uint256)",
         "function getGameOwnerAddress() public view returns(address)",
         "function getSignatory() public view returns(address)",
-        "function initialReservAndMint() public"
+        "function initialReserveAndMint() public"
     ];
 
     let governanceTokenContract;

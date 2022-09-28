@@ -3,7 +3,8 @@ import {ethers} from "hardhat";
 async function main() {
     const [deployer, gameOwner] = await ethers.getSigners();
 
-    console.log("Deploying contracts with the account:", deployer.address);
+    // Governance Token deployment
+    console.log("Deploying Governance contract with the account:", deployer.address);
     console.log("Account balance:", (await deployer.getBalance()).toString());
 
     const governanceTokenFactory = await ethers.getContractFactory("GovernanceToken");
@@ -15,13 +16,28 @@ async function main() {
     await governanceToken.deployed();
 
     console.log("Governance Token deployment completed");
-    console.log("Governance Token balance of deployer:", (await governanceToken.balanceOf(deployer.address).toString()));
+    console.log("Governance Token balance of deployer:", (await governanceToken.balanceOf(deployer.address)).toString());
 
     const addressList = [process.env.EXCHANGES_WALLET_ADDRESS, process.env.PLAYANDEARN_WALLET_ADDRESS,
         process.env.SOCIAL_WALLET_ADDRESS, process.env.TEAM_WALLET_ADDRESS, process.env.TREASURY_WALLET_ADDRESS];
 
-    await governanceToken.connect(gameOwner).initialReservAndMint(addressList, {gasLimit: 5e5});
-    console.log("Governance token initial reserv and minting has been completed");
+    await governanceToken.connect(gameOwner).initialReserveAndMint(addressList, {gasLimit: 5e5});
+    console.log("Governance token initial reserve and minting has been completed");
+
+
+    // Staking Contract deployment
+    console.log("Deploying Staking contract with the account:", deployer.address);
+    console.log("Account balance:", (await deployer.getBalance()).toString());
+
+    const stakingRewardsFactory = await ethers.getContractFactory("StakingRewards");
+
+    const stakingRewards = await stakingRewardsFactory.deploy(
+        process.env.GOVERNANCE_TOKEN, process.env.GOVERNANCE_TOKEN, {gasLimit: 6e6});
+
+    console.log("Staking Contract deployment in Progress:", stakingRewards.address);
+    await stakingRewards.deployed();
+
+    console.log("Staking Contact deployment completed");
 }
 
 main()
