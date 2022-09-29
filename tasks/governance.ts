@@ -233,7 +233,7 @@ task("totalClaimedForAllRounds")
         }
     })
 
-task("initialReservAndMint")
+task("initialReserveAndMint")
     .setAction(async (args, {ethers}) => {
 
         try {
@@ -244,9 +244,9 @@ task("initialReservAndMint")
             const addressList = [process.env.EXCHANGES_WALLET_ADDRESS, process.env.PLAYANDEARN_WALLET_ADDRESS,
                 process.env.SOCIAL_WALLET_ADDRESS, process.env.TEAM_WALLET_ADDRESS, process.env.TREASURY_WALLET_ADDRESS];
 
-            await governanceToken?.initialReservAndMint(addressList);
+            await governanceToken?.initialReserveAndMint(addressList);
         } catch (err) {
-            console.error("initialReservAndMint ERR:", err);
+            console.error("initialReserveAndMint ERR:", err);
         }
     })
 
