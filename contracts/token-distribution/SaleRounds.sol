@@ -95,7 +95,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         maxSupply = _maxSupply * (10 ** _decimalUnits);
     }
 
-    function initialReserveAndMint(address[] memory walletAddresses ) onlyGameOwner public {
+    function initialReserveAndMint(address[] memory walletAddresses) onlyGameOwner public {
         address exhangesWalletAddress = walletAddresses[0];
         address playAndEarnWalletAddress = walletAddresses[1];
         address socialWalletAddress = walletAddresses[2];

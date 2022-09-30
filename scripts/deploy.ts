@@ -1,16 +1,16 @@
-import {ethers} from "hardhat";
+import hre from "hardhat";
 
 async function main() {
-    const [deployer, gameOwner] = await ethers.getSigners();
+    const [deployer, gameOwner] = await hre.ethers.getSigners();
 
     // Governance Token deployment
     console.log("Deploying Governance contract with the account:", deployer.address);
     console.log("Account balance:", (await deployer.getBalance()).toString());
 
-    const governanceTokenFactory = await ethers.getContractFactory("GovernanceToken");
+    const governanceTokenFactory = await hre.ethers.getContractFactory("GovernanceToken");
 
     const governanceToken = await governanceTokenFactory.deploy(
-        8000000000000000, "AoE Governance Token", 18, "MEE", process.env.GAME_OWNER_ADDRESS, {gasLimit: 6e6});
+        8000000000000000, "MEE Governance Token", 18, "MEE", process.env.GAME_OWNER_ADDRESS, {gasLimit: 6e6});
 
     console.log("Governance Token deployment in Progress:", governanceToken.address);
     await governanceToken.deployed();
@@ -29,7 +29,7 @@ async function main() {
     console.log("Deploying Staking contract with the account:", deployer.address);
     console.log("Account balance:", (await deployer.getBalance()).toString());
 
-    const stakingRewardsFactory = await ethers.getContractFactory("StakingRewards");
+    const stakingRewardsFactory = await hre.ethers.getContractFactory("StakingRewards");
 
     const stakingRewards = await stakingRewardsFactory.deploy(
         process.env.GOVERNANCE_TOKEN, process.env.GOVERNANCE_TOKEN, {gasLimit: 6e6});

@@ -37,20 +37,20 @@ export default {
       allowUnlimitedContractSize: true,
       timeout: 18000
     },
-    matic: {
-      //url: "https://rpc-mumbai.matic.today",
-      //url: "https://rpc-mumbai.maticvigil.com",
-      url: "https://matic-mumbai.chainstacklabs.com",
-      accounts: [process.env.OWNER, process.env.GAME_OWNER, process.env.BUYER],
+    mumbai: {
+      url: "https://rpc-mumbai.maticvigil.com",
+      accounts: [process.env.OWNER],
       allowUnlimitedContractSize: true,
-      //blockGasLimit: 0x1fffffffffffff,
-      timeout: 180000,
-      //chainId: 80001,
-      //gas: 12000000
+      chainId: 80001,
+    },
+    matic: {
+      url: "https://polygon-rpc.com",
+      accounts: [process.env.OWNER],
+      chainId: 137,
     }
   },
   etherscan: {
-    apiKey: process.env.POLYGONSCAN_API_KEY
+    apiKey: "G6MUHJ3TSMX1RI15W4WC366VD54CXZD2XM"
   },
   paths: {
     sources: "./contracts",
