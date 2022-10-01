@@ -32,7 +32,7 @@ async function main() {
     const stakingRewardsFactory = await hre.ethers.getContractFactory("StakingRewards");
 
     const stakingRewards = await stakingRewardsFactory.deploy(
-        process.env.GOVERNANCE_TOKEN, process.env.GOVERNANCE_TOKEN, {gasLimit: 6e6});
+        governanceToken.address, governanceToken.address, {gasLimit: 6e6});
 
     console.log("Staking Contract deployment in Progress:", stakingRewards.address);
     await stakingRewards.deployed();
