@@ -39,18 +39,21 @@ export default {
     },
     mumbai: {
       url: "https://rpc-mumbai.maticvigil.com",
-      accounts: [process.env.OWNER],
+      accounts: [process.env.OWNER, process.env.GAME_OWNER],
       allowUnlimitedContractSize: true,
       chainId: 80001,
     },
     matic: {
       url: "https://polygon-rpc.com",
-      accounts: [process.env.OWNER],
+      accounts: [process.env.OWNER, process.env.GAME_OWNER],
       chainId: 137,
     }
   },
   etherscan: {
-    apiKey: "G6MUHJ3TSMX1RI15W4WC366VD54CXZD2XM"
+    apiKey: {
+      polygon: "G6MUHJ3TSMX1RI15W4WC366VD54CXZD2XM",
+      polygonMumbai: "G6MUHJ3TSMX1RI15W4WC366VD54CXZD2XM"
+    }
   },
   paths: {
     sources: "./contracts",
