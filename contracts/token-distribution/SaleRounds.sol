@@ -119,14 +119,14 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         RoundType roundType = getRoundTypeByKey(_roundType);
 
         require(roundType != RoundType.PUBLIC, "reservation is not supported for this round");
-        require(isGameOwnerAddress() || addressMap[roundType][_msgSender()] == true, "address is not confirmed to reserv the token");
+        require(isGameOwnerAddress() || addressMap[roundType][_msgSender()], "address is not confirmed to reserv the token");
         _;
     }
 
     modifier isRoundActive(string calldata _roundType) {
         RoundType roundType = getRoundTypeByKey(_roundType);
 
-        require(activeRound[roundType] == true , "round is not active");
+        require(activeRound[roundType] , "round is not active");
         _;
     }
 
@@ -148,7 +148,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
     function setActiveRound(string calldata _roundType) public onlyGameOwner {
         RoundType roundType = getRoundTypeByKey(_roundType);
-        require(activeRound[roundType] == false, "Round is already active");
+        require(!activeRound[roundType], "Round is already active");
         setActiveRoundInternally(roundType);
     }
 
