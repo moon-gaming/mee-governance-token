@@ -283,7 +283,6 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         //technically the precondition / postcondions of the contract prevent this overflow - maybe investigate?
         require(claimInfo.claimedBalance < claimInfo.balance, "already claimed everything");
         (,uint unClaimedBalance) = claimInfo.balance.trySub(claimInfo.claimedBalance);
-        require(unClaimedBalance >= 0 , "unsopported unclamined balance");
         return (unClaimedBalance.min(maximalRelease), unClaimedBalance);
     }
 
