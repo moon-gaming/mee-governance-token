@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-pragma solidity ^0.8.17;
+pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
@@ -99,13 +99,13 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         address exhangesWalletAddress = walletAddresses[0];
         address playAndEarnWalletAddress = walletAddresses[1];
         address socialWalletAddress = walletAddresses[2];
-        address teamWalletAdrdress = walletAddresses[3];
+        address teamWalletAddress = walletAddresses[3];
         address treasuryWalletAddress = walletAddresses[4];
 
         //ALLOCATIONS WITH WALLET CONSTANT
         reserveTokensInternal(RoundType.PLAYANDEARN, playAndEarnWalletAddress, playAndEarnDistribution.supply);
         reserveTokensInternal(RoundType.SOCIAL, socialWalletAddress, socialDistribution.supply);
-        reserveTokensInternal(RoundType.TEAM, teamWalletAdrdress, teamDistribution.supply);
+        reserveTokensInternal(RoundType.TEAM, teamWalletAddress, teamDistribution.supply);
         reserveTokensInternal(RoundType.TREASURY, treasuryWalletAddress, treasuryDistribution.supply);
 
         //NO VESTING TIME SO DIRECT MINTING -- PUBLIC IS NOT SCOPED HERE
