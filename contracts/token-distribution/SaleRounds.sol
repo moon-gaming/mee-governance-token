@@ -36,6 +36,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
     uint constant private DAY_TO_SECONDS = 24 * 60 * 60;
     uint constant private MONTH_TO_SECONDS = 30 * DAY_TO_SECONDS;
+
     struct ClaimInfo {
         uint cliff;
         uint vesting;
@@ -55,23 +56,23 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
         // FUNDING ROUNDS
         seedDistribution = Distribution(
-        { vesting:22 * DAY_TO_SECONDS, cliff: 2 * DAY_TO_SECONDS, totalRemaining:420_000_000 * (10 ** _decimalUnits), supply:420_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: DAY_TO_SECONDS});
+        { vesting:22 * MONTH_TO_SECONDS, cliff: 2 * MONTH_TO_SECONDS, totalRemaining:420_000_000 * (10 ** _decimalUnits), supply:420_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: MONTH_TO_SECONDS});
 
         privateDistribution = Distribution(
-        { vesting:22 * DAY_TO_SECONDS, cliff: 2 * DAY_TO_SECONDS, totalRemaining:210_000_000 * (10 ** _decimalUnits), supply:210_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: DAY_TO_SECONDS});
+        { vesting:22 * MONTH_TO_SECONDS, cliff: 2 * MONTH_TO_SECONDS, totalRemaining:210_000_000 * (10 ** _decimalUnits), supply:210_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: MONTH_TO_SECONDS});
 
         publicDistribution = Distribution(
-        { vesting:6 * DAY_TO_SECONDS, cliff:0, totalRemaining:120_000_000 * (10 ** _decimalUnits), supply:120_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: DAY_TO_SECONDS});
+        { vesting:6 * MONTH_TO_SECONDS, cliff:0, totalRemaining:120_000_000 * (10 ** _decimalUnits), supply:120_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: MONTH_TO_SECONDS});
 
         // ALLOCATIONS
         advisorsDistribution = Distribution(
-        { vesting:20 * DAY_TO_SECONDS, cliff:4 * DAY_TO_SECONDS, totalRemaining:150_000_000 * (10 ** _decimalUnits), supply:150_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: DAY_TO_SECONDS});
+        { vesting:20 * MONTH_TO_SECONDS, cliff:4 * MONTH_TO_SECONDS, totalRemaining:150_000_000 * (10 ** _decimalUnits), supply:150_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: MONTH_TO_SECONDS});
 
         exchangesDistribution = Distribution(
-        { vesting:3 * DAY_TO_SECONDS, cliff:0, totalRemaining:150_000_000 * (10 ** _decimalUnits), supply:150_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: DAY_TO_SECONDS});
+        { vesting:3 * MONTH_TO_SECONDS, cliff:0, totalRemaining:150_000_000 * (10 ** _decimalUnits), supply:150_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: MONTH_TO_SECONDS});
 
         playAndEarnDistribution = Distribution(
-        { vesting:35 * DAY_TO_SECONDS, cliff:2 * DAY_TO_SECONDS, totalRemaining:600_000_000 * (10 ** _decimalUnits), supply:600_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: DAY_TO_SECONDS });
+        { vesting:35 * MONTH_TO_SECONDS, cliff:2 * MONTH_TO_SECONDS, totalRemaining:600_000_000 * (10 ** _decimalUnits), supply:600_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: MONTH_TO_SECONDS });
 
         socialDistribution = Distribution(
         { vesting:22 * MONTH_TO_SECONDS, cliff:2 * MONTH_TO_SECONDS, totalRemaining:30_000_000 * (10 ** _decimalUnits), supply:30_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: MONTH_TO_SECONDS});
