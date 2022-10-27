@@ -97,20 +97,22 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     }
 
     function initialReserveAndMint(address[] memory walletAddresses) onlyGameOwner public {
-        address exhangesWalletAddress = walletAddresses[0];
+        address exchangesWalletAddress = walletAddresses[0];
         address playAndEarnWalletAddress = walletAddresses[1];
         address socialWalletAddress = walletAddresses[2];
         address teamWalletAddress = walletAddresses[3];
         address treasuryWalletAddress = walletAddresses[4];
+        address advisorsWalletAddress = walletAddresses[5];
 
         //ALLOCATIONS WITH WALLET CONSTANT
         reserveTokensInternal(RoundType.PLAYANDEARN, playAndEarnWalletAddress, playAndEarnDistribution.supply);
         reserveTokensInternal(RoundType.SOCIAL, socialWalletAddress, socialDistribution.supply);
         reserveTokensInternal(RoundType.TEAM, teamWalletAddress, teamDistribution.supply);
         reserveTokensInternal(RoundType.TREASURY, treasuryWalletAddress, treasuryDistribution.supply);
+        reserveTokensInternal(RoundType.ADVISOR, advisorsWalletAddress, advisorsDistribution.supply);
 
         //NO VESTING TIME SO DIRECT MINTING -- PUBLIC IS NOT SCOPED HERE
-        _mint(exhangesWalletAddress, exchangesDistribution.supply);
+        _mint(exchangesWalletAddress, exchangesDistribution.supply);
     }
 
     modifier isEligibleToReserveToken(string calldata _roundType) {
