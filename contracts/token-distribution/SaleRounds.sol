@@ -306,12 +306,6 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         return reservedBalances[roundType][_to];
     }
 
-    function setCliffTime(string calldata _roundType, uint256 _amount) public onlyGameOwner {
-        RoundType roundType =  getRoundTypeByKey(_roundType);
-
-        roundDistribution[roundType].cliff = _amount;
-    }
-
     function getCliffTime(string calldata _roundType) public view onlyGameOwner returns(uint256) {
         RoundType roundType =  getRoundTypeByKey(_roundType);
 
