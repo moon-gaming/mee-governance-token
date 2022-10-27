@@ -14,7 +14,6 @@ contract GovernanceToken is IERC165, SaleRounds {
     bytes4 public constant IID_IERC165 = type(IERC165).interfaceId;
 
     uint8 private decimalUnits;
-    uint constant private MAX_UINT256 = type(uint256).max;
 
     constructor(uint256 _initialAmount, string memory _tokenName,
                 uint8 _decimalUnits, string memory _tokenSymbol,

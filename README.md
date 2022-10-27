@@ -1,4 +1,4 @@
-Governance Token(MEE) to trade in AoE
+Governance Token(MEE) to trade in Medieval Empires
 
 COMPILE
 

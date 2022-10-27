@@ -44,7 +44,7 @@ contract GameOwner is Ownable {
      * Modifier which restricts method execution to onlyGameOwner address
      */
     modifier onlyGameOwner() {
-        require(gameOwnerAddress == _msgSender(), "GameOwner: caller is not the game address");
+        require(isGameOwnerAddress(), "GameOwner: caller is not the game address");
         _;
     }
 }
