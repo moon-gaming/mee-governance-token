@@ -97,6 +97,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     }
 
     function initialReserveAndMint(address[] memory walletAddresses) onlyGameOwner public {
+        require(walletAddresses.length == 5, "walletAddresses array is not the correct length");
         address exchangesWalletAddress = walletAddresses[0];
         address playAndEarnWalletAddress = walletAddresses[1];
         address socialWalletAddress = walletAddresses[2];
