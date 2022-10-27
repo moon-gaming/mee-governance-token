@@ -189,7 +189,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     // @_amount is going be decimals() == default(18) digits
     function reserveTokensInternal(RoundType _roundType, address _to, uint _amount) private {
         require(roundDistribution[_roundType].supply >= _amount, "given amount is bigger than max supply for the round" );
-        require(roundDistribution[_roundType].totalRemaining >= _amount, "total remaining seed amount is not enough" );
+        require(roundDistribution[_roundType].totalRemaining >= _amount, "total remaining round amount is not enough" );
         roundDistribution[_roundType].totalRemaining -= _amount;
         reservedBalances[_roundType][_to] += _amount;
     }
