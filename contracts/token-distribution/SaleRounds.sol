@@ -81,7 +81,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         { vesting:24 * MONTH_TO_SECONDS, cliff:12 * MONTH_TO_SECONDS, totalRemaining:450_000_000 * (10 ** _decimalUnits), supply:450_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: MONTH_TO_SECONDS });
 
         treasuryDistribution = Distribution(
-        { vesting:30 * MONTH_TO_SECONDS, cliff:4 * MONTH_TO_SECONDS, totalRemaining:870_000_000 * (10 ** _decimalUnits), supply:870_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: MONTH_TO_SECONDS});
+        { vesting:30 * MONTH_TO_SECONDS, cliff:2 * MONTH_TO_SECONDS, totalRemaining:870_000_000 * (10 ** _decimalUnits), supply:870_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: MONTH_TO_SECONDS});
 
         roundDistribution[RoundType.SEED] = seedDistribution;
         roundDistribution[RoundType.PRIVATE] = privateDistribution;
