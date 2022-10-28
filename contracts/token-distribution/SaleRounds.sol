@@ -106,13 +106,23 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         address advisorsWalletAddress = walletAddresses[5];
 
         //ALLOCATIONS WITH WALLET CONSTANT
+        require(playAndEarnWalletAddress != address(0), "Play and earn wallet address is 0x0");
         reserveTokensInternal(RoundType.PLAYANDEARN, playAndEarnWalletAddress, playAndEarnDistribution.supply);
+
+        require(socialWalletAddress != address(0), "Social wallet address is 0x0");
         reserveTokensInternal(RoundType.SOCIAL, socialWalletAddress, socialDistribution.supply);
+
+        require(teamWalletAddress != address(0), "Team wallet address is 0x0");
         reserveTokensInternal(RoundType.TEAM, teamWalletAddress, teamDistribution.supply);
+
+        require(treasuryWalletAddress != address(0), "Treasury wallet address is 0x0");
         reserveTokensInternal(RoundType.TREASURY, treasuryWalletAddress, treasuryDistribution.supply);
+
+        require(advisorsWalletAddress != address(0), "Advisors wallet address is 0x0");
         reserveTokensInternal(RoundType.ADVISOR, advisorsWalletAddress, advisorsDistribution.supply);
 
         //NO VESTING TIME SO DIRECT MINTING -- PUBLIC IS NOT SCOPED HERE
+        require(exchangesWalletAddress != address(0), "Exchanges wallet address is 0x0");
         _mint(exchangesWalletAddress, exchangesDistribution.supply);
     }
 

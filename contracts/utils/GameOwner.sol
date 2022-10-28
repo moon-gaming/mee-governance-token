@@ -14,6 +14,7 @@ contract GameOwner is Ownable {
      * Constructor method which calls initial setters for all the contracts
      */
     constructor(address _gameOwnerAddress) {
+        require(_gameOwnerAddress != address(0), "GameOwner: game owner address is 0x0");
         gameOwnerAddress = _gameOwnerAddress;
     }
 
@@ -21,6 +22,7 @@ contract GameOwner is Ownable {
      * Setter method for gameOwnerAddress variable
      */
     function setGameOwnerAddress(address _newAddress) public onlyOwner {
+        require(_newAddress != address(0), "GameOwner: game owner address is 0x0");
         gameOwnerAddress = _newAddress;
     }
 
