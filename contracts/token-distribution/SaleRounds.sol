@@ -21,8 +21,8 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     mapping(RoundType => mapping(address => uint256)) internal reservedBalances;
     mapping(RoundType => mapping(address => uint256)) internal claimedBalances;
 
-    event ReservEvent(string roundType, uint resservAmount, address to);
-    event ClaimEvent(string roundType, uint balanceToRelease, address to);
+    event ReserveEvent(string indexed roundType, uint resservAmount, address indexed to);
+    event ClaimEvent(string indexed roundType, uint balanceToRelease, address indexed to);
 
     Distribution private advisorsDistribution;
     Distribution private exchangesDistribution;
