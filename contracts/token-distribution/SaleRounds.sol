@@ -130,7 +130,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         RoundType roundType = getRoundTypeByKey(_roundType);
 
         require(roundType != RoundType.PUBLIC, "reservation is not supported for this round");
-        require(isGameOwnerAddress(), "Only GameOwner can create token reservations!");
+        require(isGameOwnerAddress() || addressMap[roundType][_msgSender()], "address is not confirmed to reserve the token");
         _;
     }
 
@@ -251,7 +251,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         require(claimInfo.balance > 0, "don't have a reserved balance");
 
         claimInfo.secondsVested = calculateCliffTimeDiff(claimInfo);
-        // abi.encodePacked() method can be used for gas efficiency, campare the gas costs for both usage
+        // abi.encodePacked() method can be used for gas efficiency, compare the gas costs for both usage
         require(claimInfo.secondsVested > 0, string.concat(_roundType, " round is still locked"));
 
         claimInfo.vestingForUserPerSecond = calculateVestingForUserPerSecond(claimInfo);
