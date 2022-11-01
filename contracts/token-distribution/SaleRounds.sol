@@ -52,8 +52,6 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
             ERC20(_tokenName, _tokenSymbol)
             GameOwner(_gameOwnerAddress) {
 
-        setActiveRoundInternally(RoundType.SEED);
-
         // FUNDING ROUNDS
         seedDistribution = Distribution(
         { vesting:22 * MONTH_TO_SECONDS, cliff: 2 * MONTH_TO_SECONDS, totalRemaining:420_000_000 * (10 ** _decimalUnits), supply:420_000_000 * (10 ** _decimalUnits), startTime: block.timestamp, vestingGranularity: MONTH_TO_SECONDS});
@@ -94,6 +92,8 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         roundDistribution[RoundType.ADVISOR] = advisorsDistribution;
 
         maxSupply = _maxSupply * (10 ** _decimalUnits);
+
+        setActiveRoundInternally(RoundType.SEED);
     }
 
     function initialReserveAndMint(address[] memory walletAddresses) onlyGameOwner public {
@@ -130,7 +130,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         RoundType roundType = getRoundTypeByKey(_roundType);
 
         require(roundType != RoundType.PUBLIC, "reservation is not supported for this round");
-        require(isGameOwnerAddress() || addressMap[roundType][_msgSender()], "address is not confirmed to reserv the token");
+        require(isGameOwnerAddress(), "Only GameOwner can create token reservations!");
         _;
     }
 
