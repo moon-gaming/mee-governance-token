@@ -99,7 +99,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         initialReserveAndMint(_walletAddresses);
     }
 
-    function initialReserveAndMint(address[] memory walletAddresses) onlyGameOwner private {
+    function initialReserveAndMint(address[] memory walletAddresses) private {
         require(walletAddresses.length == 6, "walletAddresses array is not the correct length");
         address exchangesWalletAddress = walletAddresses[0];
         address playAndEarnWalletAddress = walletAddresses[1];
@@ -167,10 +167,16 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         _;
     }
 
-    function setActiveRound(string calldata _roundType) public onlyGameOwner {
+    function setRoundToActive(string calldata _roundType) public onlyGameOwner {
         RoundType roundType = getRoundTypeByKey(_roundType);
         require(!activeRound[roundType], "Round is already active");
         setActiveRoundInternally(roundType);
+    }
+
+    function setRoundToInactive(string calldata _roundType) public onlyGameOwner {
+        RoundType roundType = getRoundTypeByKey(_roundType);
+        require(activeRound[roundType], "Round is already inactive");
+        activeRound[roundType] = false;
     }
 
     function setActiveRoundInternally(RoundType _roundType) private {
