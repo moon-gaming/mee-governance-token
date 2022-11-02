@@ -256,7 +256,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
         require(exchangesClaimInfo.balance > 0, "don't have a reserved balance");
         exchangesClaimInfo.secondsVested = calculateCliffTimeDiff(exchangesClaimInfo);
-        require(exchangesClaimInfo.secondsVested > 0, string.concat(roundType, " cliff time didn't expired"));
+        require(exchangesClaimInfo.secondsVested > 0, string.concat("Exchanges round cliff time didn't expired"));
         exchangesClaimInfo.vestingForUserPerSecond = calculateVestingForUserPerSecond(exchangesClaimInfo);
 
         uint maximumRelease = getMaximumRelease(exchangesClaimInfo);
