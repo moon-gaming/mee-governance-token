@@ -273,7 +273,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     }
 
     function claimTokens(string calldata _roundType, address _to) public
-        isRoundActive(_roundType) claimableRound(_roundType) {
+    claimableRound(_roundType) {
         RoundType roundType = getRoundTypeByKey(_roundType);
         require(_msgSender() == _to, "Sender is not a recipient");
 
