@@ -121,9 +121,16 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         require(advisorsWalletAddress != address(0), "Advisors wallet address is 0x0");
         reserveTokensInternal(RoundType.ADVISOR, advisorsWalletAddress, advisorsDistribution.supply);
 
-        //NO VESTING TIME SO DIRECT MINTING -- PUBLIC IS NOT SCOPED HERE
         require(exchangesWalletAddress != address(0), "Exchanges wallet address is 0x0");
-        _mint(exchangesWalletAddress, exchangesDistribution.supply);
+
+        // Initial minting of 40% of total supply for exchanges distribution
+        uint256 initialExchangesSupply = 60_000_000;
+        _mint(exchangesWalletAddress, initialExchangesSupply);
+        roundDistribution[RoundType.EXCHANGES].totalRemaining -= initialExchangesSupply;
+        claimedBalances[RoundType.EXCHANGES][exchangesWalletAddress] += initialExchangesSupply;
+
+        // Reserving rest of the 60% of the supply for exchanges distribution
+        reserveTokensInternal(RoundType.EXCHANGES, exchangesWalletAddress, exchangesDistribution.supply - initialExchangesSupply);
     }
 
     modifier isEligibleToReserveToken(string calldata _roundType) {
@@ -198,8 +205,8 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
     // @_amount is going be decimals() == default(18) digits
     function reserveTokensInternal(RoundType _roundType, address _to, uint _amount) private {
-        require(roundDistribution[_roundType].supply >= _amount, "given amount is bigger than max supply for the round" );
-        require(roundDistribution[_roundType].totalRemaining >= _amount, "total remaining round amount is not enough" );
+        require(roundDistribution[_roundType].supply >= _amount, "given amount is bigger than max supply for the round");
+        require(roundDistribution[_roundType].totalRemaining >= _amount, "total remaining round amount is not enough");
         roundDistribution[_roundType].totalRemaining -= _amount;
         reservedBalances[_roundType][_to] += _amount;
     }
@@ -226,10 +233,40 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         RoundType roundType = getRoundTypeByKey(_roundType);
 
         require(roundType == RoundType.PUBLIC , "round type is not valid");
-        require(roundDistribution[roundType].totalRemaining >= _amount, "total remaining amount is not enough" );
+        require(roundDistribution[roundType].totalRemaining >= _amount, "total remaining amount is not enough");
 
         roundDistribution[roundType].totalRemaining -= _amount;
         _mint(_to, _amount);
+    }
+
+    function mintTokensForExchanges(address _to, uint _amount) public onlyOwner {
+        RoundType roundType = RoundType.EXCHANGES;
+        require(reservedBalances[roundType][_to] >= _amount, "amount is grater then total reserved balance");
+
+        ClaimInfo memory exchangesClaimInfo = ClaimInfo({
+                            cliff: roundDistribution[roundType].cliff,
+                            vesting: roundDistribution[roundType].vesting,
+                            balance: reservedBalances[roundType][_to],
+                            claimedBalance: claimedBalances[roundType][_to],
+                            periodGranularity: roundDistribution[roundType].vestingGranularity,
+                            startTime: roundDistribution[roundType].startTime,
+                            secondsVested: 0,
+                            vestingForUserPerSecond: 0
+        });
+
+        require(exchangesClaimInfo.balance > 0, "don't have a reserved balance");
+        exchangesClaimInfo.secondsVested = calculateCliffTimeDiff(exchangesClaimInfo);
+        require(exchangesClaimInfo.secondsVested > 0, string.concat(roundType, " cliff time didn't expired"));
+        exchangesClaimInfo.vestingForUserPerSecond = calculateVestingForUserPerSecond(exchangesClaimInfo);
+
+        uint maximumRelease = getMaximumRelease(exchangesClaimInfo);
+
+        (uint balanceToRelease, uint unClaimedBalance) = getBalanceToRelease(maximumRelease, exchangesClaimInfo);
+
+        if (exchangesClaimInfo.vestingForUserPerSecond == 0) {
+            balanceToRelease = unClaimedBalance;
+        }
+        _mint(_to, balanceToRelease);
     }
 
     function claimTokens(string calldata _roundType, address _to) public
@@ -256,9 +293,9 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
         claimInfo.vestingForUserPerSecond = calculateVestingForUserPerSecond(claimInfo);
 
-        uint maximalRelease = getMaximalRelease(claimInfo);
+        uint maximumRelease = getMaximumRelease(claimInfo);
 
-        (uint balanceToRelease, uint unClaimedBalance) = getBalanceToRelease(maximalRelease, claimInfo);
+        (uint balanceToRelease, uint unClaimedBalance) = getBalanceToRelease(maximumRelease, claimInfo);
 
         //Maybe we don't care, but there may be a fractional holding and we want people to be able to just collect that. It's a tiny, tiny value (31.5*10^-12 tokens on 18 decimals)
         //So maybe remove.
@@ -280,20 +317,20 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         return vestingForUserPerSecond;
     }
 
-    function getMaximalRelease(ClaimInfo memory claimInfo) private pure returns(uint256) {
+    function getMaximumRelease(ClaimInfo memory claimInfo) private pure returns(uint256) {
         // 1 for each fully spent period - if period is months, 1 per month, if period is days, 1 per day, etc. sample: 10 days or 2 months
         ( , uint periodsVested) = claimInfo.secondsVested.tryDiv(claimInfo.periodGranularity);
 
-        //By calculating it this way instead of directly, we don't pay out any incompete periods. instead of: secondsVested * vestingForUserPerSecond
+        //By calculating it this way instead of directly, we don't pay out any incomplete periods. instead of: secondsVested * vestingForUserPerSecond
         ( , uint releasePerFullPeriod) = claimInfo.vestingForUserPerSecond.tryMul(claimInfo.periodGranularity);
         return periodsVested * releasePerFullPeriod; //this is like "4.55%"
     }
 
-    function getBalanceToRelease(uint maximalRelease, ClaimInfo memory claimInfo) private pure returns(uint256, uint256) {
+    function getBalanceToRelease(uint maximumRelease, ClaimInfo memory claimInfo) private pure returns(uint256, uint256) {
         //technically the precondition / postcondions of the contract prevent this overflow - maybe investigate?
         require(claimInfo.claimedBalance < claimInfo.balance, "already claimed everything");
-        (,uint unClaimedBalance) = claimInfo.balance.trySub(claimInfo.claimedBalance);
-        return (unClaimedBalance.min(maximalRelease), unClaimedBalance);
+        ( , uint unClaimedBalance) = claimInfo.balance.trySub(claimInfo.claimedBalance);
+        return (unClaimedBalance.min(maximumRelease), unClaimedBalance);
     }
 
     function getTotalClaimedForAllRounds() public view returns(uint256) {

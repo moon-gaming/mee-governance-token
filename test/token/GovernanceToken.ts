@@ -512,8 +512,8 @@ describe("Governance Token contract", function () {
             const claimToken = async (tokenAmount: BigNumber, claimingTryWithoutReservation: number, round: Distribution, claimObj: ClaimObj, user: SignerWithAddress) => {
                 const vestingForUserPerSecond = tokenAmount.div(round.vesting);
                 const releasePerFullPeriod = vestingForUserPerSecond.mul(round.vestingGranularity);
-                // for SEED round over 1 week with 2 days cliff time off - 5 days left - that's vested time  in second
-                let maximalRelease = releasePerFullPeriod.mul(5);
+                // for SEED round over 1 week with 2 days cliff time off - 5 days left - that's vested time in second
+                let maximumRelease = releasePerFullPeriod.mul(5);
                 let balanceToRelease = BigNumber.from(0);
 
                 for (let index = 0; index <= claimingTryWithoutReservation; index++) {
@@ -524,8 +524,8 @@ describe("Governance Token contract", function () {
                     expect(await governanceToken.connect(user).claimTokens(round.type, user.address));
 
                     // reserved balance(token Amount) - claimed balance = unclaimed balance
-                    if (maximalRelease.sub(tokenAmount.sub(claimObj.claimedAmount)).isNegative()) {
-                        balanceToRelease = maximalRelease;
+                    if (maximumRelease.sub(tokenAmount.sub(claimObj.claimedAmount)).isNegative()) {
+                        balanceToRelease = maximumRelease;
                     } else {
                         balanceToRelease = tokenAmount.sub(claimObj.claimedAmount);
                     }
