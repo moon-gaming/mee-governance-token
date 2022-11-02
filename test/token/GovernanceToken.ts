@@ -145,7 +145,6 @@ describe("Governance Token contract", function () {
         governanceToken = await governanceTokenFactory.deploy(
             maxSupply, "AoE Governance Token", 18, "MEE", gameOwner.address);
         await governanceToken.connect(gameOwner).initialReserveAndMint(addressList);
-        // await governanceToken.connect(gameOwner).setMEEPrice(1);
     });
 
     describe("Deployment", () => {
@@ -191,7 +190,6 @@ describe("Governance Token contract", function () {
     describe("Transactions", function () {
         it("Should transfer tokens between accounts", async () => {
             await governanceToken.connect(gameOwner).setActiveRound(RoundType[RoundType.PUBLIC]);
-            // await governanceToken.connect(gameOwner).setTokenPriceMap(RoundType[RoundType.PUBLIC], 1);
 
             const tokenAmount = BigNumber.from("100").mul(pow18);
 
@@ -211,7 +209,6 @@ describe("Governance Token contract", function () {
             const initialOwnerBalance = await governanceToken.balanceOf(owner.address);
 
             await governanceToken.connect(gameOwner).setActiveRound(RoundType[RoundType.PUBLIC]);
-            // await governanceToken.connect(gameOwner).setTokenPriceMap(RoundType[RoundType.PUBLIC], 1);
 
             const tokenAmount = BigNumber.from("1").mul(pow18);
 
@@ -232,7 +229,6 @@ describe("Governance Token contract", function () {
 
         it("Should update balances after transfers", async () => {
             await governanceToken.connect(gameOwner).setActiveRound(RoundType[RoundType.PUBLIC]);
-            // await governanceToken.connect(gameOwner).setTokenPriceMap(RoundType[RoundType.PUBLIC], 1);
 
             const tokenAmount = BigNumber.from("150").mul(pow18);
 
@@ -265,7 +261,6 @@ describe("Governance Token contract", function () {
             /*it("reserve token set Token Price", async () => {
               const keys = Object.keys(RoundType).filter((v) => isNaN(Number(v)));
               keys.forEach(async (round) => {
-                await governanceToken.connect(gameOwner).setTokenPriceMap(round, 120);
                 expect(await governanceToken.connect(gameOwner).getTokenPriceMap(round)).to.be.equal(120);
               })
             });*/
@@ -448,7 +443,6 @@ describe("Governance Token contract", function () {
                 const blockAfter = await ethers.provider.getBlock(blockNumAfter);
                 const timestampAfter = blockAfter.timestamp;
 
-                //expect(blockNumAfter).to.be.equal(blockNumBefore + 1);
                 expect(timestampAfter).to.be.equal(timestampBefore + sevenDays);
             });
 
@@ -523,7 +517,6 @@ describe("Governance Token contract", function () {
                     }
                     expect(await governanceToken.connect(user).claimTokens(round.type, user.address));
 
-                    // reserved balance(token Amount) - claimed balance = unclaimed balance
                     if (maximumRelease.sub(tokenAmount.sub(claimObj.claimedAmount)).isNegative()) {
                         balanceToRelease = maximumRelease;
                     } else {
@@ -577,7 +570,6 @@ describe("Governance Token contract", function () {
 
         it("remaning amount is not enough", async () => {
             await governanceToken.connect(gameOwner).setActiveRound(RoundType[RoundType.PUBLIC]);
-            // await governanceToken.connect(gameOwner).setTokenPriceMap(RoundType[RoundType.PUBLIC], 1);
 
             const tokenAmount = BigNumber.from("480000001").mul(pow18);
 
@@ -588,7 +580,6 @@ describe("Governance Token contract", function () {
 
         it("success", async () => {
             await governanceToken.connect(gameOwner).setActiveRound(RoundType[RoundType.PUBLIC]);
-            // await governanceToken.connect(gameOwner).setTokenPriceMap(RoundType[RoundType.PUBLIC], 1);
 
             const tokenAmount = BigNumber.from("100").mul(pow18);
 

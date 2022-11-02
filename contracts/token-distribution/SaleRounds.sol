@@ -47,8 +47,9 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         uint secondsVested;
         uint vestingForUserPerSecond;
     }
+
     constructor(string memory _tokenName, string memory _tokenSymbol, uint _maxSupply, uint _decimalUnits,
-                 address _gameOwnerAddress)
+                 address _gameOwnerAddress, address[] memory _walletAddresses)
             ERC20(_tokenName, _tokenSymbol)
             GameOwner(_gameOwnerAddress) {
 
@@ -94,9 +95,11 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         maxSupply = _maxSupply * (10 ** _decimalUnits);
 
         setActiveRoundInternally(RoundType.SEED);
+
+        initialReserveAndMint(_walletAddresses);
     }
 
-    function initialReserveAndMint(address[] memory walletAddresses) onlyGameOwner public {
+    function initialReserveAndMint(address[] memory walletAddresses) onlyGameOwner private {
         require(walletAddresses.length == 6, "walletAddresses array is not the correct length");
         address exchangesWalletAddress = walletAddresses[0];
         address playAndEarnWalletAddress = walletAddresses[1];
