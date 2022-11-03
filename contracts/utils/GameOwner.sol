@@ -10,6 +10,8 @@ contract GameOwner is Ownable {
 
     using Address for address;
 
+    event SetGameOwnerEvent(address indexed gameOwner);
+
     /**
      * Constructor method which calls initial setters for all the contracts
      */
@@ -24,6 +26,7 @@ contract GameOwner is Ownable {
     function setGameOwnerAddress(address _newAddress) external onlyOwner {
         require(_newAddress != address(0), "GameOwner: game owner address is 0x0");
         gameOwnerAddress = _newAddress;
+        emit SetGameOwnerEvent(_newAddress);
     }
 
     /**

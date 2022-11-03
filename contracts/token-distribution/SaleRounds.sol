@@ -21,8 +21,8 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     mapping(RoundType => mapping(address => uint256)) internal reservedBalances;
     mapping(RoundType => mapping(address => uint256)) internal claimedBalances;
 
-    event ReserveEvent(string indexed roundType, uint resserveAmount, address indexed to);
-    event ClaimEvent(string indexed roundType, uint balanceToRelease, address indexed to);
+    event ReserveTokensEvent(string indexed roundType, uint resserveAmount, address indexed to);
+    event ClaimTokensEvent(string indexed roundType, uint balanceToRelease, address indexed to);
 
     Distribution private advisorsDistribution;
     Distribution private exchangesDistribution;
@@ -234,6 +234,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         }
 
         reserveTokensInternal(roundType, _to, _amount);
+        emit ReserveTokensEvent(_roundType, _amount, _to);
     }
 
     // @_amount is going be decimals() == default(18) digits
@@ -311,7 +312,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         if (claimInfo.vestingForUserPerSecond == 0) balanceToRelease = unClaimedBalance;
         _mint(_to, balanceToRelease);
         claimedBalances[roundType][_to] += balanceToRelease;
-        emit ClaimEvent(_roundType, balanceToRelease, _to);
+        emit ClaimTokensEvent(_roundType, balanceToRelease, _to);
     }
 
     function calculateCliffTimeDiff(ClaimInfo memory claimInfo) private view returns(uint) {
