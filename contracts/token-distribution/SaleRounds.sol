@@ -21,7 +21,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     mapping(RoundType => mapping(address => uint256)) internal reservedBalances;
     mapping(RoundType => mapping(address => uint256)) internal claimedBalances;
 
-    event ReserveEvent(string indexed roundType, uint resservAmount, address indexed to);
+    event ReserveEvent(string indexed roundType, uint resserveAmount, address indexed to);
     event ClaimEvent(string indexed roundType, uint balanceToRelease, address indexed to);
 
     Distribution private advisorsDistribution;
@@ -167,7 +167,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         _;
     }
 
-    function setRoundToActive(string calldata _roundType) public onlyGameOwner {
+    function setRoundToActive(string calldata _roundType) external onlyGameOwner {
         RoundType roundType = getRoundTypeByKey(_roundType);
         require(!activeRound[roundType], "Round is already active");
         setActiveRoundInternally(roundType);
@@ -184,7 +184,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         roundDistribution[_roundType].startTime = block.timestamp;
     }
 
-    function addAddressForDistribution(string calldata _roundType, address _address) public
+    function addAddressForDistribution(string calldata _roundType, address _address) external
         onlyGameOwner isRoundActive(_roundType) returns(bool) {
 
         RoundType roundType = getRoundTypeByKey(_roundType);
@@ -194,7 +194,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         return true;
     }
 
-    function deleteAddressForDistribution(string calldata _roundType, address _address, uint _index) public
+    function deleteAddressForDistribution(string calldata _roundType, address _address, uint _index) external
         onlyGameOwner isRoundActive(_roundType) returns(bool) {
 
         RoundType roundType = getRoundTypeByKey(_roundType);
@@ -207,7 +207,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         return true;
     }
 
-    function getAddressList(string calldata _roundType) public onlyGameOwner isRoundActive(_roundType) view returns(address[] memory){
+    function getAddressList(string calldata _roundType) external onlyGameOwner isRoundActive(_roundType) view returns(address[] memory){
         RoundType roundType = getRoundTypeByKey(_roundType);
         return addressList[roundType];
     }
@@ -221,7 +221,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     }
 
     // @_amount is going be decimals() == default(18) digits
-    function reserveTokens(string calldata _roundType, address _to, uint _amount) public
+    function reserveTokens(string calldata _roundType, address _to, uint _amount) external
         isRoundActive(_roundType) isInvestRound(_roundType) isEligibleToReserveToken(_roundType) {
         RoundType roundType = getRoundTypeByKey(_roundType);
 
@@ -237,7 +237,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     }
 
     // @_amount is going be decimals() == default(18) digits
-    function mintTokensForPublic(string calldata _roundType, address _to, uint _amount) public
+    function mintTokensForPublic(string calldata _roundType, address _to, uint _amount) external
         onlyOwner isRoundActive(_roundType) {
         RoundType roundType = getRoundTypeByKey(_roundType);
 
@@ -278,7 +278,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         _mint(_to, balanceToRelease);
     }
 
-    function claimTokens(string calldata _roundType, address _to) public
+    function claimTokens(string calldata _roundType, address _to) external
     claimableRound(_roundType) {
         RoundType roundType = getRoundTypeByKey(_roundType);
         require(_msgSender() == _to, "Sender is not a recipient");
@@ -342,27 +342,27 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         return (unClaimedBalance.min(maximumRelease), unClaimedBalance);
     }
 
-    function getTotalClaimedForAllRounds() public view returns(uint256) {
+    function getTotalClaimedForAllRounds() external view returns(uint256) {
        return totalSupply();
     }
 
-    function getTotalRemainingForAllRounds() public view returns(uint256) {
+    function getTotalRemainingForAllRounds() external view returns(uint256) {
        (, uint val) = maxSupply.trySub(totalSupply());
        return val;
     }
 
-    function getTotalRemainingForSpecificRound(string calldata _roundType) public view returns(uint256) {
+    function getTotalRemainingForSpecificRound(string calldata _roundType) external view returns(uint256) {
         RoundType roundType = getRoundTypeByKey(_roundType);
         return roundDistribution[roundType].totalRemaining;
     }
 
-    function getTotalPending(string calldata _roundType, address _to) public view returns(uint256) {
+    function getTotalPending(string calldata _roundType, address _to) external view returns(uint256) {
         RoundType roundType = getRoundTypeByKey(_roundType);
 
         return reservedBalances[roundType][_to];
     }
 
-    function getCliffTime(string calldata _roundType) public view onlyGameOwner returns(uint256) {
+    function getCliffTime(string calldata _roundType) external view onlyGameOwner returns(uint256) {
         RoundType roundType =  getRoundTypeByKey(_roundType);
 
         return roundDistribution[roundType].cliff;

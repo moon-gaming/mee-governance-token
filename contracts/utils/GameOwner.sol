@@ -21,7 +21,7 @@ contract GameOwner is Ownable {
     /**
      * Setter method for gameOwnerAddress variable
      */
-    function setGameOwnerAddress(address _newAddress) public onlyOwner {
+    function setGameOwnerAddress(address _newAddress) external onlyOwner {
         require(_newAddress != address(0), "GameOwner: game owner address is 0x0");
         gameOwnerAddress = _newAddress;
     }
@@ -30,7 +30,7 @@ contract GameOwner is Ownable {
      * Getter method for gameOwnerAddress variable which returns address
      * @return address
      */
-    function getGameOwnerAddress() public view onlyOwner returns(address) {
+    function getGameOwnerAddress() external view onlyOwner returns(address) {
         return gameOwnerAddress;
     }
 
