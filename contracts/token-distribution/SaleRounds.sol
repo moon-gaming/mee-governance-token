@@ -16,7 +16,6 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
     mapping(RoundType => Distribution) public roundDistribution;
 
-    mapping(RoundType => mapping(address => bool)) internal addressMap;
     mapping(RoundType => address[]) internal addressList;
     mapping(RoundType => mapping(address => uint256)) internal reservedBalances;
     mapping(RoundType => mapping(address => uint256)) internal claimedBalances;
@@ -140,7 +139,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         RoundType roundType = getRoundTypeByKey(_roundType);
 
         require(roundType != RoundType.PUBLIC, "reservation is not supported for this round");
-        require(isGameOwnerAddress() || addressMap[roundType][_msgSender()], "address is not confirmed to reserve the token");
+        require(isGameOwnerAddress(), "only GameOwner can reserve the token");
         _;
     }
 
@@ -188,7 +187,6 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         onlyGameOwner isRoundActive(_roundType) returns(bool) {
 
         RoundType roundType = getRoundTypeByKey(_roundType);
-        addressMap[roundType][_address] = true;
         addressList[roundType].push(_address);
 
         return true;
@@ -201,7 +199,6 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         require(_index < addressList[roundType].length, "index is out of distribution address array bounds");
         require(_address == addressList[roundType][_index], "Address does not match!");
 
-        addressMap[roundType][_address] = false;
         addressList[roundType][_index] = addressList[roundType][addressList[roundType].length - 1];
         addressList[roundType].pop();
         return true;
