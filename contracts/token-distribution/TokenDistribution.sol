@@ -3,7 +3,7 @@
 pragma solidity 0.8.17;
 
 contract TokenDistribution {
-    enum RoundType{
+    enum RoundType {
         SEED, PRIVATE, PUBLIC, PLAYANDEARN, EXCHANGES, TREASURY, ADVISOR, TEAM, SOCIAL
     }
 

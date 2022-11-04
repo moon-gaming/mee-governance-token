@@ -22,15 +22,15 @@ contract GovernanceToken is IERC165, SaleRounds {
         decimalUnits = _decimalUnits;
     }
 
-    function decimals() public view virtual override returns (uint8) {
-        return decimalUnits;
-    }
-
     function isERC20() external view returns (bool) {
         return address(this).supportsInterface(IID_IERC20);
     }
 
     function supportsInterface(bytes4 interfaceId) external pure override returns (bool) {
         return interfaceId == IID_IERC20 || interfaceId == IID_IERC165;
+    }
+
+    function decimals() public view virtual override returns (uint8) {
+        return decimalUnits;
     }
 }

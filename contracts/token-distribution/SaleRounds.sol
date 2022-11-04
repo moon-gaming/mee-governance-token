@@ -12,14 +12,23 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     using SafeMath for uint;
     using Math for uint;
 
+    struct ClaimInfo {
+        uint cliff;
+        uint vesting;
+        uint balance;
+        uint claimedBalance;
+        uint periodGranularity;
+        uint startTime;
+        uint secondsVested;
+        uint vestingForUserPerSecond;
+    }
+
+    bool public tokensClaimable = false;
     mapping(RoundType => Distribution) public roundDistribution;
 
     mapping(RoundType => address[]) internal addressList;
     mapping(RoundType => mapping(address => uint256)) internal reservedBalances;
     mapping(RoundType => mapping(address => uint256)) internal claimedBalances;
-
-    event ReserveTokensEvent(string indexed roundType, uint resserveAmount, address indexed to);
-    event ClaimTokensEvent(string indexed roundType, uint balanceToRelease, address indexed to);
 
     Distribution private advisorsDistribution;
     Distribution private exchangesDistribution;
@@ -31,20 +40,34 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     Distribution private teamDistribution;
     Distribution private treasuryDistribution;
 
-    bool public tokensClaimable = false;
-
     uint constant private DAY_TO_SECONDS = 24 * 60 * 60;
     uint constant private MONTH_TO_SECONDS = 30 * DAY_TO_SECONDS;
 
-    struct ClaimInfo {
-        uint cliff;
-        uint vesting;
-        uint balance;
-        uint claimedBalance;
-        uint periodGranularity;
-        uint startTime;
-        uint secondsVested;
-        uint vestingForUserPerSecond;
+    event ReserveTokensEvent(string indexed roundType, uint resserveAmount, address indexed to);
+    event ClaimTokensEvent(string indexed roundType, uint balanceToRelease, address indexed to);
+
+    modifier isEligibleToReserveToken(string calldata _roundType) {
+        RoundType roundType = getRoundTypeByKey(_roundType);
+
+        require(roundType != RoundType.PUBLIC, "reservation is not supported for this round");
+        require(isGameOwnerAddress(), "only GameOwner can reserve the token");
+        _;
+    }
+
+    modifier isInvestRound(string calldata _roundType) {
+        RoundType roundType = getRoundTypeByKey(_roundType);
+
+        require(roundType == RoundType.SEED ||
+        roundType == RoundType.PRIVATE ||
+            roundType == RoundType.PUBLIC , "round is not invest round");
+        _;
+    }
+
+    modifier claimableRound(string calldata _roundType) {
+        RoundType roundType = getRoundTypeByKey(_roundType);
+
+        require(roundType != RoundType.PUBLIC && roundType != RoundType.EXCHANGES && roundType != RoundType.ADVISOR, "Claiming is not supported for this round");
+        _;
     }
 
     constructor(string memory _tokenName, string memory _tokenSymbol, uint _maxSupply, uint _decimalUnits,
@@ -96,6 +119,164 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         initialReserveAndMint(_walletAddresses);
     }
 
+    function addAddressForDistribution(string calldata _roundType, address _address) external
+        onlyGameOwner returns(bool) {
+
+        RoundType roundType = getRoundTypeByKey(_roundType);
+        addressList[roundType].push(_address);
+
+        return true;
+    }
+
+    function deleteAddressForDistribution(string calldata _roundType, address _address, uint _index) external
+        onlyGameOwner returns(bool) {
+
+        RoundType roundType = getRoundTypeByKey(_roundType);
+        require(_index < addressList[roundType].length, "index is out of distribution address array bounds");
+        require(_address == addressList[roundType][_index], "Address does not match!");
+
+        addressList[roundType][_index] = addressList[roundType][addressList[roundType].length - 1];
+        addressList[roundType].pop();
+        return true;
+    }
+
+    function getAddressList(string calldata _roundType) external onlyGameOwner view returns(address[] memory){
+        RoundType roundType = getRoundTypeByKey(_roundType);
+        return addressList[roundType];
+    }
+
+    // @_amount is going be decimals() == default(18) digits
+    function reserveTokens(string calldata _roundType, address _to, uint _amount) external
+    isInvestRound(_roundType) isEligibleToReserveToken(_roundType) {
+        RoundType roundType = getRoundTypeByKey(_roundType);
+
+        if(reservedBalances[RoundType.SEED][_to] > 0 && roundType != RoundType.SEED){
+            revert("User has already registered for different round");
+        }
+
+        if(reservedBalances[RoundType.PRIVATE][_to] > 0 && roundType != RoundType.PRIVATE){
+            revert("User has already registered for different round");
+        }
+
+        reserveTokensInternal(roundType, _to, _amount);
+        emit ReserveTokensEvent(_roundType, _amount, _to);
+    }
+
+    // @_amount is going be decimals() == default(18) digits
+    function mintTokensForPublic(string calldata _roundType, address _to, uint _amount) external
+    onlyOwner {
+        RoundType roundType = getRoundTypeByKey(_roundType);
+
+        require(roundType == RoundType.PUBLIC , "round type is not valid");
+        require(roundDistribution[roundType].totalRemaining >= _amount, "total remaining amount is not enough");
+
+        roundDistribution[roundType].totalRemaining -= _amount;
+        _mint(_to, _amount);
+        tokensClaimable = true;
+    }
+
+    function claimTokens(string calldata _roundType, address _to) external
+    claimableRound(_roundType) {
+        RoundType roundType = getRoundTypeByKey(_roundType);
+        require(tokensClaimable, "Tokens are still not claimable");
+        require(_msgSender() == _to, "Sender is not a recipient");
+
+        ClaimInfo memory claimInfo = ClaimInfo({cliff: roundDistribution[roundType].cliff,
+        vesting: roundDistribution[roundType].vesting,
+        balance: reservedBalances[roundType][_to],
+        claimedBalance: claimedBalances[roundType][_to],
+        //granularity can be 30 * 24 * 60 * 60 for monthly or 24 * 60 * 60 for daily? add a field and make constants
+        periodGranularity: roundDistribution[roundType].vestingGranularity, //e.g. Days or Months (in seconds!)
+        startTime: roundDistribution[roundType].startTime,
+        secondsVested: 0,
+        vestingForUserPerSecond: 0
+        });
+
+        require(claimInfo.balance > 0, "don't have a reserved balance");
+
+        claimInfo.secondsVested = calculateCliffTimeDiff(claimInfo);
+        // abi.encodePacked() method can be used for gas efficiency, compare the gas costs for both usage
+        require(claimInfo.secondsVested > 0, string.concat(_roundType, " round is still locked"));
+
+        claimInfo.vestingForUserPerSecond = calculateVestingForUserPerSecond(claimInfo);
+
+        uint maximumRelease = getMaximumRelease(claimInfo);
+
+        (uint balanceToRelease, uint unClaimedBalance) = getBalanceToRelease(maximumRelease, claimInfo);
+
+        //Maybe we don't care, but there may be a fractional holding and we want people to be able to just collect that. It's a tiny, tiny value (31.5*10^-12 tokens on 18 decimals)
+        //So maybe remove.
+        if (claimInfo.vestingForUserPerSecond == 0) balanceToRelease = unClaimedBalance;
+        _mint(_to, balanceToRelease);
+        claimedBalances[roundType][_to] += balanceToRelease;
+        emit ClaimTokensEvent(_roundType, balanceToRelease, _to);
+    }
+
+    function getTotalClaimedForAllRounds() external view returns(uint256) {
+        return totalSupply();
+    }
+
+    function getTotalRemainingForAllRounds() external view returns(uint256) {
+        (, uint val) = maxSupply.trySub(totalSupply());
+        return val;
+    }
+
+    function getTotalRemainingForSpecificRound(string calldata _roundType) external view returns(uint256) {
+        RoundType roundType = getRoundTypeByKey(_roundType);
+        return roundDistribution[roundType].totalRemaining;
+    }
+
+    function getTotalPending(string calldata _roundType, address _to) external view returns(uint256) {
+        RoundType roundType = getRoundTypeByKey(_roundType);
+
+        return reservedBalances[roundType][_to];
+    }
+
+    function getCliffTime(string calldata _roundType) external view onlyGameOwner returns(uint256) {
+        RoundType roundType =  getRoundTypeByKey(_roundType);
+
+        return roundDistribution[roundType].cliff;
+    }
+
+    function mintTokensForExchanges(address _to, uint _amount) public onlyOwner {
+        RoundType roundType = RoundType.EXCHANGES;
+        require(reservedBalances[roundType][_to] >= _amount, "amount is grater then total reserved balance");
+
+        ClaimInfo memory exchangesClaimInfo = ClaimInfo({
+        cliff: roundDistribution[roundType].cliff,
+        vesting: roundDistribution[roundType].vesting,
+        balance: reservedBalances[roundType][_to],
+        claimedBalance: claimedBalances[roundType][_to],
+        periodGranularity: roundDistribution[roundType].vestingGranularity,
+        startTime: roundDistribution[roundType].startTime,
+        secondsVested: 0,
+        vestingForUserPerSecond: 0
+        });
+
+        require(exchangesClaimInfo.balance > 0, "don't have a reserved balance");
+        exchangesClaimInfo.secondsVested = calculateCliffTimeDiff(exchangesClaimInfo);
+        require(exchangesClaimInfo.secondsVested > 0, string.concat("Exchanges round cliff time didn't expired"));
+        exchangesClaimInfo.vestingForUserPerSecond = calculateVestingForUserPerSecond(exchangesClaimInfo);
+
+        uint maximumRelease = getMaximumRelease(exchangesClaimInfo);
+
+        (uint balanceToRelease, uint unClaimedBalance) = getBalanceToRelease(maximumRelease, exchangesClaimInfo);
+
+        if (exchangesClaimInfo.vestingForUserPerSecond == 0) {
+            balanceToRelease = unClaimedBalance;
+        }
+        _mint(_to, balanceToRelease);
+    }
+
+    // @_amount is going be decimals() == default(18) digits
+    function reserveTokensInternal(RoundType _roundType, address _to, uint _amount) private {
+        require(roundDistribution[_roundType].supply >= _amount, "given amount is bigger than max supply for the round");
+        require(roundDistribution[_roundType].totalRemaining >= _amount, "total remaining round amount is not enough");
+        roundDistribution[_roundType].totalRemaining -= _amount;
+        roundDistribution[_roundType].startTime = block.timestamp;
+        reservedBalances[_roundType][_to] += _amount;
+    }
+
     function initialReserveAndMint(address[] memory walletAddresses) private {
         require(walletAddresses.length == 6, "walletAddresses array is not the correct length");
         address exchangesWalletAddress = walletAddresses[0];
@@ -133,162 +314,6 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         reserveTokensInternal(RoundType.EXCHANGES, exchangesWalletAddress, exchangesDistribution.supply - initialExchangesSupply);
     }
 
-    modifier isEligibleToReserveToken(string calldata _roundType) {
-        RoundType roundType = getRoundTypeByKey(_roundType);
-
-        require(roundType != RoundType.PUBLIC, "reservation is not supported for this round");
-        require(isGameOwnerAddress(), "only GameOwner can reserve the token");
-        _;
-    }
-
-    modifier isInvestRound(string calldata _roundType) {
-        RoundType roundType = getRoundTypeByKey(_roundType);
-
-        require(roundType == RoundType.SEED ||
-        roundType == RoundType.PRIVATE ||
-            roundType == RoundType.PUBLIC , "round is not invest round");
-        _;
-    }
-
-    modifier claimableRound(string calldata _roundType) {
-        RoundType roundType = getRoundTypeByKey(_roundType);
-
-        require(roundType != RoundType.PUBLIC && roundType != RoundType.EXCHANGES && roundType != RoundType.ADVISOR, "Claiming is not supported for this round");
-        _;
-    }
-
-    function addAddressForDistribution(string calldata _roundType, address _address) external
-        onlyGameOwner returns(bool) {
-
-        RoundType roundType = getRoundTypeByKey(_roundType);
-        addressList[roundType].push(_address);
-
-        return true;
-    }
-
-    function deleteAddressForDistribution(string calldata _roundType, address _address, uint _index) external
-        onlyGameOwner returns(bool) {
-
-        RoundType roundType = getRoundTypeByKey(_roundType);
-        require(_index < addressList[roundType].length, "index is out of distribution address array bounds");
-        require(_address == addressList[roundType][_index], "Address does not match!");
-
-        addressList[roundType][_index] = addressList[roundType][addressList[roundType].length - 1];
-        addressList[roundType].pop();
-        return true;
-    }
-
-    function getAddressList(string calldata _roundType) external onlyGameOwner view returns(address[] memory){
-        RoundType roundType = getRoundTypeByKey(_roundType);
-        return addressList[roundType];
-    }
-
-    // @_amount is going be decimals() == default(18) digits
-    function reserveTokensInternal(RoundType _roundType, address _to, uint _amount) private {
-        require(roundDistribution[_roundType].supply >= _amount, "given amount is bigger than max supply for the round");
-        require(roundDistribution[_roundType].totalRemaining >= _amount, "total remaining round amount is not enough");
-        roundDistribution[_roundType].totalRemaining -= _amount;
-        roundDistribution[_roundType].startTime = block.timestamp;
-        reservedBalances[_roundType][_to] += _amount;
-    }
-
-    // @_amount is going be decimals() == default(18) digits
-    function reserveTokens(string calldata _roundType, address _to, uint _amount) external
-        isInvestRound(_roundType) isEligibleToReserveToken(_roundType) {
-        RoundType roundType = getRoundTypeByKey(_roundType);
-
-        if(reservedBalances[RoundType.SEED][_to] > 0 && roundType != RoundType.SEED){
-            revert("User has already registered for different round");
-        }
-
-        if(reservedBalances[RoundType.PRIVATE][_to] > 0 && roundType != RoundType.PRIVATE){
-            revert("User has already registered for different round");
-        }
-
-        reserveTokensInternal(roundType, _to, _amount);
-        emit ReserveTokensEvent(_roundType, _amount, _to);
-    }
-
-    // @_amount is going be decimals() == default(18) digits
-    function mintTokensForPublic(string calldata _roundType, address _to, uint _amount) external
-        onlyOwner {
-        RoundType roundType = getRoundTypeByKey(_roundType);
-
-        require(roundType == RoundType.PUBLIC , "round type is not valid");
-        require(roundDistribution[roundType].totalRemaining >= _amount, "total remaining amount is not enough");
-
-        roundDistribution[roundType].totalRemaining -= _amount;
-        _mint(_to, _amount);
-        tokensClaimable = true;
-    }
-
-    function mintTokensForExchanges(address _to, uint _amount) public onlyOwner {
-        RoundType roundType = RoundType.EXCHANGES;
-        require(reservedBalances[roundType][_to] >= _amount, "amount is grater then total reserved balance");
-
-        ClaimInfo memory exchangesClaimInfo = ClaimInfo({
-                            cliff: roundDistribution[roundType].cliff,
-                            vesting: roundDistribution[roundType].vesting,
-                            balance: reservedBalances[roundType][_to],
-                            claimedBalance: claimedBalances[roundType][_to],
-                            periodGranularity: roundDistribution[roundType].vestingGranularity,
-                            startTime: roundDistribution[roundType].startTime,
-                            secondsVested: 0,
-                            vestingForUserPerSecond: 0
-        });
-
-        require(exchangesClaimInfo.balance > 0, "don't have a reserved balance");
-        exchangesClaimInfo.secondsVested = calculateCliffTimeDiff(exchangesClaimInfo);
-        require(exchangesClaimInfo.secondsVested > 0, string.concat("Exchanges round cliff time didn't expired"));
-        exchangesClaimInfo.vestingForUserPerSecond = calculateVestingForUserPerSecond(exchangesClaimInfo);
-
-        uint maximumRelease = getMaximumRelease(exchangesClaimInfo);
-
-        (uint balanceToRelease, uint unClaimedBalance) = getBalanceToRelease(maximumRelease, exchangesClaimInfo);
-
-        if (exchangesClaimInfo.vestingForUserPerSecond == 0) {
-            balanceToRelease = unClaimedBalance;
-        }
-        _mint(_to, balanceToRelease);
-    }
-
-    function claimTokens(string calldata _roundType, address _to) external
-    claimableRound(_roundType) {
-        RoundType roundType = getRoundTypeByKey(_roundType);
-        require(tokensClaimable, "Tokens are still not claimable");
-        require(_msgSender() == _to, "Sender is not a recipient");
-
-        ClaimInfo memory claimInfo = ClaimInfo({cliff: roundDistribution[roundType].cliff,
-                                                vesting: roundDistribution[roundType].vesting,
-                                                balance: reservedBalances[roundType][_to],
-                                                claimedBalance: claimedBalances[roundType][_to],
-                                                //granularity can be 30 * 24 * 60 * 60 for monthly or 24 * 60 * 60 for daily? add a field and make constants
-                                                periodGranularity: roundDistribution[roundType].vestingGranularity, //e.g. Days or Months (in seconds!)
-                                                startTime: roundDistribution[roundType].startTime,
-                                                secondsVested: 0,
-                                                vestingForUserPerSecond: 0
-                                            });
-
-        require(claimInfo.balance > 0, "don't have a reserved balance");
-
-        claimInfo.secondsVested = calculateCliffTimeDiff(claimInfo);
-        // abi.encodePacked() method can be used for gas efficiency, compare the gas costs for both usage
-        require(claimInfo.secondsVested > 0, string.concat(_roundType, " round is still locked"));
-
-        claimInfo.vestingForUserPerSecond = calculateVestingForUserPerSecond(claimInfo);
-
-        uint maximumRelease = getMaximumRelease(claimInfo);
-
-        (uint balanceToRelease, uint unClaimedBalance) = getBalanceToRelease(maximumRelease, claimInfo);
-
-        //Maybe we don't care, but there may be a fractional holding and we want people to be able to just collect that. It's a tiny, tiny value (31.5*10^-12 tokens on 18 decimals)
-        //So maybe remove.
-        if (claimInfo.vestingForUserPerSecond == 0) balanceToRelease = unClaimedBalance;
-        _mint(_to, balanceToRelease);
-        claimedBalances[roundType][_to] += balanceToRelease;
-        emit ClaimTokensEvent(_roundType, balanceToRelease, _to);
-    }
-
     function calculateCliffTimeDiff(ClaimInfo memory claimInfo) private view returns(uint) {
         //How many seconds since the cliff? (negative if before cliff)
         (, uint timeDiff) = (block.timestamp - claimInfo.startTime).trySub(claimInfo.cliff);
@@ -316,31 +341,4 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         ( , uint unClaimedBalance) = claimInfo.balance.trySub(claimInfo.claimedBalance);
         return (unClaimedBalance.min(maximumRelease), unClaimedBalance);
     }
-
-    function getTotalClaimedForAllRounds() external view returns(uint256) {
-       return totalSupply();
-    }
-
-    function getTotalRemainingForAllRounds() external view returns(uint256) {
-       (, uint val) = maxSupply.trySub(totalSupply());
-       return val;
-    }
-
-    function getTotalRemainingForSpecificRound(string calldata _roundType) external view returns(uint256) {
-        RoundType roundType = getRoundTypeByKey(_roundType);
-        return roundDistribution[roundType].totalRemaining;
-    }
-
-    function getTotalPending(string calldata _roundType, address _to) external view returns(uint256) {
-        RoundType roundType = getRoundTypeByKey(_roundType);
-
-        return reservedBalances[roundType][_to];
-    }
-
-    function getCliffTime(string calldata _roundType) external view onlyGameOwner returns(uint256) {
-        RoundType roundType =  getRoundTypeByKey(_roundType);
-
-        return roundDistribution[roundType].cliff;
-    }
-
 }
