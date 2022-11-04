@@ -143,8 +143,7 @@ describe("Governance Token contract", function () {
 
         const addressList = addrs.filter((_, index) => index < 6).map((addr) => addr.address);
         governanceToken = await governanceTokenFactory.deploy(
-            maxSupply, "AoE Governance Token", 18, "MEE", gameOwner.address);
-        await governanceToken.connect(gameOwner).initialReserveAndMint(addressList);
+            maxSupply, "AoE Governance Token", 18, "MEE", gameOwner.address, addressList);
     });
 
     describe("Deployment", () => {
