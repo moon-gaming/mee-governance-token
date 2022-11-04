@@ -31,6 +31,8 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     Distribution private teamDistribution;
     Distribution private treasuryDistribution;
 
+    bool public tokensClaimable = false;
+
     uint constant private DAY_TO_SECONDS = 24 * 60 * 60;
     uint constant private MONTH_TO_SECONDS = 30 * DAY_TO_SECONDS;
 
@@ -217,6 +219,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
         roundDistribution[roundType].totalRemaining -= _amount;
         _mint(_to, _amount);
+        tokensClaimable = true;
     }
 
     function mintTokensForExchanges(address _to, uint _amount) public onlyOwner {
@@ -252,6 +255,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     function claimTokens(string calldata _roundType, address _to) external
     claimableRound(_roundType) {
         RoundType roundType = getRoundTypeByKey(_roundType);
+        require(tokensClaimable, "Tokens are still not claimable");
         require(_msgSender() == _to, "Sender is not a recipient");
 
         ClaimInfo memory claimInfo = ClaimInfo({cliff: roundDistribution[roundType].cliff,
