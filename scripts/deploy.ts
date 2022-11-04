@@ -9,16 +9,12 @@ async function main() {
 
     const governanceTokenFactory = await hre.ethers.getContractFactory("GovernanceToken");
 
+    const addressList = [process.env.EXCHANGES_WALLET_ADDRESS, process.env.PLAYANDEARN_WALLET_ADDRESS,
+        process.env.SOCIAL_WALLET_ADDRESS, process.env.TEAM_WALLET_ADDRESS, process.env.TREASURY_WALLET_ADDRESS, process.env.ADVISORS_WALLET_ADDRESS];
+
     const governanceToken = await governanceTokenFactory.deploy(
         8000000000000000, "MEE Governance Token", 18, "MEE", process.env.GAME_OWNER_ADDRESS,
-        [
-            process.env.EXCHANGES_WALLET_ADDRESS,
-            process.env.PLAYANDEARN_WALLET_ADDRESS,
-            process.env.SOCIAL_WALLET_ADDRESS,
-            process.env.TEAM_WALLET_ADDRESS,
-            process.env.TREASURY_WALLET_ADDRESS,
-            process.env.ADVISORS_WALLET_ADDRESS,
-        ],
+        addressList,
         {gasLimit: 6e6});
 
     console.log("Governance Token deployment in Progress:", governanceToken.address);
@@ -26,13 +22,6 @@ async function main() {
 
     console.log("Governance Token deployment completed");
     console.log("Governance Token balance of deployer:", (await governanceToken.balanceOf(deployer.address)).toString());
-
-    const addressList = [process.env.EXCHANGES_WALLET_ADDRESS, process.env.PLAYANDEARN_WALLET_ADDRESS,
-        process.env.SOCIAL_WALLET_ADDRESS, process.env.TEAM_WALLET_ADDRESS, process.env.TREASURY_WALLET_ADDRESS];
-
-    await governanceToken.connect(gameOwner).initialReserveAndMint(addressList, {gasLimit: 5e5});
-    console.log("Governance token initial reserve and minting has been completed");
-
 
     // Staking Contract deployment
     console.log("Deploying Staking contract with the account:", deployer.address);
