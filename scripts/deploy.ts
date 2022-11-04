@@ -1,7 +1,7 @@
 import hre from "hardhat";
 
 async function main() {
-    const [deployer, gameOwner] = await hre.ethers.getSigners();
+    const [deployer] = await hre.ethers.getSigners();
 
     // Governance Token deployment
     console.log("Deploying Governance contract with the account:", deployer.address);
