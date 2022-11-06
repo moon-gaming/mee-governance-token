@@ -164,7 +164,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
     // @_amount is going be decimals() == default(18) digits
     function mintTokensForPublic(address _to, uint _amount) external
-    onlyOwner {
+    onlyGameOwner {
         require(roundDistribution[RoundType.PUBLIC].totalRemaining >= _amount, "total remaining amount is not enough");
 
         roundDistribution[RoundType.PUBLIC].totalRemaining -= _amount;
@@ -235,7 +235,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         return roundDistribution[roundType].cliff;
     }
 
-    function mintTokensForExchanges(address _to, uint _amount) public onlyOwner {
+    function mintTokensForExchanges(address _to, uint _amount) public onlyGameOwner {
         RoundType roundType = RoundType.EXCHANGES;
         require(reservedBalances[roundType][_to] >= _amount, "amount is grater then total reserved balance");
 
