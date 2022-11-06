@@ -13,7 +13,7 @@ async function main() {
         process.env.SOCIAL_WALLET_ADDRESS, process.env.TEAM_WALLET_ADDRESS, process.env.TREASURY_WALLET_ADDRESS, process.env.ADVISORS_WALLET_ADDRESS];
 
     const governanceToken = await governanceTokenFactory.deploy(
-        8000000000000000, "MEE Governance Token", 18, "MEE", process.env.GAME_OWNER_ADDRESS,
+        "MEE Governance Token", 18, "MEE", process.env.GAME_OWNER_ADDRESS,
         addressList,
         {gasLimit: 6e6});
 

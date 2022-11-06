@@ -143,7 +143,7 @@ describe("Governance Token contract", function () {
 
         const addressList = addrs.filter((_, index) => index < 6).map((addr) => addr.address);
         governanceToken = await governanceTokenFactory.deploy(
-            maxSupply, "AoE Governance Token", 18, "MEE", gameOwner.address, addressList);
+            "AoE Governance Token", 18, "MEE", gameOwner.address, addressList);
     });
 
     describe("Deployment", () => {
@@ -191,7 +191,7 @@ describe("Governance Token contract", function () {
             const tokenAmount = BigNumber.from("100").mul(pow18);
 
             await governanceToken.connect(owner)
-                .mintTokensForPublic(RoundType[RoundType.PUBLIC], addrs[6].address, tokenAmount);
+                .mintTokensForPublic(addrs[6].address, tokenAmount);
 
             await governanceToken.connect(addrs[6]).transfer(addrs[7].address, 50);
             const addr1Balance = await governanceToken.balanceOf(addrs[7].address);
@@ -208,7 +208,7 @@ describe("Governance Token contract", function () {
             const tokenAmount = BigNumber.from("1").mul(pow18);
 
             await governanceToken.connect(owner)
-                .mintTokensForPublic(RoundType[RoundType.PUBLIC], addrs[9].address, tokenAmount);
+                .mintTokensForPublic(addrs[9].address, tokenAmount);
 
             // Try to send 1/10**18 token from addr1 (0 tokens) to owner (1000000 tokens).
             // `require` will evaluate false and revert the transaction.
@@ -225,7 +225,7 @@ describe("Governance Token contract", function () {
         it("Should update balances after transfers", async () => {
             const tokenAmount = BigNumber.from("150").mul(pow18);
 
-            await governanceToken.connect(owner).mintTokensForPublic(RoundType[RoundType.PUBLIC], owner.address, tokenAmount);
+            await governanceToken.connect(owner).mintTokensForPublic(owner.address, tokenAmount);
 
             const initialOwnerBalance = await governanceToken.balanceOf(owner.address);
 
@@ -509,7 +509,7 @@ describe("Governance Token contract", function () {
             const tokenAmount = BigNumber.from(10).mul(pow18);
 
             await expect(governanceToken.connect(addrs[0])
-                .mintTokensForPublic(RoundType[RoundType.PUBLIC], buyer.address, tokenAmount))
+                .mintTokensForPublic(buyer.address, tokenAmount))
                 .to.be.revertedWith("Ownable: caller is not the owner");
         });
 
@@ -517,7 +517,7 @@ describe("Governance Token contract", function () {
             const tokenAmount = BigNumber.from(10).mul(pow18);
 
             await expect(governanceToken.connect(owner)
-                .mintTokensForPublic(RoundType[RoundType.PUBLIC], buyer.address, tokenAmount))
+                .mintTokensForPublic(buyer.address, tokenAmount))
                 .to.be.revertedWith("round is not active");
         });
 
@@ -525,7 +525,7 @@ describe("Governance Token contract", function () {
             const tokenAmount = BigNumber.from(10).mul(pow18);
 
             await expect(governanceToken.connect(owner)
-                .mintTokensForPublic(RoundType[RoundType.PRIVATE], buyer.address, tokenAmount))
+                .mintTokensForPublic(buyer.address, tokenAmount))
                 .to.be.revertedWith("round type is not valid");
         });
 
@@ -533,7 +533,7 @@ describe("Governance Token contract", function () {
             const tokenAmount = BigNumber.from("480000001").mul(pow18);
 
             await expect(governanceToken.connect(owner)
-                .mintTokensForPublic(RoundType[RoundType.PUBLIC], buyer.address, tokenAmount))
+                .mintTokensForPublic(buyer.address, tokenAmount))
                 .to.be.revertedWith("total remaining amount is not enough");
         });
 
@@ -543,7 +543,7 @@ describe("Governance Token contract", function () {
             const prevBalance = await governanceToken.connect(gameOwner).balanceOf(buyer.address);
 
             await governanceToken.connect(owner)
-                .mintTokensForPublic(RoundType[RoundType.PUBLIC], buyer.address, tokenAmount);
+                .mintTokensForPublic(buyer.address, tokenAmount);
 
             const newBalance = await governanceToken.connect(gameOwner).balanceOf(buyer.address);
 

@@ -66,11 +66,11 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     modifier claimableRound(string calldata _roundType) {
         RoundType roundType = getRoundTypeByKey(_roundType);
 
-        require(roundType != RoundType.PUBLIC && roundType != RoundType.EXCHANGES && roundType != RoundType.ADVISOR, "Claiming is not supported for this round");
+        require(roundType != RoundType.PUBLIC, "Claiming is not supported for this round");
         _;
     }
 
-    constructor(string memory _tokenName, string memory _tokenSymbol, uint _maxSupply, uint _decimalUnits,
+    constructor(string memory _tokenName, string memory _tokenSymbol, uint _decimalUnits,
                  address _gameOwnerAddress, address[] memory _walletAddresses)
             ERC20(_tokenName, _tokenSymbol)
             GameOwner(_gameOwnerAddress) {
@@ -163,14 +163,11 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     }
 
     // @_amount is going be decimals() == default(18) digits
-    function mintTokensForPublic(string calldata _roundType, address _to, uint _amount) external
+    function mintTokensForPublic(address _to, uint _amount) external
     onlyOwner {
-        RoundType roundType = getRoundTypeByKey(_roundType);
+        require(roundDistribution[RoundType.PUBLIC].totalRemaining >= _amount, "total remaining amount is not enough");
 
-        require(roundType == RoundType.PUBLIC , "round type is not valid");
-        require(roundDistribution[roundType].totalRemaining >= _amount, "total remaining amount is not enough");
-
-        roundDistribution[roundType].totalRemaining -= _amount;
+        roundDistribution[RoundType.PUBLIC].totalRemaining -= _amount;
         _mint(_to, _amount);
         tokensClaimable = true;
     }
