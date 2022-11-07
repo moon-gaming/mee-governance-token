@@ -179,7 +179,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         require(_msgSender() == _to, "Sender is not a recipient");
 
         ClaimInfo memory claimInfo = ClaimInfo({cliff: roundDistribution[roundType].cliff,
-        vestingPeriod: roundDistribution[roundType].vesting,
+        vestingPeriod: roundDistribution[roundType].vestingPeriod,
         balance: reservedBalances[roundType][_to],
         claimedBalance: claimedBalances[roundType][_to],
         periodGranularity: roundDistribution[roundType].vestingGranularity, //e.g. Days or Months (in seconds!)
