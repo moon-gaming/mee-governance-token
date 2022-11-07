@@ -77,32 +77,32 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
         // FUNDING ROUNDS
         seedDistribution = Distribution(
-        { vestingPeriod:22 * MONTH_TO_SECONDS, cliff: 2 * MONTH_TO_SECONDS, totalRemaining:420_000_000 * (10 ** _decimalUnits), supply:420_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS});
+        { vestingPeriod:22 * MONTH_TO_SECONDS, cliff: 2 * MONTH_TO_SECONDS, totalRemaining:420_000_000 * (10 ** _decimalUnits), supply:420_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS });
 
         privateDistribution = Distribution(
-        { vestingPeriod:22 * MONTH_TO_SECONDS, cliff: 2 * MONTH_TO_SECONDS, totalRemaining:210_000_000 * (10 ** _decimalUnits), supply:210_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS});
+        { vestingPeriod:22 * MONTH_TO_SECONDS, cliff: 2 * MONTH_TO_SECONDS, totalRemaining:210_000_000 * (10 ** _decimalUnits), supply:210_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS });
 
         publicDistribution = Distribution(
-        { vestingPeriod:6 * MONTH_TO_SECONDS, cliff:0, totalRemaining:120_000_000 * (10 ** _decimalUnits), supply:120_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS});
+        { vestingPeriod:6 * MONTH_TO_SECONDS, cliff:0, totalRemaining:120_000_000 * (10 ** _decimalUnits), supply:120_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS });
 
         // ALLOCATIONS
         advisorsDistribution = Distribution(
-        { vestingPeriod:20 * MONTH_TO_SECONDS, cliff:4 * MONTH_TO_SECONDS, totalRemaining:150_000_000 * (10 ** _decimalUnits), supply:150_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS});
+        { vestingPeriod:20 * MONTH_TO_SECONDS, cliff:4 * MONTH_TO_SECONDS, totalRemaining:150_000_000 * (10 ** _decimalUnits), supply:150_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS });
 
         exchangesDistribution = Distribution(
-        { vestingPeriod:3 * MONTH_TO_SECONDS, cliff:0, totalRemaining:150_000_000 * (10 ** _decimalUnits), supply:150_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS});
+        { vestingPeriod:3 * MONTH_TO_SECONDS, cliff:0, totalRemaining:150_000_000 * (10 ** _decimalUnits), supply:150_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS });
 
         playAndEarnDistribution = Distribution(
         { vestingPeriod:35 * MONTH_TO_SECONDS, cliff:2 * MONTH_TO_SECONDS, totalRemaining:600_000_000 * (10 ** _decimalUnits), supply:600_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS });
 
         socialDistribution = Distribution(
-        { vestingPeriod:22 * MONTH_TO_SECONDS, cliff:2 * MONTH_TO_SECONDS, totalRemaining:30_000_000 * (10 ** _decimalUnits), supply:30_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS});
+        { vestingPeriod:22 * MONTH_TO_SECONDS, cliff:2 * MONTH_TO_SECONDS, totalRemaining:30_000_000 * (10 ** _decimalUnits), supply:30_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS });
 
         teamDistribution = Distribution(
         { vestingPeriod:24 * MONTH_TO_SECONDS, cliff:12 * MONTH_TO_SECONDS, totalRemaining:450_000_000 * (10 ** _decimalUnits), supply:450_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS });
 
         treasuryDistribution = Distribution(
-        { vestingPeriod:30 * MONTH_TO_SECONDS, cliff:2 * MONTH_TO_SECONDS, totalRemaining:870_000_000 * (10 ** _decimalUnits), supply:870_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS});
+        { vestingPeriod:30 * MONTH_TO_SECONDS, cliff:2 * MONTH_TO_SECONDS, totalRemaining:870_000_000 * (10 ** _decimalUnits), supply:870_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS });
 
         roundDistribution[RoundType.SEED] = seedDistribution;
         roundDistribution[RoundType.PRIVATE] = privateDistribution;
@@ -290,6 +290,8 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
     function calculateCliffTimeDiff(ClaimInfo memory claimInfo) private view returns(uint) {
         //How many seconds since the cliff? (negative if before cliff)
+        if (block.timestamp < vestingStartTime) return 0;
+        if (block.timestamp - vestingStartTime < claimInfo.cliff) return 0;
         (, uint timeDiff) = (block.timestamp - vestingStartTime).trySub(claimInfo.cliff);
         return timeDiff;
     }

@@ -166,7 +166,7 @@ describe("Governance Token contract", function () {
 
         it("game owner check", async () => {
             await expect(governanceToken.connect(addrs[0]).getGameOwnerAddress()).to.be.revertedWith("GameOwner: caller is not the game address");
-            expect(await governanceToken.connect(owner).getGameOwnerAddress()).to.be.eq(gameOwner.address);
+            expect(await governanceToken.connect(gameOwner).getGameOwnerAddress()).to.be.eq(gameOwner.address);
         });
     });
 
@@ -181,30 +181,24 @@ describe("Governance Token contract", function () {
         it("Should transfer tokens between accounts", async () => {
             const tokenAmount = BigNumber.from("100").mul(pow18);
 
-            await governanceToken.connect(owner)
-                .mintTokensForPublic(addrs[6].address, tokenAmount);
+            await governanceToken.connect(addrs[0]).transfer(addrs[8].address, tokenAmount);
+            const addr1Balance = await governanceToken.balanceOf(addrs[8].address);
+            expect(addr1Balance).to.equal(tokenAmount);
 
-            await governanceToken.connect(addrs[6]).transfer(addrs[7].address, 50);
-            const addr1Balance = await governanceToken.balanceOf(addrs[7].address);
-            expect(addr1Balance).to.equal(50);
-
-            await governanceToken.connect(addrs[6]).transfer(addrs[8].address, 50);
-            const addr2Balance = await governanceToken.balanceOf(addrs[8].address);
-            expect(addr2Balance).to.equal(50);
+            await governanceToken.connect(addrs[0]).transfer(addrs[9].address, tokenAmount);
+            const addr2Balance = await governanceToken.balanceOf(addrs[9].address);
+            expect(addr2Balance).to.equal(tokenAmount);
         });
 
         it("Should fail if sender doesn’t have enough tokens", async () => {
             const initialOwnerBalance = await governanceToken.balanceOf(owner.address);
 
-            const tokenAmount = BigNumber.from("1").mul(pow18);
-
-            await governanceToken.connect(owner)
-                .mintTokensForPublic(addrs[9].address, tokenAmount);
+            const tokenAmount = BigNumber.from("2").mul(pow18);
 
             // Try to send 1/10**18 token from addr1 (0 tokens) to owner (1000000 tokens).
             // `require` will evaluate false and revert the transaction.
             await expect(
-                governanceToken.connect(addrs[9]).transfer(owner.address, BigNumber.from("2").mul(pow18))
+                governanceToken.connect(addrs[9]).transfer(owner.address, tokenAmount)
             ).to.be.revertedWith("ERC20: transfer amount exceeds balance");
 
             // Owner balance shouldn't have changed.
@@ -216,24 +210,22 @@ describe("Governance Token contract", function () {
         it("Should update balances after transfers", async () => {
             const tokenAmount = BigNumber.from("150").mul(pow18);
 
-            await governanceToken.connect(owner).mintTokensForPublic(owner.address, tokenAmount);
-
-            const initialOwnerBalance = await governanceToken.balanceOf(owner.address);
+            const initialOwnerBalance = await governanceToken.balanceOf(gameOwner.address);
 
             // Transfer 100 tokens from owner to addr1.
-            await governanceToken.transfer(gameOwner.address, 100);
+            await governanceToken.connect(gameOwner).transfer(addrs[1].address, 100);
 
             // Transfer another 50 tokens from owner to addr2.
-            await governanceToken.transfer(buyer.address, 50);
+            await governanceToken.connect(gameOwner).transfer(addrs[2].address, 50);
 
             // Check balances.
-            const finalOwnerBalance = await governanceToken.balanceOf(owner.address);
+            const finalOwnerBalance = await governanceToken.balanceOf(gameOwner.address);
             expect(finalOwnerBalance).to.equal(initialOwnerBalance.sub(150));
 
-            const addr1Balance = await governanceToken.balanceOf(gameOwner.address);
+            const addr1Balance = await governanceToken.balanceOf(addrs[1].address);
             expect(addr1Balance).to.equal(100);
 
-            const addr2Balance = await governanceToken.balanceOf(buyer.address);
+            const addr2Balance = await governanceToken.balanceOf(addrs[2].address);
             expect(addr2Balance).to.equal(50);
         });
     });
@@ -245,25 +237,11 @@ describe("Governance Token contract", function () {
 
                 const tokenAmount = BigNumber.from(10).mul(pow18);
 
-                await governanceToken.connect(addrs[0]).reserveTokens(RoundType[RoundType.PRIVATE], buyer.address, tokenAmount);
+                await governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.PRIVATE], buyer.address, tokenAmount);
 
                 await governanceToken.connect(gameOwner).deleteAddressForDistribution(RoundType[RoundType.PRIVATE], addrs[0].address, 0);
 
                 await expect(governanceToken.connect(addrs[0]).reserveTokens(RoundType[RoundType.PRIVATE], buyer.address, tokenAmount)).to.be.revertedWith("only GameOwner can reserve the token");
-            });
-
-            it("reserve token with [private] round for a user who is already registered [seed] round", async () => {
-                const tokenAmount = BigNumber.from(10).mul(pow18);
-
-                await governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.SEED], buyer.address, tokenAmount);
-                await expect(governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.PRIVATE], buyer.address, tokenAmount)).to.be.revertedWith("User has already registered for different round");
-            });
-
-            it("reserve token with [seed] round for a user who is already registered [private] round", async () => {
-                const tokenAmount = BigNumber.from(10).mul(pow18);
-
-                await governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.PRIVATE], buyer.address, tokenAmount);
-                await expect(governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.SEED], buyer.address, tokenAmount)).to.be.revertedWith("User has already registered for different round");
             });
 
             describe("reserve token address control", async () => {
@@ -272,20 +250,11 @@ describe("Governance Token contract", function () {
                         await expect(governanceToken.connect(addrs[0]).addAddressForDistribution(RoundType[RoundType.PRIVATE],
                             addrs[0].address)).to.be.revertedWith("GameOwner: caller is not the game address");
                     });
-
-                    it("with not activated round", async () => {
-                        await expect(governanceToken.connect(gameOwner).addAddressForDistribution(RoundType[RoundType.PRIVATE],
-                            addrs[0].address)).to.be.revertedWith("round is not active");
-                    });
                 });
 
                 describe("Delete Address", () => {
                     it("with not game owner user", async () => {
                         await expect(governanceToken.connect(addrs[0]).deleteAddressForDistribution(RoundType[RoundType.PRIVATE], addrs[0].address, 0)).to.be.revertedWith("GameOwner: caller is not the game address");
-                    });
-
-                    it("with not activated round", async () => {
-                        await expect(governanceToken.connect(gameOwner).deleteAddressForDistribution(RoundType[RoundType.PRIVATE], addrs[0].address, 0)).to.be.revertedWith("round is not active");
                     });
 
                     it("index out of bound", async () => {
@@ -304,10 +273,6 @@ describe("Governance Token contract", function () {
                 describe("Get Address List", () => {
                     it("with not game owner user", async () => {
                         await expect(governanceToken.connect(addrs[0]).getAddressList(RoundType[RoundType.PRIVATE])).to.be.revertedWith("GameOwner: caller is not the game address");
-                    });
-
-                    it("with not activated round", async () => {
-                        await expect(governanceToken.connect(gameOwner).getAddressList(RoundType[RoundType.PRIVATE])).to.be.revertedWith("round is not active");
                     });
 
                     it("success", async () => {
@@ -399,6 +364,9 @@ describe("Governance Token contract", function () {
             });
 
             it("claiming token after cliff time has passed", async () => {
+                await governanceToken.connect(gameOwner).beginVesting();
+                await governanceToken.connect(gameOwner).setTokensToClaimable(true);
+
                 const tokenAmount = BigNumber.from("10").mul(pow18);
                 const claimObj: ClaimObj = {
                     totalClaimedAmount: BigNumber.from("150000000").mul(pow18),
@@ -415,6 +383,9 @@ describe("Governance Token contract", function () {
             });
 
             it("additional claiming token without reserving after cliff time has passed", async () => {
+                await governanceToken.connect(gameOwner).beginVesting();
+                await governanceToken.connect(gameOwner).setTokensToClaimable(true);
+
                 const tokenAmount = BigNumber.from("416666666666620800").mul(5);
                 const claimObj: ClaimObj = {
                     totalClaimedAmount: BigNumber.from("150000000").mul(pow18),
@@ -431,9 +402,12 @@ describe("Governance Token contract", function () {
             });
 
             it("claiming token having vestingForUserPerSecond == 0 after cliff time has passed", async () => {
+                await governanceToken.connect(gameOwner).beginVesting();
+                await governanceToken.connect(gameOwner).setTokensToClaimable(true);
+
                 const tokenAmount = BigNumber.from("1");
                 const claimObj: ClaimObj = {
-                    totalClaimedAmount: BigNumber.from("150000000").mul(pow18),
+                    totalClaimedAmount: BigNumber.from("180000000").mul(pow18),
                     claimedAmount: BigNumber.from(0)
                 }
 
@@ -485,53 +459,6 @@ describe("Governance Token contract", function () {
                 }
             }
 
-        });
-    });
-
-    describe("Mint Token for public", () => {
-        it("caller should be owner", async () => {
-            const tokenAmount = BigNumber.from(10).mul(pow18);
-
-            await expect(governanceToken.connect(addrs[0])
-                .mintTokensForPublic(buyer.address, tokenAmount))
-                .to.be.revertedWith("GameOwner: caller is not the game address");
-        });
-
-        it("Round is not active", async () => {
-            const tokenAmount = BigNumber.from(10).mul(pow18);
-
-            await expect(governanceToken.connect(owner)
-                .mintTokensForPublic(buyer.address, tokenAmount))
-                .to.be.revertedWith("round is not active");
-        });
-
-        it("Round is not public round", async () => {
-            const tokenAmount = BigNumber.from(10).mul(pow18);
-
-            await expect(governanceToken.connect(owner)
-                .mintTokensForPublic(buyer.address, tokenAmount))
-                .to.be.revertedWith("round type is not valid");
-        });
-
-        it("remaining amount is not enough", async () => {
-            const tokenAmount = BigNumber.from("480000001").mul(pow18);
-
-            await expect(governanceToken.connect(owner)
-                .mintTokensForPublic(buyer.address, tokenAmount))
-                .to.be.revertedWith("total remaining amount is not enough");
-        });
-
-        it("success", async () => {
-            const tokenAmount = BigNumber.from("100").mul(pow18);
-
-            const prevBalance = await governanceToken.connect(gameOwner).balanceOf(buyer.address);
-
-            await governanceToken.connect(owner)
-                .mintTokensForPublic(buyer.address, tokenAmount);
-
-            const newBalance = await governanceToken.connect(gameOwner).balanceOf(buyer.address);
-
-            expect(Number(newBalance.sub(prevBalance))).eql(Number(tokenAmount));
         });
     });
 });
