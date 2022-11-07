@@ -141,9 +141,9 @@ describe("Governance Token contract", function () {
         // Get the ContractFactory and Signers here.
         governanceTokenFactory = await ethers.getContractFactory("GovernanceToken");
 
-        const addressList = addrs.filter((_, index) => index < 6).map((addr) => addr.address);
+        const addressList = addrs.filter((_, index) => index < 7).map((addr) => addr.address);
         governanceToken = await governanceTokenFactory.deploy(
-            "AoE Governance Token", 18, "MEE", gameOwner.address, addressList);
+            "MEE Governance Token", 18, "MEE", gameOwner.address, addressList);
     });
 
     describe("Deployment", () => {
