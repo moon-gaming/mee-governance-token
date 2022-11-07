@@ -114,7 +114,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         roundDistribution[RoundType.TREASURY] = treasuryDistribution;
         roundDistribution[RoundType.ADVISOR] = advisorsDistribution;
 
-        maxSupply = _maxSupply * (10 ** _decimalUnits);
+        maxSupply = 3_000_000_000 * (10 ** _decimalUnits);
 
         initialReserveAndMint(_walletAddresses);
     }
@@ -175,14 +175,13 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     function claimTokens(string calldata _roundType, address _to) external
     claimableRound(_roundType) {
         RoundType roundType = getRoundTypeByKey(_roundType);
-        require(tokensClaimable, "Tokens are still not claimable");
+        require(tokensClaimable, "Token vesting has not yet begun");
         require(_msgSender() == _to, "Sender is not a recipient");
 
         ClaimInfo memory claimInfo = ClaimInfo({cliff: roundDistribution[roundType].cliff,
         vesting: roundDistribution[roundType].vesting,
         balance: reservedBalances[roundType][_to],
         claimedBalance: claimedBalances[roundType][_to],
-        //granularity can be 30 * 24 * 60 * 60 for monthly or 24 * 60 * 60 for daily? add a field and make constants
         periodGranularity: roundDistribution[roundType].vestingGranularity, //e.g. Days or Months (in seconds!)
         startTime: roundDistribution[roundType].startTime,
         secondsVested: 0,
@@ -193,7 +192,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
         claimInfo.secondsVested = calculateCliffTimeDiff(claimInfo);
         // abi.encodePacked() method can be used for gas efficiency, compare the gas costs for both usage
-        require(claimInfo.secondsVested > 0, string.concat(_roundType, " round is still locked"));
+        require(claimInfo.secondsVested > 0, "Token vesting has not yet begun");
 
         claimInfo.vestingForUserPerSecond = calculateVestingForUserPerSecond(claimInfo);
 
@@ -201,8 +200,6 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
         (uint balanceToRelease, uint unClaimedBalance) = getBalanceToRelease(maximumRelease, claimInfo);
 
-        //Maybe we don't care, but there may be a fractional holding and we want people to be able to just collect that. It's a tiny, tiny value (31.5*10^-12 tokens on 18 decimals)
-        //So maybe remove.
         if (claimInfo.vestingForUserPerSecond == 0) balanceToRelease = unClaimedBalance;
         _mint(_to, balanceToRelease);
         claimedBalances[roundType][_to] += balanceToRelease;
@@ -269,6 +266,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     function reserveTokensInternal(RoundType _roundType, address _to, uint _amount) private {
         require(roundDistribution[_roundType].supply >= _amount, "given amount is bigger than max supply for the round");
         require(roundDistribution[_roundType].totalRemaining >= _amount, "total remaining round amount is not enough");
+        require(_to != address(0), "Reservation address is 0x0 address");
         roundDistribution[_roundType].totalRemaining -= _amount;
         roundDistribution[_roundType].startTime = block.timestamp;
         reservedBalances[_roundType][_to] += _amount;
@@ -327,7 +325,6 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         // 1 for each fully spent period - if period is months, 1 per month, if period is days, 1 per day, etc. sample: 10 days or 2 months
         ( , uint periodsVested) = claimInfo.secondsVested.tryDiv(claimInfo.periodGranularity);
 
-        //By calculating it this way instead of directly, we don't pay out any incomplete periods. instead of: secondsVested * vestingForUserPerSecond
         ( , uint releasePerFullPeriod) = claimInfo.vestingForUserPerSecond.tryMul(claimInfo.periodGranularity);
         return periodsVested * releasePerFullPeriod; //this is like "4.55%"
     }
