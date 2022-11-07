@@ -12,7 +12,6 @@ contract TokenDistribution {
         uint256 cliff; // seconds
         uint256 totalRemaining;
         uint256 supply;
-        uint256 startTime;
         uint256 vestingGranularity;
     }
 
