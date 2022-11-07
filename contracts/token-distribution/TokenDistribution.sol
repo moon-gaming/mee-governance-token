@@ -1,18 +1,17 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-pragma solidity ^0.8.17;
+pragma solidity 0.8.17;
 
 contract TokenDistribution {
-    enum RoundType{
+    enum RoundType {
         SEED, PRIVATE, PUBLIC, PLAYANDEARN, EXCHANGES, TREASURY, ADVISOR, TEAM, SOCIAL
     }
 
     struct Distribution {
-        uint256 vesting; // seconds
+        uint256 vestingPeriod; // seconds
         uint256 cliff; // seconds
         uint256 totalRemaining;
         uint256 supply;
-        uint256 startTime;
         uint256 vestingGranularity;
     }
 

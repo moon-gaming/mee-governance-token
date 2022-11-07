@@ -1,5 +1,4 @@
 module.exports = [
-    8000000000000000,
     "MEE Governance Token",
     18,
     "MEE",

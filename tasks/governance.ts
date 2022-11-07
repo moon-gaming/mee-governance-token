@@ -241,7 +241,7 @@ task("initialReserveAndMint")
 
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
 
-            const addressList = [process.env.EXCHANGES_WALLET_ADDRESS, process.env.PLAYANDEARN_WALLET_ADDRESS,
+            const addressList = [process.env.PUBLIC_WALLET_ADDRESS, process.env.EXCHANGES_WALLET_ADDRESS, process.env.PLAYANDEARN_WALLET_ADDRESS,
                 process.env.SOCIAL_WALLET_ADDRESS, process.env.TEAM_WALLET_ADDRESS, process.env.TREASURY_WALLET_ADDRESS];
 
             await governanceToken?.initialReserveAndMint(addressList);
