@@ -166,7 +166,6 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
         roundDistribution[RoundType.PUBLIC].totalRemaining -= _amount;
         _mint(_to, _amount);
-        tokensClaimable = true;
     }
 
     function claimTokens(string calldata _roundType, address _to) external
