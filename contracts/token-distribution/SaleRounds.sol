@@ -116,7 +116,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
         maxSupply = 3_000_000_000 * (10 ** _decimalUnits);
 
-        initialReserveAndMint(_walletAddresses);
+        initialReserveAndMint(_walletAddresses, _decimalUnits);
     }
 
     function setTokensToClaimable(bool _claimable) external
@@ -241,7 +241,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         reservedBalances[_roundType][_to] += _amount;
     }
 
-    function initialReserveAndMint(address[] memory walletAddresses) private {
+    function initialReserveAndMint(address[] memory walletAddresses, uint _decimalUnits) private {
         require(walletAddresses.length == 7, "walletAddresses array is not the correct length");
         address publicWalletAddress = walletAddresses[0];
         address exchangesWalletAddress = walletAddresses[1];
@@ -270,7 +270,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         require(exchangesWalletAddress != address(0), "Exchanges wallet address is 0x0");
 
         // Initial minting of 40% of total supply for exchanges distribution
-        uint256 initialExchangesSupply = 60_000_000;
+        uint256 initialExchangesSupply = 60_000_000 * (10 ** _decimalUnits);
         _mint(exchangesWalletAddress, initialExchangesSupply);
         roundDistribution[RoundType.EXCHANGES].totalRemaining -= initialExchangesSupply;
         claimedBalances[RoundType.EXCHANGES][exchangesWalletAddress] += initialExchangesSupply;
@@ -279,7 +279,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         reserveTokensInternal(RoundType.EXCHANGES, exchangesWalletAddress, exchangesDistribution.supply - initialExchangesSupply);
 
         // Initial minting of 100% of total supply for public distribution
-        uint256 initialPublicSupply = 120_000_000;
+        uint256 initialPublicSupply = 120_000_000 * (10 ** _decimalUnits);
         roundDistribution[RoundType.PUBLIC].totalRemaining -= initialPublicSupply;
         _mint(publicWalletAddress, initialPublicSupply);
     }
