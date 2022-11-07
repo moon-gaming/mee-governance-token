@@ -119,6 +119,11 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         initialReserveAndMint(_walletAddresses);
     }
 
+    function setTokensToClaimable(bool _claimable) external
+    onlyGameOwner {
+        tokensClaimable = _claimable;
+    }
+
     function addAddressForDistribution(string calldata _roundType, address _address) external
         onlyGameOwner returns(bool) {
 
@@ -149,14 +154,6 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     function reserveTokens(string calldata _roundType, address _to, uint _amount) external
     isInvestRound(_roundType) isEligibleToReserveToken(_roundType) {
         RoundType roundType = getRoundTypeByKey(_roundType);
-
-        if(reservedBalances[RoundType.SEED][_to] > 0 && roundType != RoundType.SEED){
-            revert("User has already registered for different round");
-        }
-
-        if(reservedBalances[RoundType.PRIVATE][_to] > 0 && roundType != RoundType.PRIVATE){
-            revert("User has already registered for different round");
-        }
 
         reserveTokensInternal(roundType, _to, _amount);
         emit ReserveTokensEvent(_roundType, _amount, _to);
@@ -200,7 +197,9 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
         (uint balanceToRelease, uint unClaimedBalance) = getBalanceToRelease(maximumRelease, claimInfo);
 
-        if (claimInfo.vestingForUserPerSecond == 0) balanceToRelease = unClaimedBalance;
+        if (claimInfo.vestingForUserPerSecond == 0) {
+            balanceToRelease = unClaimedBalance;
+        }
         _mint(_to, balanceToRelease);
         claimedBalances[roundType][_to] += balanceToRelease;
         emit ClaimTokensEvent(_roundType, balanceToRelease, _to);
@@ -260,6 +259,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
             balanceToRelease = unClaimedBalance;
         }
         _mint(_to, balanceToRelease);
+        emit ClaimTokensEvent("exchanges", balanceToRelease, _to);
     }
 
     // @_amount is going be decimals() == default(18) digits
@@ -330,7 +330,6 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     }
 
     function getBalanceToRelease(uint maximumRelease, ClaimInfo memory claimInfo) private pure returns(uint256, uint256) {
-        //technically the precondition / postcondions of the contract prevent this overflow - maybe investigate?
         require(claimInfo.claimedBalance < claimInfo.balance, "already claimed everything");
         ( , uint unClaimedBalance) = claimInfo.balance.trySub(claimInfo.claimedBalance);
         return (unClaimedBalance.min(maximumRelease), unClaimedBalance);
