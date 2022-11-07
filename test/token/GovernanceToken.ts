@@ -165,7 +165,7 @@ describe("Governance Token contract", function () {
         });
 
         it("game owner check", async () => {
-            await expect(governanceToken.connect(addrs[0]).getGameOwnerAddress()).to.be.revertedWith("Ownable: caller is not the owner");
+            await expect(governanceToken.connect(addrs[0]).getGameOwnerAddress()).to.be.revertedWith("GameOwner: caller is not the game address");
             expect(await governanceToken.connect(owner).getGameOwnerAddress()).to.be.eq(gameOwner.address);
         });
     });
@@ -373,7 +373,7 @@ describe("Governance Token contract", function () {
             it("claiming token without having a balance", async () => {
                 await expect(
                     governanceToken.connect(buyer).claimTokens(RoundType[RoundType.SEED], buyer.address)
-                ).to.be.revertedWith("Tokens are still not claimable");
+                ).to.be.revertedWith("Token vesting has not yet begun");
 
             });
 
@@ -384,7 +384,7 @@ describe("Governance Token contract", function () {
 
                 await expect(
                     governanceToken.connect(buyer).claimTokens(RoundType[RoundType.SEED], buyer.address)
-                ).to.be.revertedWith("Tokens are still not claimable");
+                ).to.be.revertedWith("Token vesting has not yet begun");
 
             });
 
@@ -395,7 +395,7 @@ describe("Governance Token contract", function () {
 
                 await expect(
                     governanceToken.connect(buyer).claimTokens(RoundType[RoundType.SEED], buyer.address)
-                ).to.be.revertedWith("Tokens are still not claimable");
+                ).to.be.revertedWith("Token vesting has not yet begun");
 
             });
 
@@ -510,7 +510,7 @@ describe("Governance Token contract", function () {
 
             await expect(governanceToken.connect(addrs[0])
                 .mintTokensForPublic(buyer.address, tokenAmount))
-                .to.be.revertedWith("Ownable: caller is not the owner");
+                .to.be.revertedWith("GameOwner: caller is not the game address");
         });
 
         it("Round is not active", async () => {
