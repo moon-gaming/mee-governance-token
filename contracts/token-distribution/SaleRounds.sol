@@ -159,29 +159,21 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         emit ReserveTokensEvent(_roundType, _amount, _to);
     }
 
-    // @_amount is going be decimals() == default(18) digits
-    function mintTokensForPublic(address _to, uint _amount) external
-    onlyGameOwner {
-        require(roundDistribution[RoundType.PUBLIC].totalRemaining >= _amount, "total remaining amount is not enough");
-
-        roundDistribution[RoundType.PUBLIC].totalRemaining -= _amount;
-        _mint(_to, _amount);
-    }
-
     function claimTokens(string calldata _roundType, address _to) external
     claimableRound(_roundType) {
         RoundType roundType = getRoundTypeByKey(_roundType);
         require(tokensClaimable, "Token vesting has not yet begun");
         require(_msgSender() == _to, "Sender is not a recipient");
 
-        ClaimInfo memory claimInfo = ClaimInfo({cliff: roundDistribution[roundType].cliff,
-        vestingPeriod: roundDistribution[roundType].vestingPeriod,
-        balance: reservedBalances[roundType][_to],
-        claimedBalance: claimedBalances[roundType][_to],
-        periodGranularity: roundDistribution[roundType].vestingGranularity, //e.g. Days or Months (in seconds!)
-        startTime: roundDistribution[roundType].startTime,
-        secondsVested: 0,
-        vestingForUserPerSecond: 0
+        ClaimInfo memory claimInfo = ClaimInfo({
+        cliff : roundDistribution[roundType].cliff,
+        vestingPeriod : roundDistribution[roundType].vestingPeriod,
+        balance : reservedBalances[roundType][_to],
+        claimedBalance : claimedBalances[roundType][_to],
+        periodGranularity : roundDistribution[roundType].vestingGranularity, //e.g. Days or Months (in seconds!)
+        startTime : roundDistribution[roundType].startTime,
+        secondsVested : 0,
+        vestingForUserPerSecond : 0
         });
 
         require(claimInfo.balance > 0, "don't have a reserved balance");
@@ -230,35 +222,13 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         return roundDistribution[roundType].cliff;
     }
 
-    function mintTokensForExchanges(address _to, uint _amount) public onlyGameOwner {
-        RoundType roundType = RoundType.EXCHANGES;
-        require(reservedBalances[roundType][_to] >= _amount, "amount is grater then total reserved balance");
+    // @_amount is going be decimals() == default(18) digits
+    function mintTokensForPublic(address _to, uint _amount) private
+    onlyGameOwner {
+        require(roundDistribution[RoundType.PUBLIC].totalRemaining >= _amount, "total remaining amount is not enough");
 
-        ClaimInfo memory exchangesClaimInfo = ClaimInfo({
-        cliff: roundDistribution[roundType].cliff,
-        vestingPeriod: roundDistribution[roundType].vestingPeriod,
-        balance: reservedBalances[roundType][_to],
-        claimedBalance: claimedBalances[roundType][_to],
-        periodGranularity: roundDistribution[roundType].vestingGranularity,
-        startTime: roundDistribution[roundType].startTime,
-        secondsVested: 0,
-        vestingForUserPerSecond: 0
-        });
-
-        require(exchangesClaimInfo.balance > 0, "don't have a reserved balance");
-        exchangesClaimInfo.secondsVested = calculateCliffTimeDiff(exchangesClaimInfo);
-        require(exchangesClaimInfo.secondsVested > 0, string.concat("Exchanges round cliff time didn't expired"));
-        exchangesClaimInfo.vestingForUserPerSecond = calculateVestingForUserPerSecond(exchangesClaimInfo);
-
-        uint maximumRelease = getMaximumRelease(exchangesClaimInfo);
-
-        (uint balanceToRelease, uint unClaimedBalance) = getBalanceToRelease(maximumRelease, exchangesClaimInfo);
-
-        if (exchangesClaimInfo.vestingForUserPerSecond == 0) {
-            balanceToRelease = unClaimedBalance;
-        }
-        _mint(_to, balanceToRelease);
-        emit ClaimTokensEvent("exchanges", balanceToRelease, _to);
+        roundDistribution[RoundType.PUBLIC].totalRemaining -= _amount;
+        _mint(_to, _amount);
     }
 
     // @_amount is going be decimals() == default(18) digits
@@ -273,12 +243,13 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
     function initialReserveAndMint(address[] memory walletAddresses) private {
         require(walletAddresses.length == 6, "walletAddresses array is not the correct length");
-        address exchangesWalletAddress = walletAddresses[0];
-        address playAndEarnWalletAddress = walletAddresses[1];
-        address socialWalletAddress = walletAddresses[2];
-        address teamWalletAddress = walletAddresses[3];
-        address treasuryWalletAddress = walletAddresses[4];
-        address advisorsWalletAddress = walletAddresses[5];
+        address publicWalletAddress = walletAddresses[0];
+        address exchangesWalletAddress = walletAddresses[1];
+        address playAndEarnWalletAddress = walletAddresses[2];
+        address socialWalletAddress = walletAddresses[3];
+        address teamWalletAddress = walletAddresses[4];
+        address treasuryWalletAddress = walletAddresses[5];
+        address advisorsWalletAddress = walletAddresses[6];
 
         //ALLOCATIONS WITH WALLET CONSTANT
         require(playAndEarnWalletAddress != address(0), "Play and earn wallet address is 0x0");
@@ -306,6 +277,11 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
         // Reserving rest of the 60% of the supply for exchanges distribution
         reserveTokensInternal(RoundType.EXCHANGES, exchangesWalletAddress, exchangesDistribution.supply - initialExchangesSupply);
+
+        // Initial minting of 100% of total supply for public distribution
+        uint256 initialPublicSupply = 120_000_000;
+        roundDistribution[RoundType.PUBLIC].totalRemaining -= initialPublicSupply;
+        _mint(publicWalletAddress, initialPublicSupply);
     }
 
     function calculateCliffTimeDiff(ClaimInfo memory claimInfo) private view returns(uint) {

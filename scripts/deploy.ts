@@ -9,7 +9,7 @@ async function main() {
 
     const governanceTokenFactory = await hre.ethers.getContractFactory("GovernanceToken");
 
-    const addressList = [process.env.EXCHANGES_WALLET_ADDRESS, process.env.PLAYANDEARN_WALLET_ADDRESS,
+    const addressList = [process.env.PUBLIC_WALLET_ADDRESS, process.env.EXCHANGES_WALLET_ADDRESS, process.env.PLAYANDEARN_WALLET_ADDRESS,
         process.env.SOCIAL_WALLET_ADDRESS, process.env.TEAM_WALLET_ADDRESS, process.env.TREASURY_WALLET_ADDRESS, process.env.ADVISORS_WALLET_ADDRESS];
 
     const governanceToken = await governanceTokenFactory.deploy(
