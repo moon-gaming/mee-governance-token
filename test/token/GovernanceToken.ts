@@ -4,7 +4,7 @@ import {BigNumber, Contract, ContractFactory} from "ethers";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 
 const pow18 = BigNumber.from("10").pow(18);
-const maxSupply = 8000000000;
+const maxSupply = 3000000000;
 
 enum RoundType {
     SEED, PRIVATE, PUBLIC, PLAYANDEARN, EXCHANGES, TREASURY, ADVISOR, TEAM, SOCIAL
@@ -177,15 +177,6 @@ describe("Governance Token contract", function () {
         });
     })
 
-    /*describe("initial setters", async () => {
-      it("Should set MEE price with only gameowner", async () => {
-        await expect(governanceToken.connect(addrs[0]).setMEEPrice(10)).to.be.revertedWith("GameOwner: caller is not the game address");
-        await expect(governanceToken.connect(gameOwner).setMEEPrice(10)).to.be.not.reverted;
-        await expect(governanceToken.connect(addrs[0]).getMEEPrice()).to.be.revertedWith("GameOwner: caller is not the game address");
-        expect(await governanceToken.connect(gameOwner).getMEEPrice()).to.eq(10);
-      });
-    })*/
-
     describe("Transactions", function () {
         it("Should transfer tokens between accounts", async () => {
             const tokenAmount = BigNumber.from("100").mul(pow18);
@@ -249,13 +240,6 @@ describe("Governance Token contract", function () {
 
     describe("Reserve and claim token", () => {
         describe("Reserve token", function () {
-            /*it("reserve token set Token Price", async () => {
-              const keys = Object.keys(RoundType).filter((v) => isNaN(Number(v)));
-              keys.forEach(async (round) => {
-                expect(await governanceToken.connect(gameOwner).getTokenPriceMap(round)).to.be.equal(120);
-              })
-            });*/
-
             it("reserve token with whitelisted user", async () => {
                 await governanceToken.connect(gameOwner).addAddressForDistribution(RoundType[RoundType.PRIVATE], addrs[0].address);
 
