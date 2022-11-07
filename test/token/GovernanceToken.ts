@@ -15,7 +15,7 @@ const MONTH_TO_SECONDS = 30 * DAY_TO_SECONDS;
 
 interface Distribution {
     type: string;
-    vesting: number;
+    vestingPeriod: number;
     cliff: number;
     totalRemaining: BigNumber;
     supply: BigNumber;
@@ -30,7 +30,7 @@ interface ClaimObj {
 
 const seedDistribution: Distribution = {
     type: RoundType[RoundType.SEED],
-    vesting: 22 * DAY_TO_SECONDS,
+    vestingPeriod: 22 * DAY_TO_SECONDS,
     cliff: 2 * DAY_TO_SECONDS,
     totalRemaining: BigNumber.from("420000000").mul(pow18),
     supply: BigNumber.from("420000000").mul(pow18),
@@ -40,7 +40,7 @@ const seedDistribution: Distribution = {
 
 const privateDistribution: Distribution = {
     type: RoundType[RoundType.PRIVATE],
-    vesting: 22 * DAY_TO_SECONDS,
+    vestingPeriod: 22 * DAY_TO_SECONDS,
     cliff: 2 * DAY_TO_SECONDS,
     totalRemaining: BigNumber.from("210000000").mul(pow18),
     supply: BigNumber.from("210000000").mul(pow18),
@@ -50,7 +50,7 @@ const privateDistribution: Distribution = {
 
 const publicDistribution: Distribution = {
     type: RoundType[RoundType.PUBLIC],
-    vesting: 6 * DAY_TO_SECONDS,
+    vestingPeriod: 6 * DAY_TO_SECONDS,
     cliff: 0,
     totalRemaining: BigNumber.from("120000000").mul(pow18),
     supply: BigNumber.from("120000000").mul(pow18),
@@ -60,7 +60,7 @@ const publicDistribution: Distribution = {
 
 const playAndEarnDistribution: Distribution = {
     type: RoundType[RoundType.PLAYANDEARN],
-    vesting: 35 * DAY_TO_SECONDS,
+    vestingPeriod: 35 * DAY_TO_SECONDS,
     cliff: 2 * DAY_TO_SECONDS,
     totalRemaining: BigNumber.from("6000000000").mul(pow18),
     supply: BigNumber.from("6000000000").mul(pow18),
@@ -70,7 +70,7 @@ const playAndEarnDistribution: Distribution = {
 
 const socialDistribution: Distribution = {
     type: RoundType[RoundType.SOCIAL],
-    vesting: 22 * MONTH_TO_SECONDS,
+    vestingPeriod: 22 * MONTH_TO_SECONDS,
     cliff: 2 * MONTH_TO_SECONDS,
     totalRemaining: BigNumber.from("30000000").mul(pow18),
     supply: BigNumber.from("30000000").mul(pow18),
@@ -80,7 +80,7 @@ const socialDistribution: Distribution = {
 
 const teamDistribution: Distribution = {
     type: RoundType[RoundType.TEAM],
-    vesting: 24 * MONTH_TO_SECONDS,
+    vestingPeriod: 24 * MONTH_TO_SECONDS,
     cliff: 12 * MONTH_TO_SECONDS,
     totalRemaining: BigNumber.from("4500000000").mul(pow18),
     supply: BigNumber.from("4500000000").mul(pow18),
@@ -90,7 +90,7 @@ const teamDistribution: Distribution = {
 
 const treasuryDistribution: Distribution = {
     type: RoundType[RoundType.TREASURY],
-    vesting: 30 * MONTH_TO_SECONDS,
+    vestingPeriod: 30 * MONTH_TO_SECONDS,
     cliff: 4 * MONTH_TO_SECONDS,
     totalRemaining: BigNumber.from("8700000000").mul(pow18),
     supply: BigNumber.from("8700000000").mul(pow18),
@@ -466,7 +466,7 @@ describe("Governance Token contract", function () {
             });
 
             const claimToken = async (tokenAmount: BigNumber, claimingTryWithoutReservation: number, round: Distribution, claimObj: ClaimObj, user: SignerWithAddress) => {
-                const vestingForUserPerSecond = tokenAmount.div(round.vesting);
+                const vestingForUserPerSecond = tokenAmount.div(round.vestingPeriod);
                 const releasePerFullPeriod = vestingForUserPerSecond.mul(round.vestingGranularity);
                 // for SEED round over 1 week with 2 days cliff time off - 5 days left - that's vested time in second
                 let maximumRelease = releasePerFullPeriod.mul(5);

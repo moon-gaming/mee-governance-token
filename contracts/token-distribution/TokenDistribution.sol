@@ -8,7 +8,7 @@ contract TokenDistribution {
     }
 
     struct Distribution {
-        uint256 vesting; // seconds
+        uint256 vestingPeriod; // seconds
         uint256 cliff; // seconds
         uint256 totalRemaining;
         uint256 supply;

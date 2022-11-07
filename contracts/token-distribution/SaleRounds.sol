@@ -14,7 +14,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
     struct ClaimInfo {
         uint cliff;
-        uint vesting;
+        uint vestingPeriod;
         uint balance;
         uint claimedBalance;
         uint periodGranularity;
@@ -77,32 +77,32 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
         // FUNDING ROUNDS
         seedDistribution = Distribution(
-        { vesting:22 * MONTH_TO_SECONDS, cliff: 2 * MONTH_TO_SECONDS, totalRemaining:420_000_000 * (10 ** _decimalUnits), supply:420_000_000 * (10 ** _decimalUnits), startTime: 0, vestingGranularity: MONTH_TO_SECONDS});
+        { vestingPeriod:22 * MONTH_TO_SECONDS, cliff: 2 * MONTH_TO_SECONDS, totalRemaining:420_000_000 * (10 ** _decimalUnits), supply:420_000_000 * (10 ** _decimalUnits), startTime: 0, vestingGranularity: MONTH_TO_SECONDS});
 
         privateDistribution = Distribution(
-        { vesting:22 * MONTH_TO_SECONDS, cliff: 2 * MONTH_TO_SECONDS, totalRemaining:210_000_000 * (10 ** _decimalUnits), supply:210_000_000 * (10 ** _decimalUnits), startTime: 0, vestingGranularity: MONTH_TO_SECONDS});
+        { vestingPeriod:22 * MONTH_TO_SECONDS, cliff: 2 * MONTH_TO_SECONDS, totalRemaining:210_000_000 * (10 ** _decimalUnits), supply:210_000_000 * (10 ** _decimalUnits), startTime: 0, vestingGranularity: MONTH_TO_SECONDS});
 
         publicDistribution = Distribution(
-        { vesting:6 * MONTH_TO_SECONDS, cliff:0, totalRemaining:120_000_000 * (10 ** _decimalUnits), supply:120_000_000 * (10 ** _decimalUnits), startTime: 0, vestingGranularity: MONTH_TO_SECONDS});
+        { vestingPeriod:6 * MONTH_TO_SECONDS, cliff:0, totalRemaining:120_000_000 * (10 ** _decimalUnits), supply:120_000_000 * (10 ** _decimalUnits), startTime: 0, vestingGranularity: MONTH_TO_SECONDS});
 
         // ALLOCATIONS
         advisorsDistribution = Distribution(
-        { vesting:20 * MONTH_TO_SECONDS, cliff:4 * MONTH_TO_SECONDS, totalRemaining:150_000_000 * (10 ** _decimalUnits), supply:150_000_000 * (10 ** _decimalUnits), startTime: 0, vestingGranularity: MONTH_TO_SECONDS});
+        { vestingPeriod:20 * MONTH_TO_SECONDS, cliff:4 * MONTH_TO_SECONDS, totalRemaining:150_000_000 * (10 ** _decimalUnits), supply:150_000_000 * (10 ** _decimalUnits), startTime: 0, vestingGranularity: MONTH_TO_SECONDS});
 
         exchangesDistribution = Distribution(
-        { vesting:3 * MONTH_TO_SECONDS, cliff:0, totalRemaining:150_000_000 * (10 ** _decimalUnits), supply:150_000_000 * (10 ** _decimalUnits), startTime: 0, vestingGranularity: MONTH_TO_SECONDS});
+        { vestingPeriod:3 * MONTH_TO_SECONDS, cliff:0, totalRemaining:150_000_000 * (10 ** _decimalUnits), supply:150_000_000 * (10 ** _decimalUnits), startTime: 0, vestingGranularity: MONTH_TO_SECONDS});
 
         playAndEarnDistribution = Distribution(
-        { vesting:35 * MONTH_TO_SECONDS, cliff:2 * MONTH_TO_SECONDS, totalRemaining:600_000_000 * (10 ** _decimalUnits), supply:600_000_000 * (10 ** _decimalUnits), startTime: 0, vestingGranularity: MONTH_TO_SECONDS });
+        { vestingPeriod:35 * MONTH_TO_SECONDS, cliff:2 * MONTH_TO_SECONDS, totalRemaining:600_000_000 * (10 ** _decimalUnits), supply:600_000_000 * (10 ** _decimalUnits), startTime: 0, vestingGranularity: MONTH_TO_SECONDS });
 
         socialDistribution = Distribution(
-        { vesting:22 * MONTH_TO_SECONDS, cliff:2 * MONTH_TO_SECONDS, totalRemaining:30_000_000 * (10 ** _decimalUnits), supply:30_000_000 * (10 ** _decimalUnits), startTime: 0, vestingGranularity: MONTH_TO_SECONDS});
+        { vestingPeriod:22 * MONTH_TO_SECONDS, cliff:2 * MONTH_TO_SECONDS, totalRemaining:30_000_000 * (10 ** _decimalUnits), supply:30_000_000 * (10 ** _decimalUnits), startTime: 0, vestingGranularity: MONTH_TO_SECONDS});
 
         teamDistribution = Distribution(
-        { vesting:24 * MONTH_TO_SECONDS, cliff:12 * MONTH_TO_SECONDS, totalRemaining:450_000_000 * (10 ** _decimalUnits), supply:450_000_000 * (10 ** _decimalUnits), startTime: 0, vestingGranularity: MONTH_TO_SECONDS });
+        { vestingPeriod:24 * MONTH_TO_SECONDS, cliff:12 * MONTH_TO_SECONDS, totalRemaining:450_000_000 * (10 ** _decimalUnits), supply:450_000_000 * (10 ** _decimalUnits), startTime: 0, vestingGranularity: MONTH_TO_SECONDS });
 
         treasuryDistribution = Distribution(
-        { vesting:30 * MONTH_TO_SECONDS, cliff:2 * MONTH_TO_SECONDS, totalRemaining:870_000_000 * (10 ** _decimalUnits), supply:870_000_000 * (10 ** _decimalUnits), startTime: 0, vestingGranularity: MONTH_TO_SECONDS});
+        { vestingPeriod:30 * MONTH_TO_SECONDS, cliff:2 * MONTH_TO_SECONDS, totalRemaining:870_000_000 * (10 ** _decimalUnits), supply:870_000_000 * (10 ** _decimalUnits), startTime: 0, vestingGranularity: MONTH_TO_SECONDS});
 
         roundDistribution[RoundType.SEED] = seedDistribution;
         roundDistribution[RoundType.PRIVATE] = privateDistribution;
@@ -179,7 +179,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         require(_msgSender() == _to, "Sender is not a recipient");
 
         ClaimInfo memory claimInfo = ClaimInfo({cliff: roundDistribution[roundType].cliff,
-        vesting: roundDistribution[roundType].vesting,
+        vestingPeriod: roundDistribution[roundType].vesting,
         balance: reservedBalances[roundType][_to],
         claimedBalance: claimedBalances[roundType][_to],
         periodGranularity: roundDistribution[roundType].vestingGranularity, //e.g. Days or Months (in seconds!)
@@ -238,7 +238,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
         ClaimInfo memory exchangesClaimInfo = ClaimInfo({
         cliff: roundDistribution[roundType].cliff,
-        vesting: roundDistribution[roundType].vesting,
+        vestingPeriod: roundDistribution[roundType].vestingPeriod,
         balance: reservedBalances[roundType][_to],
         claimedBalance: claimedBalances[roundType][_to],
         periodGranularity: roundDistribution[roundType].vestingGranularity,
@@ -317,7 +317,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
     function calculateVestingForUserPerSecond(ClaimInfo memory claimInfo) private pure returns(uint) {
         //We divide the balance by the number of seconds in the entire vesting period (vesting unit is seconds!).
-        (, uint vestingForUserPerSecond) = claimInfo.balance.tryDiv(claimInfo.vesting);
+        (, uint vestingForUserPerSecond) = claimInfo.balance.tryDiv(claimInfo.vestingPeriod);
         return vestingForUserPerSecond;
     }
 
