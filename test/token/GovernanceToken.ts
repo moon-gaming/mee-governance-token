@@ -125,7 +125,6 @@ describe("Governance Token contract", function () {
     let owner: SignerWithAddress;
     let gameOwner: SignerWithAddress;
     let buyer: SignerWithAddress;
-    // let signer: SignerWithAddress;
     let addrs: SignerWithAddress[];
 
     before(async () => {
@@ -171,7 +170,6 @@ describe("Governance Token contract", function () {
     });
 
     describe("Governance Token ERC20 check", async () => {
-
         it("is it ERC20 token", async () => {
             expect(await governanceToken.connect(addrs[0]).isERC20()).to.be.true;
         });
@@ -208,25 +206,26 @@ describe("Governance Token contract", function () {
         });
 
         it("Should update balances after transfers", async () => {
-            const tokenAmount = BigNumber.from("150").mul(pow18);
+            const tokenAmount1 = BigNumber.from("100").mul(pow18);
+            const tokenAmount2 = BigNumber.from("50").mul(pow18);
 
-            const initialOwnerBalance = await governanceToken.balanceOf(gameOwner.address);
+            const initialOwnerBalance = await governanceToken.balanceOf(addrs[1].address);
 
-            // Transfer 100 tokens from owner to addr1.
-            await governanceToken.connect(gameOwner).transfer(addrs[1].address, 100);
+            // Transfer 100 tokens from addr1 to addr2.
+            await governanceToken.connect(addrs[1]).transfer(addrs[2].address, tokenAmount1);
 
-            // Transfer another 50 tokens from owner to addr2.
-            await governanceToken.connect(gameOwner).transfer(addrs[2].address, 50);
+            // Transfer another 50 tokens from addr1 to addr3.
+            await governanceToken.connect(addrs[1]).transfer(addrs[3].address, tokenAmount2);
 
             // Check balances.
-            const finalOwnerBalance = await governanceToken.balanceOf(gameOwner.address);
-            expect(finalOwnerBalance).to.equal(initialOwnerBalance.sub(150));
-
-            const addr1Balance = await governanceToken.balanceOf(addrs[1].address);
-            expect(addr1Balance).to.equal(100);
+            const finalOwnerBalance = await governanceToken.balanceOf(addrs[1].address);
+            expect(finalOwnerBalance).to.equal(initialOwnerBalance.sub(tokenAmount1).sub(tokenAmount2));
 
             const addr2Balance = await governanceToken.balanceOf(addrs[2].address);
-            expect(addr2Balance).to.equal(50);
+            expect(addr2Balance).to.equal(tokenAmount1);
+
+            const addr3Balance = await governanceToken.balanceOf(addrs[3].address);
+            expect(addr3Balance).to.equal(tokenAmount2);
         });
     });
 
@@ -458,7 +457,6 @@ describe("Governance Token contract", function () {
                     expect(await governanceToken.connect(user).getTotalRemainingForAllRounds()).to.be.equal(BigNumber.from(maxSupply).mul(pow18).sub(claimObj.totalClaimedAmount));
                 }
             }
-
         });
     });
 });
