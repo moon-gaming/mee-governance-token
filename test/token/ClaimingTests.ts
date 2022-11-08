@@ -2,14 +2,13 @@ import {expect} from 'chai'
 import {ethers} from "hardhat";
 import {BigNumber, Contract, ContractFactory} from "ethers";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import { mine, time } from "@nomicfoundation/hardhat-network-helpers";
+import { time } from "@nomicfoundation/hardhat-network-helpers";
 
 const pow18 = BigNumber.from("10").pow(18);
 
 enum RoundType {
     SEED, PRIVATE, PUBLIC, PLAYANDEARN, EXCHANGES, TREASURY, ADVISOR, TEAM, SOCIAL
 }
-
 
 describe("Claiming Tests", function () {
     let governanceTokenFactory: ContractFactory;
@@ -82,7 +81,7 @@ describe("Claiming Tests", function () {
     describe("General Claiming", () =>
     {
         // Deploy contract once, and make some quick assumptions.
-        beforeEach(async () => {
+        before(async () => {
             const accounts = await ethers.getSigners();
             [owner, gameOwner, outsider,/* signer,*/ ...addrs] = accounts;
 
@@ -107,7 +106,13 @@ describe("Claiming Tests", function () {
                 ).to.be.revertedWith("Token vesting has not yet begun.");
             });
 
-        it("only owner can start vesting", async () => {
+            it("cannot claim before tokens are claimable", async () => {
+                await expect(
+                    governanceToken.connect(addrs[0]).claimTokens(RoundType[RoundType.SEED], addrs[0].address)
+                ).to.be.revertedWith("Token vesting has not yet begun.");
+            });
+    
+            it("non-owners may not start vesting", async () => {
             await expect(
                 governanceToken.connect(outsider).beginVesting()
                 ).to.be.revertedWith("GameOwner: caller is not the game address");
@@ -118,21 +123,24 @@ describe("Claiming Tests", function () {
         });
 
         it("owner can start vesting only once", async () => {
-            await expect(governanceToken.connect(outsider).beginVesting()).to.be.revertedWith("Start vesting time was already set.")
+            await expect(
+                governanceToken.connect(gameOwner).beginVesting()
+            ).to.be.revertedWith("Start vesting time was already set.")
         });
 
         it("cannot claim without having a balance", async () => {
             await expect(
                 governanceToken.connect(outsider).claimTokens(RoundType[RoundType.SEED], outsider.address)
-            ).to.be.revertedWith("Nothing to claim.");
+            ).to.be.revertedWith("Cannot claim for another account.");
         });
 
-        it("cannot claim before tokens are claimable", async () => {
+        it("cannot claim for someone else", async () => {
             await expect(
-                governanceToken.connect(outsider).claimTokens(RoundType[RoundType.SEED], addrs[0].address)
-            ).to.be.revertedWith("Nothing to claim.");
+                governanceToken.connect(outsider).claimTokens(RoundType[vesting_rounds[0]], addrs[0].address)
+            ).to.be.revertedWith("Token vesting has not yet begun.");
         });
 
+        /*
         it("claiming token without having a balance - 0", async () => {
             // Transfer 50 tokens from owner to addr1
             const tokenAmount = BigNumber.from(0).mul(BigNumber.from("10").pow(18));
@@ -142,6 +150,7 @@ describe("Claiming Tests", function () {
                 governanceToken.connect(outsider).claimTokens(RoundType[RoundType.SEED], outsider.address)
             ).to.be.revertedWith("Token vesting has not yet begun");
         });
+        */
     });
 });
 
