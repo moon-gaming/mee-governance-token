@@ -14,7 +14,8 @@ export async function initGovernanceToken(ethers: any, privateKey: string) {
         "function getTotalClaimedForAllRounds() public view returns(uint256)",
         "function getTotalRemainingForAllRounds() public view returns(uint256)",
         "function getTotalRemainingForSpecificRound(string _roundType) public view returns(uint256)",
-        "function getTotalPending(string _roundType, address _to) public view returns(uint256)",
+        "function getReservedBalance(string _roundType, address _to) public view returns(uint256)",
+        "function getPendingBalance(string _roundType, address _to) public view returns(uint256)",
         "function getGameOwnerAddress() public view returns(address)",
         "function getSignatory() public view returns(address)",
         "function initialReserveAndMint() public"

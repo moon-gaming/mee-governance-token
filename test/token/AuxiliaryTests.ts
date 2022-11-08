@@ -93,7 +93,18 @@ describe("Governance Token contract", function () {
             expect(reserved).to.equal(pow18.mul(90_000_000));
         });        
 
-        it("Exchanges Wallet can claim 30M each month", async () => {
+
+        it("Exchanges Wallet may claim nothing after only a half month", async () => {
+            var contract = await deployToken("Exchanges half-monthly Vesting Test");
+
+            await contract.connect(gameOwner).beginVesting();
+
+            time.increase(time.duration.days(15));
+            var reserved = await contract.connect(exchangesWallet).getClaimableBalance(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
+            expect(reserved).to.equal(0);    
+        });                            
+
+        it("Exchanges Wallet may claim 30M each 30 days", async () => {
             var contract = await deployToken("Exchanges Monthly Vesting Test");
 
             await contract.connect(gameOwner).beginVesting();
@@ -106,9 +117,8 @@ describe("Governance Token contract", function () {
             }
         });                            
 
-        it("Exchanges Wallet can claim 90M after 3 months or more", async () => {
+        it("Exchanges Wallet may claim 90M after 3 months or more", async () => {
             var contract = await deployToken("Exchanges 90 Day Test");
-
             await contract.connect(gameOwner).beginVesting();
 
             time.increase(time.duration.days(90));
@@ -121,6 +131,7 @@ describe("Governance Token contract", function () {
             var reserved = await contract.connect(exchangesWallet).getClaimableBalance(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
             expect(reserved).to.equal(pow18.mul(90_000_000), "After longer time.");
         });                            
+
     });
 });
 

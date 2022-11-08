@@ -177,6 +177,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
         //Perform actual minting of tokens, updating internal balance first.
         claimedBalances[roundType][_to] += balanceToRelease;
+        
         //minting after internal balance update to avoid potential free minting exploits
         _mint(_to, balanceToRelease); 
         emit ClaimTokensEvent(_roundType, balanceToRelease, _to);
@@ -198,8 +199,12 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
     function getTotalPending(string calldata _roundType, address _to) external view returns(uint256) {
         RoundType roundType = getRoundTypeByKey(_roundType);
-
         return reservedBalances[roundType][_to];
+    }
+
+    function getTotalUnclaimed(string calldata _roundType, address _to) external view returns(uint256) {
+        RoundType roundType = getRoundTypeByKey(_roundType);        
+        return reservedBalances[roundType][_to] - claimedBalances[roundType][_to];
     }
 
     function getCliffTime(string calldata _roundType) external view onlyGameOwner returns(uint256) {
