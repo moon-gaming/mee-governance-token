@@ -1,8 +1,11 @@
-import {expect} from "chai";
+import {expect, use} from 'chai';
 import {ethers} from "hardhat";
 import {BigNumber, Contract, ContractFactory} from "ethers";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
+import {solidity} from "ethereum-waffle";
 const {time} = require('@openzeppelin/test-helpers');
+
+use(solidity);
 
 const pow18 = BigNumber.from("10").pow(18);
 const maxSupply = 3000000000;
