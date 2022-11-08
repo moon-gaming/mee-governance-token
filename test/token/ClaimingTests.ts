@@ -22,16 +22,16 @@ describe("Claiming Tests", function () {
     let publicWallet: SignerWithAddress;
     let exchangesWallet: SignerWithAddress;
 
-    let vesting_rounds: RoundType[] = [RoundType.SEED, RoundType.PRIVATE, RoundType.SEED, RoundType.SEED, RoundType.PRIVATE];
+    let vesting_rounds: RoundType[] = [RoundType.SEED, RoundType.PRIVATE/*, RoundType.PLAYANDEARN, RoundType.EXCHANGES, RoundType.TREASURY, RoundType.ADVISOR, RoundType.TEAM, RoundType.SOCIAL*/];
 
     async function deployToken(purpose: string)
     {
         // Get the ContractFactory and Signers here.
-        var factory = await ethers.getContractFactory("GovernanceToken");
+        let factory = await ethers.getContractFactory("GovernanceToken");
 
         const addressList = addrs.filter((_, index) => index < 7).map((addr) => addr.address);
 
-        var governanceToken = await factory.deploy(purpose, 18, "MEE", gameOwner.address, addressList);
+        let governanceToken = await factory.deploy(purpose, 18, "MEE", gameOwner.address, addressList);
 
         return governanceToken;
     }
@@ -55,28 +55,28 @@ describe("Claiming Tests", function () {
         });
 
         it("Exchanges Wallet successfully claims first 30M after 1 month, and 60M are remaining", async () => {
-            var contract = governanceToken;
+            let contract = governanceToken;
 
-            var oldbalance = await contract.connect(exchangesWallet).balanceOf(exchangesWallet.address);
+            let oldbalance = await contract.connect(exchangesWallet).balanceOf(exchangesWallet.address);
             time.increase(time.duration.days(30));
 
             await contract.connect(exchangesWallet).claimTokens(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
-            var balance = await contract.connect(exchangesWallet).balanceOf(exchangesWallet.address);
+            let balance = await contract.connect(exchangesWallet).balanceOf(exchangesWallet.address);
             expect(balance.sub(oldbalance)).to.equal(pow18.mul(30_000_000), "New Tokens in Wallet.");
 
-            var pending = await contract.connect(exchangesWallet).getTotalUnclaimed(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
+            let pending = await contract.connect(exchangesWallet).getTotalUnclaimed(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
             expect(pending).to.equal(pow18.mul(60_000_000), "Remaining Unclaimed Tokens.");
         });
 
         it("Exchanges Wallet successfully claims remainder, and nothing is left unclaimed", async () => {
-            var contract = governanceToken;
+            let contract = governanceToken;
             time.increase(time.duration.days(200));
 
             await contract.connect(exchangesWallet).claimTokens(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
-            var balance = await contract.connect(exchangesWallet).balanceOf(exchangesWallet.address);
+            let balance = await contract.connect(exchangesWallet).balanceOf(exchangesWallet.address);
             expect(balance).to.equal(pow18.mul(150_000_000), "Total Tokens in Wallet.");
 
-            var pending = await contract.connect(exchangesWallet).getTotalUnclaimed(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
+            let pending = await contract.connect(exchangesWallet).getTotalUnclaimed(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
             expect(pending).to.equal(0, "Remaining Unclaimed Tokens.");
         });
     });
@@ -103,7 +103,7 @@ describe("Claiming Tests", function () {
 
 
             //Reserve some tokens for a bunch of users.
-            for (var i = 0; i < vesting_rounds.length; i++)
+            for (let i = 0; i < vesting_rounds.length; i++)
             {
                 await governanceToken.connect(gameOwner).reserveTokens(RoundType[vesting_rounds[i]], accounts[10+i].address, reserve);
             }
@@ -152,12 +152,12 @@ describe("Claiming Tests", function () {
         it("all users can claim all tokens in the distant future", async () => {
             time.increase(time.duration.years(10));
 
-            for (var i = 0; i < vesting_rounds.length; i++)
+            for (let i = 0; i < vesting_rounds.length; i++)
             {
-                var user = users[i];
-                var connection = governanceToken.connect(user);
+                let user = users[i];
+                let connection = governanceToken.connect(user);
                 await connection.claimTokens(RoundType[vesting_rounds[i]], user.address)
-                var balance = await connection.balanceOf(user.address)
+                let balance = await connection.balanceOf(user.address)
                 expect(balance).to.equal(reserve);
             }
         });

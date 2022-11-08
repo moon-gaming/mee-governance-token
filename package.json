@@ -14,7 +14,7 @@
     "verify-governance-matic": "hardhat verify --network matic --constructor-args ./verify-governance-contract-args.js 0x1508C8897D12f879E69Fe15a98d257c1982e5669",
     "verify-staking-mumbai": "hardhat verify --network mumbai --constructor-args ./verify-staking-contract-args.js 0xDa11d50a95873D1a724971Ba0Ad83481fb1Fa993",
     "verify-staking-matic": "hardhat verify --network matic --constructor-args ./verify-staking-contract-args.js 0xDa11d50a95873D1a724971Ba0Ad83481fb1Fa993",
-    "coverage:local": "hh coverage --network localhost"
+    "coverage:local": "hardhat coverage --network localhost"
   },
   "keywords": [],
   "author": "",
