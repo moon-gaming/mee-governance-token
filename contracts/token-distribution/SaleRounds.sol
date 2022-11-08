@@ -167,37 +167,18 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
     function claimTokens(string calldata _roundType, address _to) external
     claimableRound(_roundType) {
-        RoundType roundType = getRoundTypeByKey(_roundType);
         require(tokensClaimable, "Token vesting has not yet begun");
         require(_msgSender() == _to, "Sender is not a recipient");
 
-        ClaimInfo memory claimInfo = ClaimInfo({
-        cliff : roundDistribution[roundType].cliff,
-        vestingPeriod : roundDistribution[roundType].vestingPeriod,
-        balance : reservedBalances[roundType][_to],
-        claimedBalance : claimedBalances[roundType][_to],
-        periodGranularity : roundDistribution[roundType].vestingGranularity, //e.g. Days or Months (in seconds!)
-        secondsVested : 0,
-        vestingForUserPerSecond : 0
-        });
+        RoundType roundType = getRoundTypeByKey(_roundType);
 
-        require(claimInfo.balance > 0, "don't have a reserved balance");
+        uint balanceToRelease = getClaimableBalance(_roundType, _to);
+        require(balanceToRelease > 0, "already claimed everything");
 
-        claimInfo.secondsVested = calculateCliffTimeDiff(claimInfo);
-        // abi.encodePacked() method can be used for gas efficiency, compare the gas costs for both usage
-        require(claimInfo.secondsVested > 0, "Token vesting has not yet begun");
-
-        claimInfo.vestingForUserPerSecond = calculateVestingForUserPerSecond(claimInfo);
-
-        uint maximumRelease = getMaximumRelease(claimInfo);
-
-        (uint balanceToRelease, uint unClaimedBalance) = getBalanceToRelease(maximumRelease, claimInfo);
-
-        if (claimInfo.vestingForUserPerSecond == 0) {
-            balanceToRelease = unClaimedBalance;
-        }
-        _mint(_to, balanceToRelease);
+        //Perform actual minting of tokens, updating internal balance first.
         claimedBalances[roundType][_to] += balanceToRelease;
+        //minting after internal balance update to avoid potential free minting exploits
+        _mint(_to, balanceToRelease); 
         emit ClaimTokensEvent(_roundType, balanceToRelease, _to);
     }
 
@@ -292,8 +273,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         //How many seconds since the cliff? (negative if before cliff)
         if (block.timestamp < vestingStartTime) return 0;
         if (block.timestamp - vestingStartTime < claimInfo.cliff) return 0;
-        (, uint timeDiff) = (block.timestamp - vestingStartTime).trySub(claimInfo.cliff);
-        return timeDiff;
+        return block.timestamp - vestingStartTime - claimInfo.cliff;
     }
 
     function calculateVestingForUserPerSecond(ClaimInfo memory claimInfo) private pure returns(uint) {
@@ -302,7 +282,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         return vestingForUserPerSecond;
     }
 
-    function getMaximumRelease(ClaimInfo memory claimInfo) private pure returns(uint256) {
+    function calculateMaximumRelease(ClaimInfo memory claimInfo) private pure returns(uint256) {
         // 1 for each fully spent period - if period is months, 1 per month, if period is days, 1 per day, etc. sample: 10 days or 2 months
         ( , uint periodsVested) = claimInfo.secondsVested.tryDiv(claimInfo.periodGranularity);
 
@@ -310,9 +290,30 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         return periodsVested * releasePerFullPeriod; //this is like "4.55%"
     }
 
-    function getBalanceToRelease(uint maximumRelease, ClaimInfo memory claimInfo) private pure returns(uint256, uint256) {
-        require(claimInfo.claimedBalance < claimInfo.balance, "already claimed everything");
+    function getClaimableBalance(string calldata _roundType, address _to) view public 
+    claimableRound(_roundType) returns(uint256) {
+        RoundType roundType = getRoundTypeByKey(_roundType);
+
+        ClaimInfo memory claimInfo = ClaimInfo({
+        cliff : roundDistribution[roundType].cliff,
+        vestingPeriod : roundDistribution[roundType].vestingPeriod,
+        balance : reservedBalances[roundType][_to],
+        claimedBalance : claimedBalances[roundType][_to],
+        periodGranularity : roundDistribution[roundType].vestingGranularity, //e.g. Days or Months (in seconds!)
+        secondsVested : 0,
+        vestingForUserPerSecond : 0
+        });
+
+        if(claimInfo.balance <= claimInfo.claimedBalance) return 0;
+
+        claimInfo.secondsVested = calculateCliffTimeDiff(claimInfo);
+        if(claimInfo.secondsVested <= 0) return 0;
+
+        claimInfo.vestingForUserPerSecond = calculateVestingForUserPerSecond(claimInfo);
+
+        uint maximumRelease = calculateMaximumRelease(claimInfo);
+    
         ( , uint unClaimedBalance) = claimInfo.balance.trySub(claimInfo.claimedBalance);
-        return (unClaimedBalance.min(maximumRelease), unClaimedBalance);
+        return Math.min(unClaimedBalance, maximumRelease);
     }
 }
