@@ -54,7 +54,7 @@ describe("Claiming Tests", function () {
             await governanceToken.connect(gameOwner).beginVesting();
         });
 
-        it("Exchanges Wallet successfully claims first 30M after 1 month, and 60M are remaining.", async () => {
+        it("Exchanges Wallet successfully claims first 30M after 1 month, and 60M are remaining", async () => {
             var contract = governanceToken;
 
             var oldbalance = await contract.connect(exchangesWallet).balanceOf(exchangesWallet.address);
@@ -68,7 +68,7 @@ describe("Claiming Tests", function () {
             expect(pending).to.equal(pow18.mul(60_000_000), "Remaining Unclaimed Tokens.");
         });                            
 
-        it("Exchanges Wallet successfully claims remainder, and nothing is left unclaimed.", async () => {
+        it("Exchanges Wallet successfully claims remainder, and nothing is left unclaimed", async () => {
             var contract = governanceToken;
             time.increase(time.duration.days(200));
 
@@ -127,7 +127,7 @@ describe("Claiming Tests", function () {
             ).to.be.revertedWith("GameOwner: caller is not the game address");
         });
 
-        it("owner can start vesting.", async () => {
+        it("owner can start vesting", async () => {
             governanceToken.connect(gameOwner).beginVesting();
         });
 
