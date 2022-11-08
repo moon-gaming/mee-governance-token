@@ -55,7 +55,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
     modifier isInvestRound(string calldata _roundType) {
         RoundType roundType = getRoundTypeByKey(_roundType);
-        require(roundType == RoundType.SEED || roundType == RoundType.PRIVATE, "round is not invest round");
+        require(roundType == RoundType.SEED || roundType == RoundType.PRIVATE, "round is not a vesting round");
         _;
     }
 
@@ -117,7 +117,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
     function beginVesting() external
     onlyGameOwner {
-        require(vestingStartTime > block.timestamp, "Start vesting time was already set");
+        require(vestingStartTime > block.timestamp, "Start vesting time was already set.");
         vestingStartTime = block.timestamp;
     }
 

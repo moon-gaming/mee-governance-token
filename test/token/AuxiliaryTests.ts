@@ -2,7 +2,7 @@ import {expect} from "chai";
 import {ethers} from "hardhat";
 import {BigNumber, Contract, ContractFactory} from "ethers";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-const {time} = require("@openzeppelin/test-helpers");
+import { time } from "@nomicfoundation/hardhat-network-helpers";
 
 const pow18 = BigNumber.from("10").pow(18);
 

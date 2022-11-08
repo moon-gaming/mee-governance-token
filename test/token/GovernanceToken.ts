@@ -2,10 +2,6 @@ import {expect, use} from 'chai';
 import {ethers} from "hardhat";
 import {BigNumber, Contract, ContractFactory} from "ethers";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import {solidity} from "ethereum-waffle";
-const {time} = require('@openzeppelin/test-helpers');
-
-use(solidity);
 
 const pow18 = BigNumber.from("10").pow(18);
 const maxSupply = 3000000000;
@@ -334,8 +330,8 @@ describe("Governance Token contract", function () {
 
             it("reserve token for non-invest round type", async () => {
                 const tokenAmount = BigNumber.from(420_000_000).mul(BigNumber.from("10").pow(18));
-                await expect(governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.EXCHANGES], buyer.address, tokenAmount)).to.be.revertedWith("round is not invest round");
-                await expect(governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.ADVISOR], buyer.address, tokenAmount)).to.be.revertedWith("round is not invest round");
+                await expect(governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.EXCHANGES], buyer.address, tokenAmount)).to.be.revertedWith("round is not a vesting round");
+                await expect(governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.ADVISOR], buyer.address, tokenAmount)).to.be.revertedWith("round is not a vesting round");
             });
         });        
     });

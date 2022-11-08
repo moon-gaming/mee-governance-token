@@ -1,8 +1,8 @@
-import {expect} from "chai";
+import {expect} from 'chai'
 import {ethers} from "hardhat";
 import {BigNumber, Contract, ContractFactory} from "ethers";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-const {time} = require("@openzeppelin/test-helpers");
+import { mine, time } from "@nomicfoundation/hardhat-network-helpers";
 
 const pow18 = BigNumber.from("10").pow(18);
 
@@ -104,11 +104,21 @@ describe("Claiming Tests", function () {
         it("cannot claim before vesting has begun.", async () => {
             await expect(
                 governanceToken.connect(outsider).claimTokens(RoundType[RoundType.SEED], outsider.address)
-            ).to.be.revertedWith("Token vesting has not yet begun.");
+                ).to.be.revertedWith("Token vesting has not yet begun.");
+            });
+
+        it("only owner can start vesting", async () => {
+            await expect(
+                governanceToken.connect(outsider).beginVesting()
+                ).to.be.revertedWith("GameOwner: caller is not the game address");
         });
 
-        it("cannot claim before vesting has begun.", async () => {
-            governanceToken.connect(outsider).claimTokens(RoundType[RoundType.SEED], outsider.address)
+        it("owner can start vesting.", async () => {
+            governanceToken.connect(gameOwner).beginVesting();
+        });
+
+        it("owner can start vesting only once", async () => {
+            await expect(governanceToken.connect(outsider).beginVesting()).to.be.revertedWith("Start vesting time was already set.")
         });
 
         it("cannot claim without having a balance", async () => {
