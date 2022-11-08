@@ -2,6 +2,7 @@ import {expect} from "chai";
 import {ethers} from "hardhat";
 import {BigNumber, Contract, ContractFactory} from "ethers";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
+const {time} = require('@openzeppelin/test-helpers');
 
 const pow18 = BigNumber.from("10").pow(18);
 const maxSupply = 3000000000;
@@ -98,7 +99,27 @@ const treasuryDistribution: Distribution = {
     externalReserve: false
 }
 
-const rounds = [seedDistribution, privateDistribution]; //playAndEarnDistribution, socialDistribution, teamDistribution, treasuryDistribution];
+const exchangesDistribution: Distribution = {
+    type: RoundType[RoundType.EXCHANGES],
+    vestingPeriod: 30 * MONTH_TO_SECONDS,
+    cliff: 4 * MONTH_TO_SECONDS,
+    totalRemaining: BigNumber.from("8700000000").mul(pow18),
+    supply: BigNumber.from("8700000000").mul(pow18),
+    vestingGranularity: MONTH_TO_SECONDS,
+    externalReserve: false
+}
+
+const advisorsDistribution: Distribution = {
+    type: RoundType[RoundType.ADVISOR],
+    vestingPeriod: 30 * MONTH_TO_SECONDS,
+    cliff: 4 * MONTH_TO_SECONDS,
+    totalRemaining: BigNumber.from("8700000000").mul(pow18),
+    supply: BigNumber.from("8700000000").mul(pow18),
+    vestingGranularity: MONTH_TO_SECONDS,
+    externalReserve: false
+}
+
+const rounds = [seedDistribution/*, privateDistribution*/]; //playAndEarnDistribution, socialDistribution, teamDistribution, treasuryDistribution];
 
 let defaultTimeStamp: number;
 
@@ -375,8 +396,10 @@ describe("Governance Token contract", function () {
                 let index = 10;
                 for (let round of rounds) {
                     claimObj.claimedAmount = BigNumber.from(0);
-                    await mockBlockTimestamp(round.cliff + 5 * round.vestingGranularity);
-                    await claimToken(tokenAmount, 0, round, claimObj, addrs[index]);
+                    await time.increase(round.cliff + 5 * round.vestingGranularity);
+                    // await mockBlockTimestamp(round.cliff + 5 * round.vestingGranularity);
+                    // await claimToken(tokenAmount, 0, round, claimObj, addrs[index]);
+                    await governanceToken.connect(gameOwner).claimTokens(round.type, addrs[index].address);
                     index++;
                 }
             });
