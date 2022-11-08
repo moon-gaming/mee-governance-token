@@ -5,35 +5,11 @@ import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 const {time} = require("@openzeppelin/test-helpers");
 
 const pow18 = BigNumber.from("10").pow(18);
-const maxSupply = 3000000000;
 
 enum RoundType {
     SEED, PRIVATE, PUBLIC, PLAYANDEARN, EXCHANGES, TREASURY, ADVISOR, TEAM, SOCIAL
 }
-const rounds = [RoundType.SEED, RoundType.PRIVATE, RoundType.PUBLIC, RoundType.PLAYANDEARN, RoundType.EXCHANGES, RoundType.TREASURY, RoundType.ADVISOR, RoundType.TEAM, RoundType.SOCIAL];
-
-const DAY_TO_SECONDS = 24 * 60 * 60;
-const MONTH_TO_SECONDS = 30 * DAY_TO_SECONDS;
-
-interface Distribution {
-    type: string;
-    vestingPeriod: number;
-    cliff: number;
-    totalRemaining: BigNumber;
-    supply: BigNumber;
-    vestingGranularity: number;
-    externalReserve: boolean;
-}
-
-interface ClaimObj {
-    totalClaimedAmount: BigNumber;
-    claimedAmount: BigNumber;
-}
-
-
-let defaultTimeStamp: number;
-
-describe("Governance Token contract", function () {
+describe("Claiming Tests", function () {
     let governanceTokenFactory: ContractFactory;
     let governanceToken: Contract;
     let owner: SignerWithAddress;
@@ -72,7 +48,7 @@ describe("Governance Token contract", function () {
         await governanceToken.connect(gameOwner).setTokensToClaimable(true);
     });
 
-    describe("Claiming for Exchanges", () => {
+    describe("Exchange Wallet Claiming", () => {
         it("Exchanges Wallet successfully claims first 30M after 1 month, and 60M are remaining.", async () => {
             var contract = governanceToken;
 
