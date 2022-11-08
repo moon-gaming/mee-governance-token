@@ -17,12 +17,11 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         uint vestingPeriod;
         uint balance;
         uint claimedBalance;
-        uint periodGranularity;
+        uint vestingGranularity;
         uint secondsVested;
-        uint vestingForUserPerSecond;
+        uint vestingForUserPerPeriod;
     }
 
-    bool public tokensClaimable = false;
     uint public vestingStartTime = 9999999999; // very big value to represent some very far date in the future (ex: year 2286);
     mapping(RoundType => Distribution) public roundDistribution;
 
@@ -49,17 +48,14 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     modifier isEligibleToReserveToken(string calldata _roundType) {
         RoundType roundType = getRoundTypeByKey(_roundType);
 
-        require(roundType != RoundType.PUBLIC, "reservation is not supported for this round");
+        require(roundType != RoundType.PUBLIC, "round is not a vesting round");
         require(isGameOwnerAddress(), "only GameOwner can reserve the token");
         _;
     }
 
     modifier isInvestRound(string calldata _roundType) {
         RoundType roundType = getRoundTypeByKey(_roundType);
-
-        require(roundType == RoundType.SEED ||
-        roundType == RoundType.PRIVATE ||
-            roundType == RoundType.PUBLIC , "round is not invest round");
+        require(roundType != RoundType.PUBLIC, "round is not a vesting round");
         _;
     }
 
@@ -77,32 +73,32 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
         // FUNDING ROUNDS
         seedDistribution = Distribution(
-        { vestingPeriod:22 * MONTH_TO_SECONDS, cliff: 2 * MONTH_TO_SECONDS, totalRemaining:420_000_000 * (10 ** _decimalUnits), supply:420_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS});
+        { vestingPeriod:22 * MONTH_TO_SECONDS, cliff: 2 * MONTH_TO_SECONDS, totalRemaining:420_000_000 * (10 ** _decimalUnits), supply:420_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS });
 
         privateDistribution = Distribution(
-        { vestingPeriod:22 * MONTH_TO_SECONDS, cliff: 2 * MONTH_TO_SECONDS, totalRemaining:210_000_000 * (10 ** _decimalUnits), supply:210_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS});
+        { vestingPeriod:22 * MONTH_TO_SECONDS, cliff: 2 * MONTH_TO_SECONDS, totalRemaining:210_000_000 * (10 ** _decimalUnits), supply:210_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS });
 
         publicDistribution = Distribution(
-        { vestingPeriod:6 * MONTH_TO_SECONDS, cliff:0, totalRemaining:120_000_000 * (10 ** _decimalUnits), supply:120_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS});
+        { vestingPeriod:6 * MONTH_TO_SECONDS, cliff:0, totalRemaining:120_000_000 * (10 ** _decimalUnits), supply:120_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS });
 
         // ALLOCATIONS
         advisorsDistribution = Distribution(
-        { vestingPeriod:20 * MONTH_TO_SECONDS, cliff:4 * MONTH_TO_SECONDS, totalRemaining:150_000_000 * (10 ** _decimalUnits), supply:150_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS});
+        { vestingPeriod:20 * MONTH_TO_SECONDS, cliff:4 * MONTH_TO_SECONDS, totalRemaining:150_000_000 * (10 ** _decimalUnits), supply:150_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS });
 
         exchangesDistribution = Distribution(
-        { vestingPeriod:3 * MONTH_TO_SECONDS, cliff:0, totalRemaining:150_000_000 * (10 ** _decimalUnits), supply:150_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS});
+        { vestingPeriod:3 * MONTH_TO_SECONDS, cliff:0, totalRemaining:150_000_000 * (10 ** _decimalUnits), supply:150_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS });
 
         playAndEarnDistribution = Distribution(
         { vestingPeriod:35 * MONTH_TO_SECONDS, cliff:2 * MONTH_TO_SECONDS, totalRemaining:600_000_000 * (10 ** _decimalUnits), supply:600_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS });
 
         socialDistribution = Distribution(
-        { vestingPeriod:22 * MONTH_TO_SECONDS, cliff:2 * MONTH_TO_SECONDS, totalRemaining:30_000_000 * (10 ** _decimalUnits), supply:30_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS});
+        { vestingPeriod:22 * MONTH_TO_SECONDS, cliff:2 * MONTH_TO_SECONDS, totalRemaining:30_000_000 * (10 ** _decimalUnits), supply:30_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS });
 
         teamDistribution = Distribution(
         { vestingPeriod:24 * MONTH_TO_SECONDS, cliff:12 * MONTH_TO_SECONDS, totalRemaining:450_000_000 * (10 ** _decimalUnits), supply:450_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS });
 
         treasuryDistribution = Distribution(
-        { vestingPeriod:30 * MONTH_TO_SECONDS, cliff:2 * MONTH_TO_SECONDS, totalRemaining:870_000_000 * (10 ** _decimalUnits), supply:870_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS});
+        { vestingPeriod:30 * MONTH_TO_SECONDS, cliff:2 * MONTH_TO_SECONDS, totalRemaining:870_000_000 * (10 ** _decimalUnits), supply:870_000_000 * (10 ** _decimalUnits), vestingGranularity: MONTH_TO_SECONDS });
 
         roundDistribution[RoundType.SEED] = seedDistribution;
         roundDistribution[RoundType.PRIVATE] = privateDistribution;
@@ -119,14 +115,9 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         initialReserveAndMint(_walletAddresses, _decimalUnits);
     }
 
-    function setTokensToClaimable(bool _claimable) external
-    onlyGameOwner {
-        tokensClaimable = _claimable;
-    }
-
     function beginVesting() external
     onlyGameOwner {
-        require(vestingStartTime > block.timestamp, "Start vesting time was already set");
+        require(vestingStartTime > block.timestamp, "Start vesting time was already set.");
         vestingStartTime = block.timestamp;
     }
 
@@ -167,37 +158,19 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
     function claimTokens(string calldata _roundType, address _to) external
     claimableRound(_roundType) {
+        require(block.timestamp >= vestingStartTime, "Token vesting has not yet begun.");
+        require(_msgSender() == _to, "Cannot claim for another account.");
+
         RoundType roundType = getRoundTypeByKey(_roundType);
-        require(tokensClaimable, "Token vesting has not yet begun");
-        require(_msgSender() == _to, "Sender is not a recipient");
 
-        ClaimInfo memory claimInfo = ClaimInfo({
-        cliff : roundDistribution[roundType].cliff,
-        vestingPeriod : roundDistribution[roundType].vestingPeriod,
-        balance : reservedBalances[roundType][_to],
-        claimedBalance : claimedBalances[roundType][_to],
-        periodGranularity : roundDistribution[roundType].vestingGranularity, //e.g. Days or Months (in seconds!)
-        secondsVested : 0,
-        vestingForUserPerSecond : 0
-        });
+        uint balanceToRelease = getClaimableBalance(_roundType, _to);
+        require(balanceToRelease > 0, "Nothing to claim.");
 
-        require(claimInfo.balance > 0, "don't have a reserved balance");
-
-        claimInfo.secondsVested = calculateCliffTimeDiff(claimInfo);
-        // abi.encodePacked() method can be used for gas efficiency, compare the gas costs for both usage
-        require(claimInfo.secondsVested > 0, "Token vesting has not yet begun");
-
-        claimInfo.vestingForUserPerSecond = calculateVestingForUserPerSecond(claimInfo);
-
-        uint maximumRelease = getMaximumRelease(claimInfo);
-
-        (uint balanceToRelease, uint unClaimedBalance) = getBalanceToRelease(maximumRelease, claimInfo);
-
-        if (claimInfo.vestingForUserPerSecond == 0) {
-            balanceToRelease = unClaimedBalance;
-        }
-        _mint(_to, balanceToRelease);
+        //Perform actual minting of tokens, updating internal balance first.
         claimedBalances[roundType][_to] += balanceToRelease;
+        
+        //minting after internal balance update to avoid potential free minting exploits
+        _mint(_to, balanceToRelease); 
         emit ClaimTokensEvent(_roundType, balanceToRelease, _to);
     }
 
@@ -217,8 +190,12 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
     function getTotalPending(string calldata _roundType, address _to) external view returns(uint256) {
         RoundType roundType = getRoundTypeByKey(_roundType);
-
         return reservedBalances[roundType][_to];
+    }
+
+    function getTotalUnclaimed(string calldata _roundType, address _to) external view returns(uint256) {
+        RoundType roundType = getRoundTypeByKey(_roundType);        
+        return reservedBalances[roundType][_to] - claimedBalances[roundType][_to];
     }
 
     function getCliffTime(string calldata _roundType) external view onlyGameOwner returns(uint256) {
@@ -277,7 +254,6 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         uint256 initialExchangesSupply = 60_000_000 * (10 ** _decimalUnits);
         _mint(exchangesWalletAddress, initialExchangesSupply);
         roundDistribution[RoundType.EXCHANGES].totalRemaining -= initialExchangesSupply;
-        claimedBalances[RoundType.EXCHANGES][exchangesWalletAddress] += initialExchangesSupply;
 
         // Reserving rest of the 60% of the supply for exchanges distribution
         reserveTokensInternal(RoundType.EXCHANGES, exchangesWalletAddress, exchangesDistribution.supply - initialExchangesSupply);
@@ -290,27 +266,54 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
     function calculateCliffTimeDiff(ClaimInfo memory claimInfo) private view returns(uint) {
         //How many seconds since the cliff? (negative if before cliff)
-        (, uint timeDiff) = (block.timestamp - vestingStartTime).trySub(claimInfo.cliff);
-        return timeDiff;
+        if (block.timestamp < vestingStartTime) return 0;
+        if (block.timestamp - vestingStartTime < claimInfo.cliff) return 0;
+        return block.timestamp - vestingStartTime - claimInfo.cliff;
     }
 
-    function calculateVestingForUserPerSecond(ClaimInfo memory claimInfo) private pure returns(uint) {
-        //We divide the balance by the number of seconds in the entire vesting period (vesting unit is seconds!).
-        (, uint vestingForUserPerSecond) = claimInfo.balance.tryDiv(claimInfo.vestingPeriod);
-        return vestingForUserPerSecond;
+    function calculateVestingForUserPerPeriod(ClaimInfo memory claimInfo) private pure returns(uint) {
+        if (claimInfo.vestingPeriod <= 0) return claimInfo.balance;
+        if (claimInfo.vestingGranularity <= 0) return claimInfo.balance;
+
+        uint periods = claimInfo.vestingPeriod / claimInfo.vestingGranularity;
+
+        //We divide the total balance by the number of seconds in the entire vesting period (vesting unit is seconds!).
+        //Unless a tiny fractional total balance is reserved - below 10^-12 tokens with monthly vesting, or 10^-17 with daily granularity.
+        return claimInfo.balance / periods;
     }
 
-    function getMaximumRelease(ClaimInfo memory claimInfo) private pure returns(uint256) {
+    function calculateMaximumRelease(ClaimInfo memory claimInfo) private pure returns(uint256) {
         // 1 for each fully spent period - if period is months, 1 per month, if period is days, 1 per day, etc. sample: 10 days or 2 months
-        ( , uint periodsVested) = claimInfo.secondsVested.tryDiv(claimInfo.periodGranularity);
+        ( , uint periodsVested) = claimInfo.secondsVested.tryDiv(claimInfo.vestingGranularity);
 
-        ( , uint releasePerFullPeriod) = claimInfo.vestingForUserPerSecond.tryMul(claimInfo.periodGranularity);
-        return periodsVested * releasePerFullPeriod; //this is like "4.55%"
+        return periodsVested * claimInfo.vestingForUserPerPeriod;
     }
 
-    function getBalanceToRelease(uint maximumRelease, ClaimInfo memory claimInfo) private pure returns(uint256, uint256) {
-        require(claimInfo.claimedBalance < claimInfo.balance, "already claimed everything");
+    function getClaimableBalance(string calldata _roundType, address _to) view public 
+    claimableRound(_roundType) returns(uint256) {
+        RoundType roundType = getRoundTypeByKey(_roundType);
+
+        ClaimInfo memory claimInfo = ClaimInfo({
+        cliff : roundDistribution[roundType].cliff,
+        vestingPeriod : roundDistribution[roundType].vestingPeriod,
+        balance : reservedBalances[roundType][_to],
+        claimedBalance : claimedBalances[roundType][_to],
+        vestingGranularity : roundDistribution[roundType].vestingGranularity, //e.g. Days or Months (in seconds!)
+        secondsVested : 0,
+        vestingForUserPerPeriod : 0
+        });
+
+        if(claimInfo.balance <= claimInfo.claimedBalance) return 0;
+
+        claimInfo.secondsVested = calculateCliffTimeDiff(claimInfo);
+
+        if(claimInfo.secondsVested <= 0) return 0;
+
+        claimInfo.vestingForUserPerPeriod = calculateVestingForUserPerPeriod(claimInfo);
+
+        uint maximumRelease = calculateMaximumRelease(claimInfo);
+    
         ( , uint unClaimedBalance) = claimInfo.balance.trySub(claimInfo.claimedBalance);
-        return (unClaimedBalance.min(maximumRelease), unClaimedBalance);
+        return Math.min(unClaimedBalance, maximumRelease);
     }
 }

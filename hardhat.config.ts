@@ -12,6 +12,7 @@ require('solidity-coverage');
 require('hardhat-abi-exporter');
 require('hardhat-contract-sizer');
 require('hardhat-gas-reporter');
+require('ethereum-waffle');
 
 require("dotenv").config();
 
