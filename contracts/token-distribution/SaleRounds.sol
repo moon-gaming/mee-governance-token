@@ -277,9 +277,10 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     }
 
     function calculateVestingForUserPerSecond(ClaimInfo memory claimInfo) private pure returns(uint) {
-        //We divide the balance by the number of seconds in the entire vesting period (vesting unit is seconds!).
-        (, uint vestingForUserPerSecond) = claimInfo.balance.tryDiv(claimInfo.vestingPeriod);
-        return vestingForUserPerSecond;
+        if (claimInfo.vestingPeriod <= 0) return claimInfo.balance;
+        //We divide the total balance by the number of seconds in the entire vesting period (vesting unit is seconds!).
+        //Unless a tiny fractional total balance is reserved - below 10^-9 tokens for 3 years.
+        return claimInfo.balance / claimInfo.vestingPeriod;
     }
 
     function calculateMaximumRelease(ClaimInfo memory claimInfo) private pure returns(uint256) {
