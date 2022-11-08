@@ -258,7 +258,6 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         uint256 initialExchangesSupply = 60_000_000 * (10 ** _decimalUnits);
         _mint(exchangesWalletAddress, initialExchangesSupply);
         roundDistribution[RoundType.EXCHANGES].totalRemaining -= initialExchangesSupply;
-        claimedBalances[RoundType.EXCHANGES][exchangesWalletAddress] += initialExchangesSupply;
 
         // Reserving rest of the 60% of the supply for exchanges distribution
         reserveTokensInternal(RoundType.EXCHANGES, exchangesWalletAddress, exchangesDistribution.supply - initialExchangesSupply);
