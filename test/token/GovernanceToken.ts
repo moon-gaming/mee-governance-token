@@ -1,143 +1,13 @@
-import {expect, use} from 'chai';
+import {expect} from "chai";
 import {ethers} from "hardhat";
 import {BigNumber, Contract, ContractFactory} from "ethers";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 
 const pow18 = BigNumber.from("10").pow(18);
-const maxSupply = 3000000000;
 
 enum RoundType {
     SEED, PRIVATE, PUBLIC, PLAYANDEARN, EXCHANGES, TREASURY, ADVISOR, TEAM, SOCIAL
 }
-
-const DAY_TO_SECONDS = 24 * 60 * 60;
-const MONTH_TO_SECONDS = 30 * DAY_TO_SECONDS;
-
-interface Distribution {
-    type: string;
-    vestingPeriod: number;
-    cliff: number;
-    totalRemaining: BigNumber;
-    supply: BigNumber;
-    vestingGranularity: number;
-    externalReserve: boolean;
-}
-
-interface ClaimObj {
-    totalClaimedAmount: BigNumber;
-    claimedAmount: BigNumber;
-}
-
-const seedDistribution: Distribution = {
-    type: RoundType[RoundType.SEED],
-    vestingPeriod: 22 * DAY_TO_SECONDS,
-    cliff: 2 * DAY_TO_SECONDS,
-    totalRemaining: BigNumber.from("420000000").mul(pow18),
-    supply: BigNumber.from("420000000").mul(pow18),
-    vestingGranularity: DAY_TO_SECONDS,
-    externalReserve: true,
-}
-
-const privateDistribution: Distribution = {
-    type: RoundType[RoundType.PRIVATE],
-    vestingPeriod: 22 * DAY_TO_SECONDS,
-    cliff: 2 * DAY_TO_SECONDS,
-    totalRemaining: BigNumber.from("210000000").mul(pow18),
-    supply: BigNumber.from("210000000").mul(pow18),
-    vestingGranularity: DAY_TO_SECONDS,
-    externalReserve: true
-}
-
-const publicDistribution: Distribution = {
-    type: RoundType[RoundType.PUBLIC],
-    vestingPeriod: 6 * DAY_TO_SECONDS,
-    cliff: 0,
-    totalRemaining: BigNumber.from("120000000").mul(pow18),
-    supply: BigNumber.from("120000000").mul(pow18),
-    vestingGranularity: DAY_TO_SECONDS,
-    externalReserve: true
-}
-
-const playAndEarnDistribution: Distribution = {
-    type: RoundType[RoundType.PLAYANDEARN],
-    vestingPeriod: 35 * DAY_TO_SECONDS,
-    cliff: 2 * DAY_TO_SECONDS,
-    totalRemaining: BigNumber.from("6000000000").mul(pow18),
-    supply: BigNumber.from("6000000000").mul(pow18),
-    vestingGranularity: DAY_TO_SECONDS,
-    externalReserve: false
-}
-
-const socialDistribution: Distribution = {
-    type: RoundType[RoundType.SOCIAL],
-    vestingPeriod: 22 * MONTH_TO_SECONDS,
-    cliff: 2 * MONTH_TO_SECONDS,
-    totalRemaining: BigNumber.from("30000000").mul(pow18),
-    supply: BigNumber.from("30000000").mul(pow18),
-    vestingGranularity: MONTH_TO_SECONDS,
-    externalReserve: false
-}
-
-const teamDistribution: Distribution = {
-    type: RoundType[RoundType.TEAM],
-    vestingPeriod: 24 * MONTH_TO_SECONDS,
-    cliff: 12 * MONTH_TO_SECONDS,
-    totalRemaining: BigNumber.from("4500000000").mul(pow18),
-    supply: BigNumber.from("4500000000").mul(pow18),
-    vestingGranularity: MONTH_TO_SECONDS,
-    externalReserve: false
-}
-
-const treasuryDistribution: Distribution = {
-    type: RoundType[RoundType.TREASURY],
-    vestingPeriod: 30 * MONTH_TO_SECONDS,
-    cliff: 4 * MONTH_TO_SECONDS,
-    totalRemaining: BigNumber.from("8700000000").mul(pow18),
-    supply: BigNumber.from("8700000000").mul(pow18),
-    vestingGranularity: MONTH_TO_SECONDS,
-    externalReserve: false
-}
-
-const exchangesDistribution: Distribution = {
-    type: RoundType[RoundType.EXCHANGES],
-    vestingPeriod: 30 * MONTH_TO_SECONDS,
-    cliff: 4 * MONTH_TO_SECONDS,
-    totalRemaining: BigNumber.from("8700000000").mul(pow18),
-    supply: BigNumber.from("8700000000").mul(pow18),
-    vestingGranularity: MONTH_TO_SECONDS,
-    externalReserve: false
-}
-
-const advisorsDistribution: Distribution = {
-    type: RoundType[RoundType.ADVISOR],
-    vestingPeriod: 30 * MONTH_TO_SECONDS,
-    cliff: 4 * MONTH_TO_SECONDS,
-    totalRemaining: BigNumber.from("8700000000").mul(pow18),
-    supply: BigNumber.from("8700000000").mul(pow18),
-    vestingGranularity: MONTH_TO_SECONDS,
-    externalReserve: false
-}
-
-const rounds = [seedDistribution/*, privateDistribution*/]; //playAndEarnDistribution, socialDistribution, teamDistribution, treasuryDistribution];
-
-let defaultTimeStamp: number;
-
-const mockBlockTimestamp = async (days: number) => {
-    const blockNumBefore = await ethers.provider.getBlockNumber();
-    const blockBefore = await ethers.provider.getBlock(blockNumBefore);
-    const timestampBefore = blockBefore.timestamp;
-    defaultTimeStamp = timestampBefore;
-    //await ethers.provider.send('evm_increaseTime', [days]);
-    await ethers.provider.send('evm_mine', [timestampBefore + days]);
-}
-
-// const resetBlockTimestamp = async () => {
-//   const blockNumBefore = await ethers.provider.getBlockNumber();
-//   const blockBefore = await ethers.provider.getBlock(blockNumBefore);
-//   const timestampBefore = blockBefore.timestamp;
-//   //await ethers.provider.send('evm_increaseTime', [days]);
-//   await ethers.provider.send('evm_mine', [defaultTimeStamp]);
-// }
 
 describe("Governance Token contract", function () {
     let governanceTokenFactory: ContractFactory;
@@ -335,6 +205,6 @@ describe("Governance Token contract", function () {
                 await expect(governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.EXCHANGES], buyer.address, tokenAmount)).to.be.revertedWith("total remaining round amount is not enough");
                 await expect(governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.ADVISOR], buyer.address, tokenAmount)).to.be.revertedWith("total remaining round amount is not enough");
             });
-        });        
+        });
     });
 });

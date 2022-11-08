@@ -2,7 +2,7 @@ import {expect} from "chai";
 import {ethers} from "hardhat";
 import {BigNumber, Contract, ContractFactory} from "ethers";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import { time } from "@nomicfoundation/hardhat-network-helpers";
+import {time} from "@nomicfoundation/hardhat-network-helpers";
 
 const pow18 = BigNumber.from("10").pow(18);
 
@@ -42,7 +42,7 @@ describe("Auxiliary Tests", function () {
         [owner, gameOwner, buyer,/* signer,*/ ...addrs] = accounts;
 
         publicWallet = addrs[0];
-        exchangesWallet = addrs[1];    
+        exchangesWallet = addrs[1];
 
         // Get the ContractFactory and Signers here.
         governanceToken = await deployToken("MEE Governance Token");
@@ -59,7 +59,7 @@ describe("Auxiliary Tests", function () {
                 var reserved = await governanceToken.connect(publicWallet).getTotalPending(RoundType[round], publicWallet.address);
                 expect(reserved).to.equal(0, RoundType[round]);
             }
-        });        
+        });
 
         it("Exchanges Wallet holds 60M tokens after Deploy", async () => {
             var balance = await governanceToken.connect(exchangesWallet).balanceOf(exchangesWallet.address);
@@ -69,7 +69,7 @@ describe("Auxiliary Tests", function () {
         it("Exchanges Wallet has 90M reserved after Deploy", async () => {
             var reserved = await governanceToken.connect(exchangesWallet).getTotalPending(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
             expect(reserved).to.equal(pow18.mul(90_000_000));
-        });        
+        });
 
 
         it("Exchanges Wallet may claim nothing after only a half month", async () => {
@@ -79,8 +79,8 @@ describe("Auxiliary Tests", function () {
 
             time.increase(time.duration.days(15));
             var reserved = await contract.connect(exchangesWallet).getClaimableBalance(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
-            expect(reserved).to.equal(0);    
-        });                            
+            expect(reserved).to.equal(0);
+        });
 
         it("Exchanges Wallet may claim 30M each 30 days", async () => {
             var contract = await deployToken("Exchanges Monthly Vesting Test");
@@ -91,9 +91,9 @@ describe("Auxiliary Tests", function () {
             {
                 time.increase(time.duration.days(30));
                 var reserved = await contract.connect(exchangesWallet).getClaimableBalance(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
-                expect(reserved).to.equal(pow18.mul(30_000_000).mul(i), "Month" + i);    
+                expect(reserved).to.equal(pow18.mul(30_000_000).mul(i), "Month" + i);
             }
-        });                            
+        });
 
         it("Exchanges Wallet may claim 90M after 3 months or more", async () => {
             var contract = await deployToken("Exchanges 90 Day Test");
@@ -108,7 +108,7 @@ describe("Auxiliary Tests", function () {
 
             var reserved = await contract.connect(exchangesWallet).getClaimableBalance(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
             expect(reserved).to.equal(pow18.mul(90_000_000), "After longer time.");
-        });                            
+        });
 
     });
 });
