@@ -1,8 +1,8 @@
-import {expect} from 'chai'
+import {expect} from "chai";
 import {ethers} from "hardhat";
 import {BigNumber, Contract, ContractFactory} from "ethers";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import { time } from "@nomicfoundation/hardhat-network-helpers";
+import {time} from "@nomicfoundation/hardhat-network-helpers";
 
 const pow18 = BigNumber.from("10").pow(18);
 
@@ -37,7 +37,7 @@ describe("Claiming Tests", function () {
     }
 
 
-    describe("Exchange Wallet Claiming", () => {  
+    describe("Exchange Wallet Claiming", () => {
         // Deploy contract once, and make some quick assumptions.
         before(async () => {
             const accounts = await ethers.getSigners();
@@ -45,9 +45,9 @@ describe("Claiming Tests", function () {
 
             outsider = accounts[9];
             users = accounts.slice(10);
-            
+
             publicWallet = addrs[0];
-            exchangesWallet = addrs[1];    
+            exchangesWallet = addrs[1];
 
             // Get the ContractFactory and Signers here.
             governanceToken = await deployToken("Exchange Claiming Tests");
@@ -66,7 +66,7 @@ describe("Claiming Tests", function () {
 
             var pending = await contract.connect(exchangesWallet).getTotalUnclaimed(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
             expect(pending).to.equal(pow18.mul(60_000_000), "Remaining Unclaimed Tokens.");
-        });                            
+        });
 
         it("Exchanges Wallet successfully claims remainder, and nothing is left unclaimed", async () => {
             var contract = governanceToken;
@@ -78,13 +78,13 @@ describe("Claiming Tests", function () {
 
             var pending = await contract.connect(exchangesWallet).getTotalUnclaimed(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
             expect(pending).to.equal(0, "Remaining Unclaimed Tokens.");
-        });                
-    });        
+        });
+    });
 
-        
+
     describe("General Claiming", () =>
     {
-        //Reserved value that multiple users use.        
+        //Reserved value that multiple users use.
         const reserve = pow18.mul(1_000);
 
         // Deploy contract once, and make some quick assumptions.
@@ -94,13 +94,13 @@ describe("Claiming Tests", function () {
 
             outsider = accounts[9];
             users = accounts.slice(10);
-            
+
             publicWallet = addrs[0];
-            exchangesWallet = addrs[1];    
+            exchangesWallet = addrs[1];
 
             // Get the ContractFactory and Signers here.
             governanceToken = await deployToken("Generic Claiming Tests");
-        
+
 
             //Reserve some tokens for a bunch of users.
             for (var i = 0; i < vesting_rounds.length; i++)
@@ -157,7 +157,7 @@ describe("Claiming Tests", function () {
                 var user = users[i];
                 var connection = governanceToken.connect(user);
                 await connection.claimTokens(RoundType[vesting_rounds[i]], user.address)
-                var balance = await connection.balanceOf(user.address)                
+                var balance = await connection.balanceOf(user.address)
                 expect(balance).to.equal(reserve);
             }
         });
