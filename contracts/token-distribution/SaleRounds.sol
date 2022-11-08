@@ -22,7 +22,6 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         uint vestingForUserPerPeriod;
     }
 
-    bool public tokensClaimable = false;
     uint public vestingStartTime = 9999999999; // very big value to represent some very far date in the future (ex: year 2286);
     mapping(RoundType => Distribution) public roundDistribution;
 
@@ -56,10 +55,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
     modifier isInvestRound(string calldata _roundType) {
         RoundType roundType = getRoundTypeByKey(_roundType);
-
-        require(roundType == RoundType.SEED ||
-        roundType == RoundType.PRIVATE ||
-            roundType == RoundType.PUBLIC , "round is not invest round");
+        require(roundType == RoundType.SEED || roundType == RoundType.PRIVATE, "round is not invest round");
         _;
     }
 
@@ -119,11 +115,6 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         initialReserveAndMint(_walletAddresses, _decimalUnits);
     }
 
-    function setTokensToClaimable(bool _claimable) external
-    onlyGameOwner {
-        tokensClaimable = _claimable;
-    }
-
     function beginVesting() external
     onlyGameOwner {
         require(vestingStartTime > block.timestamp, "Start vesting time was already set");
@@ -167,13 +158,13 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
     function claimTokens(string calldata _roundType, address _to) external
     claimableRound(_roundType) {
-        require(tokensClaimable, "Token vesting has not yet begun");
-        require(_msgSender() == _to, "Sender is not a recipient");
+        require(block.timestamp >= vestingStartTime, "Token vesting has not yet begun.");
+        require(_msgSender() == _to, "Cannot claim for another account.");
 
         RoundType roundType = getRoundTypeByKey(_roundType);
 
         uint balanceToRelease = getClaimableBalance(_roundType, _to);
-        require(balanceToRelease > 0, "already claimed everything");
+        require(balanceToRelease > 0, "Nothing to claim.");
 
         //Perform actual minting of tokens, updating internal balance first.
         claimedBalances[roundType][_to] += balanceToRelease;
