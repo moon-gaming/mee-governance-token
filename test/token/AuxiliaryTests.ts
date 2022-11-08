@@ -45,24 +45,29 @@ describe("Governance Token contract", function () {
     let exchangesWallet: SignerWithAddress;
 
 
+    async function deployToken(purpose: string)
+    {
+        // Get the ContractFactory and Signers here.
+        var factory = await ethers.getContractFactory("GovernanceToken");
+
+        const addressList = addrs.filter((_, index) => index < 7).map((addr) => addr.address);
+
+        var governanceToken = await factory.deploy(
+            purpose, 18, "MEE", gameOwner.address, addressList);
+
+        return governanceToken;
+    }
+
     // Deploy contract once, and make some quick assumptions.
     before(async () => {
         const accounts = await ethers.getSigners();
         [owner, gameOwner, buyer,/* signer,*/ ...addrs] = accounts;
 
         publicWallet = addrs[0];
-        exchangesWallet = addrs[1];
-    
-        for (const account of accounts) {
-            console.log(await account.address, (await account.getBalance()).toBigInt());
-        }
+        exchangesWallet = addrs[1];    
 
         // Get the ContractFactory and Signers here.
-        governanceTokenFactory = await ethers.getContractFactory("GovernanceToken");
-
-        const addressList = addrs.filter((_, index) => index < 7).map((addr) => addr.address);
-        governanceToken = await governanceTokenFactory.deploy(
-            "MEE Governance Token", 18, "MEE", gameOwner.address, addressList);
+        governanceToken = await deployToken("MEE Governance Token");
     });
 
     describe("Pre-Minting", () => {
@@ -88,13 +93,33 @@ describe("Governance Token contract", function () {
             expect(reserved).to.equal(pow18.mul(90_000_000));
         });        
 
-        it("Exchanges Wallet can claim 90M after 3 months", async () => {
-            await governanceToken.connect(gameOwner).beginVesting();
+        it("Exchanges Wallet can claim 30M each month", async () => {
+            var contract = await deployToken("Exchanges Monthly Vesting Test");
+
+            await contract.connect(gameOwner).beginVesting();
+
+            for (let i = 1; i <= 3; i++)
+            {
+                time.increase(time.duration.days(30));
+                var reserved = await contract.connect(exchangesWallet).getClaimableBalance(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
+                expect(reserved).to.equal(pow18.mul(30_000_000).mul(i), "Month" + i);    
+            }
+        });                            
+
+        it("Exchanges Wallet can claim 90M after 3 months or more", async () => {
+            var contract = await deployToken("Exchanges 90 Day Test");
+
+            await contract.connect(gameOwner).beginVesting();
 
             time.increase(time.duration.days(90));
 
-            var reserved = await governanceToken.connect(exchangesWallet).getClaimableBalance(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
-            expect(reserved).to.equal(pow18.mul(90_000_000));
+            var reserved = await contract.connect(exchangesWallet).getClaimableBalance(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
+            expect(reserved).to.equal(pow18.mul(90_000_000), "After exactly 90 days.");
+
+            time.increase(time.duration.days(1234));
+
+            var reserved = await contract.connect(exchangesWallet).getClaimableBalance(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
+            expect(reserved).to.equal(pow18.mul(90_000_000), "After longer time.");
         });                            
     });
 });
