@@ -17,11 +17,12 @@ describe("Claiming Tests", function () {
     let gameOwner: SignerWithAddress;
     let outsider: SignerWithAddress;
     let addrs: SignerWithAddress[];
+    let users: SignerWithAddress[];
 
     let publicWallet: SignerWithAddress;
     let exchangesWallet: SignerWithAddress;
 
-    let vesting_rounds: RoundType[] = [RoundType.SEED, RoundType.PRIVATE];
+    let vesting_rounds: RoundType[] = [RoundType.SEED, RoundType.PRIVATE, RoundType.SEED, RoundType.PRIVATE];
 
     async function deployToken(purpose: string)
     {
@@ -40,8 +41,11 @@ describe("Claiming Tests", function () {
         // Deploy contract once, and make some quick assumptions.
         before(async () => {
             const accounts = await ethers.getSigners();
-            [owner, gameOwner, outsider,/* signer,*/ ...addrs] = accounts;
+            [owner, gameOwner, ...addrs] = accounts;
 
+            outsider = accounts[9];
+            users = accounts.slice(10);
+            
             publicWallet = addrs[0];
             exchangesWallet = addrs[1];    
 
@@ -80,23 +84,28 @@ describe("Claiming Tests", function () {
         
     describe("General Claiming", () =>
     {
+        //Reserved value that multiple users use.        
+        const reserve = pow18.mul(1_000);
+
         // Deploy contract once, and make some quick assumptions.
         before(async () => {
             const accounts = await ethers.getSigners();
-            [owner, gameOwner, outsider,/* signer,*/ ...addrs] = accounts;
+            [owner, gameOwner, ...addrs] = accounts;
 
+            outsider = accounts[9];
+            users = accounts.slice(10);
+            
             publicWallet = addrs[0];
             exchangesWallet = addrs[1];    
 
             // Get the ContractFactory and Signers here.
             governanceToken = await deployToken("Generic Claiming Tests");
         
-            const reserve = pow18.mul(1_000);
 
             //Reserve some tokens for a bunch of users.
             for (var i = 0; i < vesting_rounds.length; i++)
             {
-                await governanceToken.connect(gameOwner).reserveTokens(RoundType[vesting_rounds[i]], addrs[i].address, reserve);
+                await governanceToken.connect(gameOwner).reserveTokens(RoundType[vesting_rounds[i]], accounts[10+i].address, reserve);
             }
         });
 
@@ -106,16 +115,16 @@ describe("Claiming Tests", function () {
                 ).to.be.revertedWith("Token vesting has not yet begun.");
             });
 
-            it("cannot claim before tokens are claimable", async () => {
-                await expect(
-                    governanceToken.connect(addrs[0]).claimTokens(RoundType[RoundType.SEED], addrs[0].address)
-                ).to.be.revertedWith("Token vesting has not yet begun.");
-            });
-    
-            it("non-owners may not start vesting", async () => {
+        it("cannot claim before tokens are claimable", async () => {
             await expect(
-                governanceToken.connect(outsider).beginVesting()
-                ).to.be.revertedWith("GameOwner: caller is not the game address");
+                governanceToken.connect(users[0]).claimTokens(RoundType[RoundType.SEED], users[0].address)
+            ).to.be.revertedWith("Token vesting has not yet begun.");
+        });
+
+        it("non-owners may not start vesting", async () => {
+        await expect(
+            governanceToken.connect(outsider).beginVesting()
+            ).to.be.revertedWith("GameOwner: caller is not the game address");
         });
 
         it("owner can start vesting.", async () => {
@@ -131,26 +140,27 @@ describe("Claiming Tests", function () {
         it("cannot claim without having a balance", async () => {
             await expect(
                 governanceToken.connect(outsider).claimTokens(RoundType[RoundType.SEED], outsider.address)
-            ).to.be.revertedWith("Cannot claim for another account.");
+            ).to.be.revertedWith("Nothing to claim.");
         });
 
         it("cannot claim for someone else", async () => {
             await expect(
-                governanceToken.connect(outsider).claimTokens(RoundType[vesting_rounds[0]], addrs[0].address)
-            ).to.be.revertedWith("Token vesting has not yet begun.");
+                governanceToken.connect(outsider).claimTokens(RoundType[vesting_rounds[0]], users[0].address)
+            ).to.be.revertedWith("Cannot claim for another account.");
         });
 
-        /*
-        it("claiming token without having a balance - 0", async () => {
-            // Transfer 50 tokens from owner to addr1
-            const tokenAmount = BigNumber.from(0).mul(BigNumber.from("10").pow(18));
-            await governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.SEED], outsider.address, tokenAmount);
+        it("all users can claim all tokens in the distant future", async () => {
+            time.increase(time.duration.years(10));
 
-            await expect(
-                governanceToken.connect(outsider).claimTokens(RoundType[RoundType.SEED], outsider.address)
-            ).to.be.revertedWith("Token vesting has not yet begun");
+            for (var i = 0; i < vesting_rounds.length; i++)
+            {
+                var user = users[i];
+                var connection = governanceToken.connect(user);
+                await connection.claimTokens(RoundType[vesting_rounds[i]], user.address)
+                var balance = await connection.balanceOf(user.address)                
+                expect(balance).to.equal(reserve);
+            }
         });
-        */
     });
 });
 
