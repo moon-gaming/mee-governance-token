@@ -22,7 +22,7 @@ describe("Claiming Tests", function () {
     let publicWallet: SignerWithAddress;
     let exchangesWallet: SignerWithAddress;
 
-    let vesting_rounds: RoundType[] = [RoundType.SEED, RoundType.PRIVATE, RoundType.SEED, RoundType.PRIVATE];
+    let vesting_rounds: RoundType[] = [RoundType.SEED, RoundType.PRIVATE, RoundType.SEED, RoundType.SEED, RoundType.PRIVATE];
 
     async function deployToken(purpose: string)
     {

@@ -149,11 +149,7 @@ describe("Governance Token contract", function () {
 
     before(async () => {
         const accounts = await ethers.getSigners();
-        [owner, gameOwner, buyer,/* signer,*/ ...addrs] = accounts;
-
-        for (const account of accounts) {
-            console.log(await account.address, (await account.getBalance()).toBigInt());
-        }
+        [owner, gameOwner, buyer, ...addrs] = accounts;
     });
 
     beforeEach(async () => {
@@ -310,6 +306,7 @@ describe("Governance Token contract", function () {
             });
 
             it("reserve token over remaining token", async () => {
+                //Claim all seed tokens
                 const tokenAmount = BigNumber.from(420_000_000).mul(BigNumber.from("10").pow(18));
                 await governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.SEED], buyer.address, tokenAmount);
                 await expect(governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.SEED], buyer.address, 1)).to.be.revertedWith("total remaining round amount is not enough");
@@ -318,20 +315,25 @@ describe("Governance Token contract", function () {
             });
 
             it("reserve token for inactivated round type", async () => {
-                const tokenAmount = BigNumber.from(420_000_000).mul(BigNumber.from("10").pow(18));
-                await expect(governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.PUBLIC], buyer.address, tokenAmount)).to.be.revertedWith("reservation is not supported for this round");
+                const tokenAmount = BigNumber.from(532).mul(BigNumber.from("10").pow(18));
+                await expect(governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.PUBLIC], buyer.address, tokenAmount)).to.be.revertedWith("round is not a vesting round");
             });
 
             it("reserve token for unsupported round type", async () => {
-                const tokenAmount = BigNumber.from(420_000_000).mul(BigNumber.from("10").pow(18));
+                const tokenAmount = BigNumber.from(69).mul(BigNumber.from("10").pow(18));
 
-                await expect(governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.PUBLIC], buyer.address, tokenAmount)).to.be.revertedWith("reservation is not supported for this round");
+                await expect(governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.PUBLIC], buyer.address, tokenAmount)).to.be.revertedWith("round is not a vesting round");
             });
 
-            it("reserve token for non-invest round type", async () => {
-                const tokenAmount = BigNumber.from(420_000_000).mul(BigNumber.from("10").pow(18));
-                await expect(governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.EXCHANGES], buyer.address, tokenAmount)).to.be.revertedWith("round is not a vesting round");
-                await expect(governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.ADVISOR], buyer.address, tokenAmount)).to.be.revertedWith("round is not a vesting round");
+            it("reserving for public not allowed", async () => {
+                const tokenAmount = pow18.mul(123);
+                await expect(governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.PUBLIC], buyer.address, tokenAmount)).to.be.revertedWith("round is not a vesting round");
+            });
+
+            it("entire supply for pre-minted round types is fully reserved ", async () => {
+                const tokenAmount = BigNumber.from(1); //sic. - smallest possible reservation.
+                await expect(governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.EXCHANGES], buyer.address, tokenAmount)).to.be.revertedWith("total remaining round amount is not enough");
+                await expect(governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.ADVISOR], buyer.address, tokenAmount)).to.be.revertedWith("total remaining round amount is not enough");
             });
         });        
     });

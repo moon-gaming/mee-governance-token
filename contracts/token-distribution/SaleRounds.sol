@@ -48,14 +48,14 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     modifier isEligibleToReserveToken(string calldata _roundType) {
         RoundType roundType = getRoundTypeByKey(_roundType);
 
-        require(roundType != RoundType.PUBLIC, "reservation is not supported for this round");
+        require(roundType != RoundType.PUBLIC, "round is not a vesting round");
         require(isGameOwnerAddress(), "only GameOwner can reserve the token");
         _;
     }
 
     modifier isInvestRound(string calldata _roundType) {
         RoundType roundType = getRoundTypeByKey(_roundType);
-        require(roundType == RoundType.SEED || roundType == RoundType.PRIVATE, "round is not a vesting round");
+        require(roundType != RoundType.PUBLIC, "round is not a vesting round");
         _;
     }
 
