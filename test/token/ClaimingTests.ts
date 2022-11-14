@@ -11,7 +11,6 @@ enum RoundType {
 }
 
 describe("Claiming Tests", function () {
-    let governanceTokenFactory: ContractFactory;
     let governanceToken: Contract;
     let owner: SignerWithAddress;
     let gameOwner: SignerWithAddress;

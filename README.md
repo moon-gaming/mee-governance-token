@@ -9,6 +9,6 @@ RUN TESTS
 > yarn test
 > yarn coverage:local
 
-DEPLOY CONTRACTS TO SPECIFIED NETWORK
+DEPLOY CONTRACTS TO THE SPECIFIC NETWORK
 
-> npx hardhat run scripts/deploy.js --network #network-name  `sample: ropsten, matic, look at networks in hardhat.config.js`
+> yarn hardhat run scripts/deploy.js --network #network-name  `sample: hardhat, local, ropsten, mumbai, matic, look at networks in hardhat.config.js`
