@@ -1,5 +1,4 @@
 const getAccount = async (ethers: any, privateKey: string) => {
-
     let provider;
     if (process.env.ENV === "dev") {
         provider = new ethers.providers.JsonRpcProvider();

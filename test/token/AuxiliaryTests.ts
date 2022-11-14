@@ -1,6 +1,6 @@
 import {expect} from "chai";
 import {ethers} from "hardhat";
-import {BigNumber, Contract, ContractFactory} from "ethers";
+import {BigNumber, Contract} from "ethers";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {time} from "@nomicfoundation/hardhat-network-helpers";
 
@@ -13,12 +13,10 @@ enum RoundType {
 const rounds = [RoundType.SEED, RoundType.PRIVATE, RoundType.PUBLIC, RoundType.PLAYANDEARN, RoundType.EXCHANGES, RoundType.TREASURY, RoundType.ADVISOR, RoundType.TEAM, RoundType.SOCIAL];
 
 describe("Auxiliary Tests", function () {
-    let governanceTokenFactory: ContractFactory;
     let governanceToken: Contract;
     let owner: SignerWithAddress;
     let gameOwner: SignerWithAddress;
     let addrs: SignerWithAddress[];
-
     let publicWallet: SignerWithAddress;
     let exchangesWallet: SignerWithAddress;
 
@@ -70,7 +68,6 @@ describe("Auxiliary Tests", function () {
             let reserved = await governanceToken.connect(exchangesWallet).getTotalPending(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
             expect(reserved).to.equal(pow18.mul(90_000_000));
         });
-
 
         it("Exchanges Wallet may claim nothing after only a half month", async () => {
             let contract = await deployToken("Exchanges half-monthly Vesting Test");

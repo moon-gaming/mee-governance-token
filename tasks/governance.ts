@@ -1,45 +1,20 @@
-import {getAccount, initGovernanceToken} from "../config/init";
+import {initGovernanceToken} from "../config/init";
 import {task, types} from "hardhat/config";
+import {ethers} from "hardhat";
+import {expect} from "chai";
+import {BigNumber} from "ethers";
+import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 
-task("buyHeroByGovernance")
-    .addParam("tokenid", "Token Id")
-    .setAction(async (args, {ethers}) => {
+const pow18 = BigNumber.from("10").pow(18);
 
-        try {
-            const governanceToken = await initGovernanceToken(ethers, process.env.OWNER_PK_PK!);
-            // const signer = await getSigner(ethers, process.env.BUYER!);
-            // const signer = await getAccount(ethers, process.env.SIGNATORY_PK!);
-            const sender = await getAccount(ethers, process.env.OWNER_PK!);
-
-            console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
-            console.log("TOKEN ID", args.tokenid);
-
-            // let message = ethers.utils.solidityPack(["address", "address", "uint128"], [governanceToken?.address, signer?.address, args.tokenid.toString()]);
-            // const messageHash = ethers.utils.solidityKeccak256(['bytes'], [message]);
-            // let signature = await signer?.signMessage(ethers.utils.arrayify(messageHash));
-
-            const nonceNumber = await ethers.provider.getTransactionCount(sender.address);
-            console.log("NONCE NUMBER:", nonceNumber);
-
-            let message = ethers.utils.solidityPack(["string", "address", "uint128", "uint256"],
-                ["buyHeroByGovernance", sender?.address, args.tokenid.toString(), nonceNumber.toString()]);
-
-            console.log("MESSAGE PACKED", message);
-
-            const messageHash = ethers.utils.solidityKeccak256(['bytes'], [message]);
-            // let signature = await signer?.signMessage(ethers.utils.arrayify(messageHash));
-
-            await governanceToken?.buyHeroByGovernance(args.tokenid, nonceNumber, {gasLimit: 500000});
-        } catch (err) {
-            console.error("BUY HERO BY TOKEN ERR:", err);
-        }
-    })
+let exchangesWallet: SignerWithAddress;
+let publicWallet: SignerWithAddress;
 
 task("getGameOwner")
     .setAction(async (args, {ethers}) => {
 
         try {
-            const governanceToken = await initGovernanceToken(ethers, process.env.OWNER_PK!);
+            const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER!);
 
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
 
@@ -49,63 +24,13 @@ task("getGameOwner")
         }
     })
 
-task("setTokenPrice")
-    .addParam("round", "round type")
-    .addParam("price", "MEE token price")
-    .setAction(async (args, {ethers}) => {
-
-        try {
-            const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER_PK!);
-
-            console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
-            console.log("ROUND TYPE", args.round);
-            console.log("PRICE", args.price);
-
-            await governanceToken?.setTokenPriceMap(args.round, args.price);
-        } catch (err) {
-            console.error("SET TOKEN PRICE ERR:", err);
-        }
-    })
-
-task("getTokenPrice")
-    .addParam("round", "round type")
-    .setAction(async (args, {ethers}) => {
-
-        try {
-            const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER_PK!);
-
-            console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
-            console.log("ROUND TYPE", args.round);
-
-            console.log("TOKEN PRICE", await governanceToken?.callStatic.getTokenPriceMap(args.round));
-        } catch (err) {
-            console.error("GET TOKEN PRICE ERR:", err);
-        }
-    })
-
-task("setActiveRound")
-    .addParam("round", "round type")
-    .setAction(async (args, {ethers}) => {
-
-        try {
-            const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER_PK!);
-
-            console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
-            console.log("ROUND TYPE", args.round);
-
-            await governanceToken?.setActiveRound(args.round);
-        } catch (err) {
-            console.error("SET ACTIVE ROUND ERR:", err);
-        }
-    })
-
 task("addAddress")
     .addParam("round", "round type")
     .addParam("address", "address", "", types.string)
     .setAction(async (args, {ethers}) => {
 
         try {
-            const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER_PK!);
+            const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER!);
 
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
             console.log("ROUND TYPE", args.round);
@@ -124,7 +49,7 @@ task("deleteAddress")
     .setAction(async (args, {ethers}) => {
 
         try {
-            const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER_PK!);
+            const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER!);
 
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
             console.log("ROUND TYPE", args.round);
@@ -140,7 +65,7 @@ task("getAddressList")
     .setAction(async (args, {ethers}) => {
 
         try {
-            const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER_PK!);
+            const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER!);
 
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
             console.log("ROUND TYPE", args.round);
@@ -158,7 +83,7 @@ task("reserveTokens")
     .setAction(async (args, {ethers}) => {
 
         try {
-            const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER_PK!);
+            const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER!);
 
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
             console.log("ROUND TYPE", args.round);
@@ -177,7 +102,7 @@ task("totalPending")
     .setAction(async (args, {ethers}) => {
 
         try {
-            const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER_PK!);
+            const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER!);
 
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
             console.log("ROUND TYPE", args.round);
@@ -194,7 +119,7 @@ task("totalRemainingForSpecificRound")
     .setAction(async (args, {ethers}) => {
 
         try {
-            const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER_PK!);
+            const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER!);
 
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
             console.log("ROUND TYPE", args.round);
@@ -209,7 +134,7 @@ task("totalRemainingForAllRounds")
     .setAction(async (args, {ethers}) => {
 
         try {
-            const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER_PK!);
+            const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER!);
 
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
 
@@ -223,7 +148,7 @@ task("totalClaimedForAllRounds")
     .setAction(async (args, {ethers}) => {
 
         try {
-            const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER_PK!);
+            const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER!);
 
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
 
@@ -237,14 +162,21 @@ task("initialReserveAndMint")
     .setAction(async (args, {ethers}) => {
 
         try {
-            const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER_PK!);
+            const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER!);
 
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
 
-            const addressList = [process.env.PUBLIC_WALLET_ADDRESS, process.env.EXCHANGES_WALLET_ADDRESS, process.env.PLAYANDEARN_WALLET_ADDRESS,
-                process.env.SOCIAL_WALLET_ADDRESS, process.env.TEAM_WALLET_ADDRESS, process.env.TREASURY_WALLET_ADDRESS];
+            const accounts = await ethers.getSigners();
 
-            await governanceToken?.initialReserveAndMint(addressList);
+            publicWallet = accounts[0];
+            exchangesWallet = accounts[1];
+
+            let publicBalance = await governanceToken?.connect(publicWallet).balanceOf(publicWallet.address);
+            console.log("Public wallet balance after initial mint and reserve:", publicBalance);
+
+            let exchangesBalance = await governanceToken?.connect(exchangesWallet).balanceOf(exchangesWallet.address);
+            console.log("Exchanges wallet balance after initial mint and reserve:", exchangesBalance);
+
         } catch (err) {
             console.error("initialReserveAndMint ERR:", err);
         }
