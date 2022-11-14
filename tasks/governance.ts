@@ -1,11 +1,7 @@
 import {initGovernanceToken} from "../config/init";
 import {task, types} from "hardhat/config";
 import {ethers} from "hardhat";
-import {expect} from "chai";
-import {BigNumber} from "ethers";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-
-const pow18 = BigNumber.from("10").pow(18);
 
 let exchangesWallet: SignerWithAddress;
 let publicWallet: SignerWithAddress;
