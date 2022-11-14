@@ -4,7 +4,7 @@ const getAccount = async (ethers: any, privateKey: string) => {
     if (process.env.ENV === "dev") {
         provider = new ethers.providers.JsonRpcProvider();
     } else {
-        provider = new ethers.providers.AlchemyProvider("maticmum");
+        provider = new ethers.providers.AlchemyProvider("matic");
     }
 
     try {
