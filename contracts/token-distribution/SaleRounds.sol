@@ -15,7 +15,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     struct ClaimInfo {
         uint cliff;
         uint vestingPeriod;
-        uint balance;
+        uint reservedBalance;
         uint claimedBalance;
         uint vestingGranularity;
         uint secondsVested;
@@ -318,14 +318,14 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     }
 
     function calculateVestingForUserPerPeriod(ClaimInfo memory claimInfo) private pure returns(uint) {
-        if (claimInfo.vestingPeriod <= 0) return claimInfo.balance;
-        if (claimInfo.vestingGranularity <= 0) return claimInfo.balance;
+        if (claimInfo.vestingPeriod <= 0) return claimInfo.reservedBalance;
+        if (claimInfo.vestingGranularity <= 0) return claimInfo.reservedBalance;
 
         uint periods = claimInfo.vestingPeriod / claimInfo.vestingGranularity;
 
         //We divide the total balance by the number of seconds in the entire vesting period (vesting unit is seconds!).
         //Unless a tiny fractional total balance is reserved - below 10^-12 tokens with monthly vesting, or 10^-17 with daily granularity.
-        return claimInfo.balance / periods;
+        return claimInfo.reservedBalance / periods;
     }
 
     function calculateMaximumRelease(ClaimInfo memory claimInfo) private pure returns(uint256) {
@@ -342,14 +342,14 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         ClaimInfo memory claimInfo = ClaimInfo({
         cliff : roundDistribution[roundType].cliff,
         vestingPeriod : roundDistribution[roundType].vestingPeriod,
-        balance : reservedBalances[roundType][_to],
+        reservedBalance : reservedBalances[roundType][_to],
         claimedBalance : claimedBalances[roundType][_to],
         vestingGranularity : roundDistribution[roundType].vestingGranularity, //e.g. Days or Months (in seconds!)
         secondsVested : 0,
         vestingForUserPerPeriod : 0
         });
 
-        if(claimInfo.balance <= claimInfo.claimedBalance) return 0;
+        if(claimInfo.reservedBalance <= claimInfo.claimedBalance) return 0;
 
         claimInfo.secondsVested = calculateCliffTimeDiff(claimInfo);
 
@@ -357,9 +357,8 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
         claimInfo.vestingForUserPerPeriod = calculateVestingForUserPerPeriod(claimInfo);
 
-        uint maximumRelease = calculateMaximumRelease(claimInfo);
-    
-        ( , uint unClaimedBalance) = claimInfo.balance.trySub(claimInfo.claimedBalance);
+        ( , uint maximumRelease) = calculateMaximumRelease(claimInfo).trySub(claimInfo.claimedBalance);    
+        ( , uint unClaimedBalance) = claimInfo.reservedBalance.trySub(claimInfo.claimedBalance);
         return Math.min(unClaimedBalance, maximumRelease);
     }
 }
