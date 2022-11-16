@@ -45,24 +45,9 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     event ReserveTokensEvent(string indexed roundType, uint resserveAmount, address indexed to);
     event ClaimTokensEvent(string indexed roundType, uint balanceToRelease, address indexed to);
 
-    modifier isEligibleToReserveToken(string calldata _roundType) {
-        RoundType roundType = getRoundTypeByKey(_roundType);
-
-        require(roundType != RoundType.PUBLIC, "round is not a vesting round");
-        require(isGameOwnerAddress(), "only GameOwner can reserve the token");
-        _;
-    }
-
-    modifier isInvestRound(string calldata _roundType) {
-        RoundType roundType = getRoundTypeByKey(_roundType);
-        require(roundType != RoundType.PUBLIC, "round is not a vesting round");
-        _;
-    }
-
     modifier claimableRound(string calldata _roundType) {
         RoundType roundType = getRoundTypeByKey(_roundType);
-
-        require(roundType != RoundType.PUBLIC, "Claiming is not supported for this round");
+        require(roundType != RoundType.PUBLIC, "Claiming/Reserving is not supported for this round.");
         _;
     }
 
@@ -195,7 +180,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
     // @_amount is going be decimals() == default(18) digits
     function reserveTokens(string calldata _roundType, address _to, uint _amount) external
-    isInvestRound(_roundType) isEligibleToReserveToken(_roundType) {
+    claimableRound(_roundType) onlyGameOwner claimableRound(_roundType) {
         RoundType roundType = getRoundTypeByKey(_roundType);
 
         reserveTokensInternal(roundType, _to, _amount);
@@ -348,8 +333,8 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
         claimInfo.vestingForUserPerPeriod = calculateVestingForUserPerPeriod(claimInfo);
 
-        ( , uint maximumRelease) = calculateMaximumRelease(claimInfo).trySub(claimInfo.claimedBalance);    
+        ( , uint maximumUnclaimedRelease) = calculateMaximumRelease(claimInfo).trySub(claimInfo.claimedBalance);    
         ( , uint unClaimedBalance) = claimInfo.reservedBalance.trySub(claimInfo.claimedBalance);
-        return Math.min(unClaimedBalance, maximumRelease);
+        return Math.min(unClaimedBalance, maximumUnclaimedRelease);
     }
 }
