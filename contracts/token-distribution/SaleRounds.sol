@@ -251,15 +251,6 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     }
 
     // @_amount is going be decimals() == default(18) digits
-    function mintTokensForPublic(address _to, uint _amount) private
-    onlyGameOwner {
-        require(roundDistribution[RoundType.PUBLIC].totalRemaining >= _amount, "total remaining amount is not enough");
-
-        roundDistribution[RoundType.PUBLIC].totalRemaining -= _amount;
-        _mint(_to, _amount);
-    }
-
-    // @_amount is going be decimals() == default(18) digits
     function reserveTokensInternal(RoundType _roundType, address _to, uint _amount) private {
         require(roundDistribution[_roundType].supply >= _amount, "given amount is bigger than max supply for the round");
         require(roundDistribution[_roundType].totalRemaining >= _amount, "total remaining round amount is not enough");
