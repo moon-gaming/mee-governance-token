@@ -19,7 +19,11 @@ describe("Auxiliary Tests", function () {
     let addrs: SignerWithAddress[];
     let publicWallet: SignerWithAddress;
     let exchangesWallet: SignerWithAddress;
-
+    let playAndEarnWallet: SignerWithAddress;
+    let socialWallet: SignerWithAddress;
+    let teamWallet: SignerWithAddress;
+    let treasuryWallet: SignerWithAddress;
+    let advisorsWallet: SignerWithAddress;
 
     async function deployToken(purpose: string)
     {
@@ -37,10 +41,11 @@ describe("Auxiliary Tests", function () {
     // Deploy contract once, and make some quick assumptions.
     before(async () => {
         const accounts = await ethers.getSigners();
-        [owner, gameOwner, ...addrs] = accounts;
+        [owner, gameOwner, publicWallet, exchangesWallet, playAndEarnWallet, socialWallet, teamWallet, treasuryWallet, advisorsWallet, ...addrs] = accounts;
 
         publicWallet = addrs[0];
         exchangesWallet = addrs[1];
+        advisorsWallet = addrs[2];
 
         // Get the ContractFactory and Signers here.
         governanceToken = await deployToken("MEE Governance Token");
@@ -69,14 +74,14 @@ describe("Auxiliary Tests", function () {
             expect(reserved).to.equal(pow18.mul(90_000_000));
         });
 
-        it("Exchanges Wallet may claim nothing after only a half month", async () => {
+        it("Exchanges Wallet may claim 15M after only a half month", async () => {
             let contract = await deployToken("Exchanges half-monthly Vesting Test");
 
             await contract.connect(gameOwner).beginVesting();
 
             time.increase(time.duration.days(15));
-            let reserved = await contract.connect(exchangesWallet).getClaimableBalance(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
-            expect(reserved).to.equal(0);
+            let claimable = await contract.connect(exchangesWallet).getClaimableBalance(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
+            expect(claimable).to.equal(pow18.mul(15_000_000));
         });
 
         it("Exchanges Wallet may claim 30M each 30 days", async () => {
@@ -87,8 +92,8 @@ describe("Auxiliary Tests", function () {
             for (let i = 1; i <= 3; i++)
             {
                 time.increase(time.duration.days(30));
-                let reserved = await contract.connect(exchangesWallet).getClaimableBalance(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
-                expect(reserved).to.equal(pow18.mul(30_000_000).mul(i), "Month" + i);
+                let claimable = await contract.connect(exchangesWallet).getClaimableBalance(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
+                expect(claimable).to.equal(pow18.mul(30_000_000).mul(i), "Month" + i);
             }
         });
 
@@ -103,8 +108,8 @@ describe("Auxiliary Tests", function () {
 
             time.increase(time.duration.days(1234));
 
-            let reserved = await contract.connect(exchangesWallet).getClaimableBalance(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
-            expect(reserved).to.equal(pow18.mul(90_000_000), "After longer time.");
+            let claimable = await contract.connect(exchangesWallet).getClaimableBalance(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
+            expect(claimable).to.equal(pow18.mul(90_000_000), "After longer time.");
         });
 
     });
