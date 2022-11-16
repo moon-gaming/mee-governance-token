@@ -126,7 +126,7 @@ describe("Governance Token contract", function () {
 
                 await governanceToken.connect(gameOwner).deleteAddressForDistribution(RoundType[RoundType.PRIVATE], addrs[0].address, 0);
 
-                await expect(governanceToken.connect(addrs[0]).reserveTokens(RoundType[RoundType.PRIVATE], buyer.address, tokenAmount)).to.be.revertedWith("only GameOwner can reserve the token");
+                await expect(governanceToken.connect(addrs[0]).reserveTokens(RoundType[RoundType.PRIVATE], buyer.address, tokenAmount)).to.be.revertedWith("GameOwner: caller is not the game address");
             });
 
             describe("reserve token address control", async () => {
@@ -186,18 +186,18 @@ describe("Governance Token contract", function () {
 
             it("reserve token for inactivated round type", async () => {
                 const tokenAmount = BigNumber.from(532).mul(BigNumber.from("10").pow(18));
-                await expect(governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.PUBLIC], buyer.address, tokenAmount)).to.be.revertedWith("round is not a vesting round");
+                await expect(governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.PUBLIC], buyer.address, tokenAmount)).to.be.revertedWith("Claiming/Reserving is not supported for this round.");
             });
 
             it("reserve token for unsupported round type", async () => {
                 const tokenAmount = BigNumber.from(69).mul(BigNumber.from("10").pow(18));
 
-                await expect(governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.PUBLIC], buyer.address, tokenAmount)).to.be.revertedWith("round is not a vesting round");
+                await expect(governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.PUBLIC], buyer.address, tokenAmount)).to.be.revertedWith("Claiming/Reserving is not supported for this round.");
             });
 
             it("reserving for public not allowed", async () => {
                 const tokenAmount = pow18.mul(123);
-                await expect(governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.PUBLIC], buyer.address, tokenAmount)).to.be.revertedWith("round is not a vesting round");
+                await expect(governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.PUBLIC], buyer.address, tokenAmount)).to.be.revertedWith("Claiming/Reserving is not supported for this round.");
             });
 
             it("entire supply for pre-minted round types is fully reserved ", async () => {

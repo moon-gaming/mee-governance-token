@@ -148,7 +148,7 @@ describe("Claiming Tests", function () {
             ).to.be.revertedWith("Cannot claim for another account.");
         });
 
-        it("all users can claim all tokens in the distant future", async () => {
+        it("all users can claim entirety of their tokens in the distant future", async () => {
             time.increase(time.duration.years(10));
 
             for (let i = 0; i < vesting_rounds.length; i++)
@@ -158,8 +158,25 @@ describe("Claiming Tests", function () {
                 await connection.claimTokens(RoundType[vesting_rounds[i]], user.address)
                 let balance = await connection.balanceOf(user.address)
                 expect(balance).to.equal(reserve);
+
+                //Ensure user has no balance left!
+                let remainder = await connection.getClaimableBalance(RoundType[vesting_rounds[i]], user.address)
+                expect(remainder).to.equal(0);
             }
-        });
+        });        
+
+        it("after claiming, users have no claimable balances left", async () => {
+            time.increase(time.duration.years(10));
+
+            for (let i = 0; i < vesting_rounds.length; i++)
+            {
+                let user = users[i];
+                let connection = governanceToken.connect(user);
+                //Ensure user has no balance left!
+                let remainder = await connection.getClaimableBalance(RoundType[vesting_rounds[i]], user.address)
+                expect(remainder).to.equal(0);
+            }
+        });        
     });
 });
 
