@@ -42,7 +42,7 @@
     "@openzeppelin/contracts": "^4.7.3",
     "@openzeppelin/test-helpers": "^0.5.16",
     "dotenv": "^16.0.1",
-    "ethereum-waffle": "^3.4.4",
+    "ethereum-waffle": "^4.0.7",
     "ethers": "^5.6.9",
     "ganache-cli": "^6.12.2",
     "hardhat-abi-exporter": "^2.9.0",
