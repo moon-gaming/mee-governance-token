@@ -137,7 +137,6 @@ describe("Claiming Tests", function () {
         });
 
         it("vestingStartTime is smaller then current block time after starting vesting", async () => {
-            await governanceToken.connect(gameOwner).beginVesting();
             const vestingStartTime = await governanceToken.connect(gameOwner).getVestingTime();
             const timeStamp = (await ethers.provider.getBlock("latest")).timestamp;
             expect(vestingStartTime).to.be.lessThanOrEqual(timeStamp);

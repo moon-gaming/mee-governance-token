@@ -1,13 +1,12 @@
 import path from 'path';
 import '@typechain/hardhat'
 import '@nomiclabs/hardhat-ethers'
-import '@nomiclabs/hardhat-waffle'
 import '@nomiclabs/hardhat-etherscan'
+import '@nomicfoundation/hardhat-chai-matchers';
 import './tasks/accounts'
 import './tasks/balance'
 import './tasks/governance'
 
-//require solidity-coverage for unit test coverage
 require('solidity-coverage');
 require('hardhat-abi-exporter');
 require('hardhat-contract-sizer');
