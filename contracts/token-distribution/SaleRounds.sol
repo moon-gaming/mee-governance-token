@@ -25,7 +25,6 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     uint public vestingStartTime = 9999999999; // very big value to represent some very far date in the future (ex: year 2286);
     mapping(RoundType => Distribution) public roundDistribution;
 
-    mapping(RoundType => address[]) internal addressList;
     mapping(RoundType => mapping(address => uint256)) internal reservedBalances;
     mapping(RoundType => mapping(address => uint256)) internal claimedBalances;
 
@@ -150,32 +149,6 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     onlyGameOwner {
         require(vestingStartTime > block.timestamp, "Start vesting time was already set.");
         vestingStartTime = block.timestamp;
-    }
-
-    function addAddressForDistribution(string calldata _roundType, address _address) external
-        onlyGameOwner returns(bool) {
-
-        RoundType roundType = getRoundTypeByKey(_roundType);
-        addressList[roundType].push(_address);
-
-        return true;
-    }
-
-    function deleteAddressForDistribution(string calldata _roundType, address _address, uint _index) external
-        onlyGameOwner returns(bool) {
-
-        RoundType roundType = getRoundTypeByKey(_roundType);
-        require(_index < addressList[roundType].length, "index is out of distribution address array bounds");
-        require(_address == addressList[roundType][_index], "Address does not match!");
-
-        addressList[roundType][_index] = addressList[roundType][addressList[roundType].length - 1];
-        addressList[roundType].pop();
-        return true;
-    }
-
-    function getAddressList(string calldata _roundType) external onlyGameOwner view returns(address[] memory){
-        RoundType roundType = getRoundTypeByKey(_roundType);
-        return addressList[roundType];
     }
 
     // @_amount is going be decimals() == default(18) digits
