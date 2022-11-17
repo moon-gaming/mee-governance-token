@@ -136,10 +136,10 @@ describe("Claiming Tests", function () {
             ).to.be.revertedWith("Start vesting time was already set.")
         });
 
-        it("vestingStartTime is smaller then current block time after starting vesting", async () => {
+        it("vestingStartTime is equal to latest block time after starting vesting", async () => {
             const vestingStartTime = await governanceToken.connect(gameOwner).getVestingTime();
             const timeStamp = (await ethers.provider.getBlock("latest")).timestamp;
-            expect(vestingStartTime).to.be.lessThanOrEqual(timeStamp);
+            expect(vestingStartTime).to.be.equal(timeStamp);
         });
 
         it("cannot claim without having a balance", async () => {
