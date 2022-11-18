@@ -22,7 +22,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         uint vestingForUserPerPeriod;
     }
 
-    uint public vestingStartTime = 9999999999; // very big value to represent some very far date in the future (ex: year 2286);
+    uint public vestingStartTime = 999999999999999; // very big value to represent some very far date in the future (ex: year 2286);
     mapping(RoundType => Distribution) public roundDistribution;
 
     mapping(RoundType => mapping(address => uint256)) internal reservedBalances;

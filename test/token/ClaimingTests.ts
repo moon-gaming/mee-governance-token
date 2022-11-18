@@ -35,7 +35,6 @@ describe("Claiming Tests", function () {
         return governanceToken;
     }
 
-
     describe("Exchange Wallet Claiming", () => {
         // Deploy contract once, and make some quick assumptions.
         before(async () => {
@@ -79,7 +78,6 @@ describe("Claiming Tests", function () {
             expect(pending).to.equal(0, "Remaining Unclaimed Tokens.");
         });
     });
-
 
     describe("General Claiming", () =>
     {
@@ -137,9 +135,14 @@ describe("Claiming Tests", function () {
         });
 
         it("vestingStartTime is equal to latest block time after starting vesting", async () => {
+            governanceToken.connect(gameOwner).beginVesting();
             const vestingStartTime = await governanceToken.connect(gameOwner).getVestingTime();
-            const timeStamp = (await ethers.provider.getBlock("latest")).timestamp;
-            expect(vestingStartTime).to.be.equal(timeStamp);
+            const latestTimeStamp = (await ethers.provider.getBlock("latest")).timestamp;
+            // beginVesting() set the vestingStartTime to a current block.timestamp
+            // but while calling next method execution - getVestingTime() block.timestamp increased for 1 second
+            // hence we need to subtract 1 second from the timestamp calculation in order to have correct comparison
+            const timestampToCompare = BigNumber.from(latestTimeStamp - 1);
+            expect(vestingStartTime).to.be.equal(timestampToCompare);
         });
 
         it("cannot claim without having a balance", async () => {

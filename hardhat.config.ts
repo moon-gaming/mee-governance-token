@@ -3,6 +3,7 @@ import '@typechain/hardhat'
 import '@nomiclabs/hardhat-ethers'
 import '@nomiclabs/hardhat-etherscan'
 import '@nomicfoundation/hardhat-chai-matchers';
+import '@nomicfoundation/hardhat-network-helpers';
 import './tasks/accounts'
 import './tasks/balance'
 import './tasks/governance'
