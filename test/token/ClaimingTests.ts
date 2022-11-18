@@ -1,6 +1,6 @@
 import {expect} from "chai";
 import {ethers} from "hardhat";
-import {BigNumber, Contract, ContractFactory} from "ethers";
+import {BigNumber, Contract} from "ethers";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {time} from "@nomicfoundation/hardhat-network-helpers";
 
@@ -34,7 +34,6 @@ describe("Claiming Tests", function () {
 
         return governanceToken;
     }
-
 
     describe("Exchange Wallet Claiming", () => {
         // Deploy contract once, and make some quick assumptions.
@@ -79,7 +78,6 @@ describe("Claiming Tests", function () {
             expect(pending).to.equal(0, "Remaining Unclaimed Tokens.");
         });
     });
-
 
     describe("General Claiming", () =>
     {
@@ -136,6 +134,17 @@ describe("Claiming Tests", function () {
             ).to.be.revertedWith("Start vesting time was already set.")
         });
 
+        it("vestingStartTime is equal to latest block time after starting vesting", async () => {
+            governanceToken.connect(gameOwner).beginVesting();
+            const vestingStartTime = await governanceToken.connect(gameOwner).getVestingTime();
+            const latestTimeStamp = (await ethers.provider.getBlock("latest")).timestamp;
+            // beginVesting() set the vestingStartTime to a current block.timestamp
+            // but while calling next method execution - getVestingTime() block.timestamp increased for 1 second
+            // hence we need to subtract 1 second from the timestamp calculation in order to have correct comparison
+            const timestampToCompare = BigNumber.from(latestTimeStamp - 1);
+            expect(vestingStartTime).to.be.equal(timestampToCompare);
+        });
+
         it("cannot claim without having a balance", async () => {
             await expect(
                 governanceToken.connect(outsider).claimTokens(RoundType[RoundType.SEED], outsider.address)
@@ -163,7 +172,7 @@ describe("Claiming Tests", function () {
                 let remainder = await connection.getClaimableBalance(RoundType[vesting_rounds[i]], user.address)
                 expect(remainder).to.equal(0);
             }
-        });        
+        });
 
         it("after claiming, users have no claimable balances left", async () => {
             time.increase(time.duration.years(10));
@@ -176,7 +185,7 @@ describe("Claiming Tests", function () {
                 let remainder = await connection.getClaimableBalance(RoundType[vesting_rounds[i]], user.address)
                 expect(remainder).to.equal(0);
             }
-        });        
+        });
     });
 });
 

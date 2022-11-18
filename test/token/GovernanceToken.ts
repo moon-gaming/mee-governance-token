@@ -118,54 +118,11 @@ describe("Governance Token contract", function () {
     describe("Reserve and claim token", () => {
         describe("Reserve token", function () {
             it("reserve token with whitelisted user", async () => {
-                await governanceToken.connect(gameOwner).addAddressForDistribution(RoundType[RoundType.PRIVATE], addrs[0].address);
-
                 const tokenAmount = BigNumber.from(10).mul(pow18);
 
                 await governanceToken.connect(gameOwner).reserveTokens(RoundType[RoundType.PRIVATE], buyer.address, tokenAmount);
 
-                await governanceToken.connect(gameOwner).deleteAddressForDistribution(RoundType[RoundType.PRIVATE], addrs[0].address, 0);
-
                 await expect(governanceToken.connect(addrs[0]).reserveTokens(RoundType[RoundType.PRIVATE], buyer.address, tokenAmount)).to.be.revertedWith("GameOwner: caller is not the game address");
-            });
-
-            describe("reserve token address control", async () => {
-                describe("Add Address", () => {
-                    it("with not game owner user", async () => {
-                        await expect(governanceToken.connect(addrs[0]).addAddressForDistribution(RoundType[RoundType.PRIVATE],
-                            addrs[0].address)).to.be.revertedWith("GameOwner: caller is not the game address");
-                    });
-                });
-
-                describe("Delete Address", () => {
-                    it("with not game owner user", async () => {
-                        await expect(governanceToken.connect(addrs[0]).deleteAddressForDistribution(RoundType[RoundType.PRIVATE], addrs[0].address, 0)).to.be.revertedWith("GameOwner: caller is not the game address");
-                    });
-
-                    it("index out of bound", async () => {
-                        await governanceToken.connect(gameOwner).addAddressForDistribution(RoundType[RoundType.PRIVATE], addrs[0].address);
-                        await expect(governanceToken.connect(gameOwner).deleteAddressForDistribution(RoundType[RoundType.PRIVATE], addrs[0].address, 5)).to.be.revertedWith("index is out of distribution address array bounds");
-                    });
-
-                    it("index and address don't match", async () => {
-                        await governanceToken.connect(gameOwner).addAddressForDistribution(RoundType[RoundType.PRIVATE], addrs[0].address);
-                        await governanceToken.connect(gameOwner).addAddressForDistribution(RoundType[RoundType.PRIVATE], addrs[1].address);
-
-                        await expect(governanceToken.connect(gameOwner).deleteAddressForDistribution(RoundType[RoundType.PRIVATE], addrs[0].address, 1)).to.be.revertedWith("Address does not match!");
-                    });
-                });
-
-                describe("Get Address List", () => {
-                    it("with not game owner user", async () => {
-                        await expect(governanceToken.connect(addrs[0]).getAddressList(RoundType[RoundType.PRIVATE])).to.be.revertedWith("GameOwner: caller is not the game address");
-                    });
-
-                    it("success", async () => {
-                        await governanceToken.connect(gameOwner).addAddressForDistribution(RoundType[RoundType.PRIVATE], addrs[1].address);
-                        expect(await governanceToken.connect(gameOwner).getAddressList(RoundType[RoundType.PRIVATE])).to.be.eql([addrs[1].address]);
-                    });
-                });
-
             });
 
             it("reserve token over supply", async () => {
