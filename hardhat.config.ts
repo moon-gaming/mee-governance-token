@@ -34,6 +34,9 @@ export default {
       chainId: 31337, // added for metamask as it looks specific chain id being 1337 for local network
       gas: 12000000,
       blockGasLimit: 0x1fffffffffffff,
+      accounts: {
+        count: 100
+      },
       allowUnlimitedContractSize: true,
       timeout: 18000
     },
