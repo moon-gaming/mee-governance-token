@@ -87,24 +87,12 @@ describe("Claiming Tests", function () {
             [owner, gameOwner, ...addrs] = accounts;
 
             outsider = accounts[99];
-            // users = accounts.slice(10);
             users = investors.wallets;
 
             exchangesWallet = addrs[1];
 
             // Get the ContractFactory and Signers here.
             governanceToken = await deployToken("Generic Claiming Tests");
-
-            //Reserve some tokens for a bunch of users.
-            /*for (let i = 0; i < 41; i++) {
-                console.log("Reservation for account: ", users[i].address);
-                await governanceToken.connect(gameOwner).reserveTokens(RoundType[vesting_rounds[0]], users[i].address, reserve);
-            }
-
-            for (let j = 41; j < 89; j++) {
-                console.log("Reservation for account: ", users[j].address);
-                await governanceToken.connect(gameOwner).reserveTokens(RoundType[vesting_rounds[1]], users[j].address, reserve);
-            }*/
 
             for (let i = 0; i < users.length; i++) {
                 let round = RoundType[vesting_rounds[parseInt(RoundType[users[i].round])]];
@@ -166,36 +154,6 @@ describe("Claiming Tests", function () {
         it("all users can claim entirety of their tokens in the distant future", async () => {
             time.increase(time.duration.years(10));
 
-            /*for (let i = 0; i < 41; i++) {
-                let user = users[i];
-                let connection = governanceToken.connect(user);
-                console.log("Account which is claiming: ", user.address);
-                let claimBalance = await connection.getClaimableBalance(RoundType[vesting_rounds[0]], user.address);
-                console.log("Account's claimable balance: ", claimBalance.toString());
-                await connection.claimTokens(RoundType[vesting_rounds[0]], user.address)
-                let balance = await connection.balanceOf(user.address)
-                expect(balance).to.equal(reserve);
-
-                //Ensure user has no balance left!
-                let remainder = await connection.getClaimableBalance(RoundType[vesting_rounds[0]], user.address);
-                expect(remainder).to.equal(0);
-            }
-
-            for (let l = 41; l < 89; l++) {
-                let user = users[l];
-                let connection = governanceToken.connect(user);
-                console.log("Account which is claiming: ", user.address);
-                let claimBalance = await connection.getClaimableBalance(RoundType[vesting_rounds[1]], user.address);
-                console.log("Account's claimable balance: ", claimBalance.toString());
-                await connection.claimTokens(RoundType[vesting_rounds[1]], user.address)
-                let balance = await connection.balanceOf(user.address)
-                expect(balance).to.equal(reserve);
-
-                //Ensure user has no balance left!
-                let remainder = await connection.getClaimableBalance(RoundType[vesting_rounds[1]], user.address)
-                expect(remainder).to.equal(0);
-            }*/
-
             const accounts = await ethers.getSigners();
 
             for (let i = 0; i < users.length; i++) {
@@ -218,20 +176,6 @@ describe("Claiming Tests", function () {
 
         it("after claiming, users have no claimable balances left", async () => {
             time.increase(time.duration.years(10));
-
-            /*for (let i = 0; i < 41; i++) {
-                let user = users[i];
-                let connection = governanceToken.connect(user);
-                let remainder = await connection.getClaimableBalance(RoundType[vesting_rounds[0]], user.address);
-                expect(remainder).to.equal(0);
-            }
-
-            for (let l = 41; l < 89; l++) {
-                let user = users[l];
-                let connection = governanceToken.connect(user);
-                let remainder = await connection.getClaimableBalance(RoundType[vesting_rounds[1]], user.address)
-                expect(remainder).to.equal(0);
-            }*/
 
             const accounts = await ethers.getSigners();
 
