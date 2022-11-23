@@ -134,9 +134,12 @@ describe("Claiming Tests", function () {
             const latestTimeStamp = (await ethers.provider.getBlock("latest")).timestamp;
             // beginVesting() set the vestingStartTime to a current block.timestamp
             // but while calling next method execution - getVestingTime() block.timestamp increased for 1 second
-            // hence we need to subtract 1 second from the timestamp calculation in order to have correct comparison
-            const timestampToCompare = BigNumber.from(latestTimeStamp - 1);
-            expect(vestingStartTime).to.be.equal(timestampToCompare);
+            // this is the "next available block time" in Hardhat. This seems to be 1 or 2 seconds below the block time.
+            // hence we need to subtract second from the timestamp calculation in order to have correct comparison
+            const timestampToCompare = BigNumber.from(latestTimeStamp);
+            const timestampToNotExceed = BigNumber.from(latestTimeStamp-3);
+            expect(vestingStartTime).to.be.below(timestampToCompare);
+            expect(vestingStartTime).to.be.above(timestampToNotExceed);
         });
 
         it("cannot claim without having a balance", async () => {
@@ -160,10 +163,10 @@ describe("Claiming Tests", function () {
                 let user = users[i];
                 let userSigner = accounts.filter(account => account.address === user.address);
                 let connection = governanceToken.connect(userSigner[0]);
-                console.log("Account which is claiming: ", user.address);
+                //console.log("Account which is claiming: ", user.address);
                 let round = RoundType[vesting_rounds[parseInt(RoundType[user.round])]];
                 let claimBalance = await connection.getClaimableBalance(round, user.address);
-                console.log("Account's claimable balance: ", claimBalance.div(pow18).toString());
+                //console.log("Account's claimable balance: ", claimBalance.div(pow18).toString());
                 await connection.claimTokens(round, user.address);
                 let balance = await connection.balanceOf(user.address);
                 expect(balance).to.equal(reserve);
