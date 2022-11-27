@@ -151,8 +151,8 @@ describe("Claiming Tests", function () {
             ).to.be.revertedWith("Cannot claim for another account.");
         });
 
-        it("all users can claim entirety of their tokens in the distant future", async () => {
-            time.increase(time.duration.years(10));
+        it("all users can claim 50% of their tokens in the future", async () => {
+            time.increase(time.duration.years(1));
 
             const accounts = await ethers.getSigners();
 
@@ -160,17 +160,34 @@ describe("Claiming Tests", function () {
                 let user = users[i];
                 let userSigner = accounts.filter(account => account.address === user.address);
                 let connection = governanceToken.connect(userSigner[0]);
-                console.log("Account which is claiming: ", user.address);
                 let round = RoundType[vesting_rounds[parseInt(RoundType[user.round])]];
-                let claimBalance = await connection.getClaimableBalance(round, user.address);
-                console.log("Account's claimable balance: ", claimBalance.div(pow18).toString());
+                await connection.claimTokens(round, user.address);
+                let balance = await connection.balanceOf(user.address);
+                expect(balance).to.be.lessThanOrEqual(BigNumber.from(reserve));
+
+                //Ensure user has balance left!
+                let remainingBalance = await connection.getClaimableBalance(round, user.address);
+                expect(remainingBalance).to.be.greaterThanOrEqual(BigNumber.from(0));
+            }
+        });
+
+        it("all users can claim all of their tokens in the future", async () => {
+            time.increase(time.duration.years(2));
+
+            const accounts = await ethers.getSigners();
+
+            for (let i = 0; i < users.length; i++) {
+                let user = users[i];
+                let userSigner = accounts.filter(account => account.address === user.address);
+                let connection = governanceToken.connect(userSigner[0]);
+                let round = RoundType[vesting_rounds[parseInt(RoundType[user.round])]];
                 await connection.claimTokens(round, user.address);
                 let balance = await connection.balanceOf(user.address);
                 expect(balance).to.equal(reserve);
 
                 //Ensure user has no balance left!
-                let remainder = await connection.getClaimableBalance(round, user.address);
-                expect(remainder).to.equal(0);
+                let remainingBalance = await connection.getClaimableBalance(round, user.address);
+                expect(remainingBalance).to.equal(0);
             }
         });
 
