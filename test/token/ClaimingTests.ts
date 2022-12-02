@@ -112,6 +112,19 @@ describe("Claiming Tests", function () {
             ).to.be.revertedWith("Token vesting has not yet begun.");
         });
 
+        it("can remove reserved tokens for the investor before vesting has begun", async () => {
+            let connection = governanceToken.connect(gameOwner);
+            let round = RoundType[vesting_rounds[parseInt(RoundType[users[0].round])]];
+
+            let reservedBalance = await connection.getClaimableBalance(round, users[0].address);
+            expect(reservedBalance).to.be.greaterThanOrEqual(BigNumber.from(0));
+
+            await connection.removeReservedAllocations(round, users[0].address);
+
+            let remainingBalance = await connection.getClaimableBalance(round, users[0].address);
+            expect(remainingBalance).to.be.equal(BigNumber.from(0));
+        });
+
         it("non-owners may not start vesting", async () => {
         await expect(
             governanceToken.connect(outsider).beginVesting()
@@ -155,6 +168,9 @@ describe("Claiming Tests", function () {
         });
 
         it("all users can claim 50% of their tokens in the future", async () => {
+            let round = RoundType[vesting_rounds[parseInt(RoundType[users[0].round])]];
+            await governanceToken.connect(gameOwner).reserveTokens(round, users[0].address, reserve);
+
             time.increase(time.duration.years(1));
 
             const accounts = await ethers.getSigners();
