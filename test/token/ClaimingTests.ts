@@ -116,13 +116,28 @@ describe("Claiming Tests", function () {
             let connection = governanceToken.connect(gameOwner);
             let round = RoundType[vesting_rounds[parseInt(RoundType[users[0].round])]];
 
-            let reservedBalance = await connection.getClaimableBalance(round, users[0].address);
-            expect(reservedBalance).to.be.greaterThanOrEqual(BigNumber.from(0));
+            let reservedBalance = await connection.getTotalPending(round, users[0].address);
+            expect(reservedBalance).to.be.greaterThan(BigNumber.from(0));
 
             await connection.removeReservedAllocations(round, users[0].address);
 
-            let remainingBalance = await connection.getClaimableBalance(round, users[0].address);
+            let remainingBalance = await connection.getTotalPending(round, users[0].address);
             expect(remainingBalance).to.be.equal(BigNumber.from(0));
+        });
+
+        it("can remove reserved tokens for the multiple investors before vesting has begun", async () => {
+            for (let i = 1; i < 5; i++) {
+                let user = users[i];
+                let connection = governanceToken.connect(gameOwner);
+                let round = RoundType[vesting_rounds[parseInt(RoundType[user.round])]];
+                let reservedBalance = await connection.getTotalPending(round, user.address);
+                expect(reservedBalance).to.be.greaterThan(BigNumber.from(0));
+
+                await connection.removeReservedAllocations(round, user.address);
+
+                let remainingBalance = await connection.getTotalPending(round, user.address);
+                expect(remainingBalance).to.be.equal(BigNumber.from(0));
+            }
         });
 
         it("non-owners may not start vesting", async () => {
@@ -168,8 +183,11 @@ describe("Claiming Tests", function () {
         });
 
         it("all users can claim 50% of their tokens in the future", async () => {
-            let round = RoundType[vesting_rounds[parseInt(RoundType[users[0].round])]];
-            await governanceToken.connect(gameOwner).reserveTokens(round, users[0].address, reserve);
+            for (let i = 0; i < 5; i++) {
+                let user = users[i];
+                let round = RoundType[vesting_rounds[parseInt(RoundType[user.round])]];
+                await governanceToken.connect(gameOwner).reserveTokens(round, user.address, reserve);
+            }
 
             time.increase(time.duration.years(1));
 
