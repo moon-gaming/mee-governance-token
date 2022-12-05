@@ -151,6 +151,16 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
         vestingStartTime = block.timestamp;
     }
 
+    function removeReservedAllocations(string calldata _roundType, address _to) external
+    onlyGameOwner {
+        require(vestingStartTime > block.timestamp, "Token vesting has begun.");
+        RoundType roundType = getRoundTypeByKey(_roundType);
+        require(reservedBalances[roundType][_to] > 0, "there is no reserved balance");
+        require(_to != address(0), "Reservation address is 0x0 address");
+        roundDistribution[roundType].totalRemaining += reservedBalances[roundType][_to];
+        reservedBalances[roundType][_to] = 0;
+    }
+
     // @_amount is going be decimals() == default(18) digits
     function reserveTokens(string calldata _roundType, address _to, uint _amount) external
     claimableRound(_roundType) onlyGameOwner claimableRound(_roundType) {

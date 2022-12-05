@@ -148,7 +148,6 @@ describe("Auxiliary Tests", function () {
             expect(claimable).to.equal(0);
         });
 
-
         it("Advisors Wallet may claim 30M each 30 days", async () => {
             let contract = await deployToken("Advisors Monthly Vesting Test");
 
