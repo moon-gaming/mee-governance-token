@@ -49,7 +49,7 @@ describe("Claiming Tests", function () {
             await governanceToken.connect(gameOwner).beginVesting();
         });
 
-        it("Exchanges Wallet successfully claims first 30M after 1 month, and 60M are remaining", async () => {
+        it("Exchanges Wallet successfully claims first 38.5M after 1 month, and 77M are remaining", async () => {
             let contract = governanceToken;
 
             let oldbalance = await contract.connect(exchangesWallet).balanceOf(exchangesWallet.address);
@@ -57,10 +57,10 @@ describe("Claiming Tests", function () {
 
             await contract.connect(exchangesWallet).claimTokens(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
             let balance = await contract.connect(exchangesWallet).balanceOf(exchangesWallet.address);
-            expect(balance.sub(oldbalance)).to.equal(pow18.mul(30_000_000), "New Tokens in Wallet.");
+            expect(balance.sub(oldbalance)).to.approximately(pow18.mul(38_500_000), 100, "New Tokens in Wallet.");
 
             let pending = await contract.connect(exchangesWallet).getTotalUnclaimed(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
-            expect(pending).to.equal(pow18.mul(60_000_000), "Remaining Unclaimed Tokens.");
+            expect(pending).to.approximately(pow18.mul(77_000_000), 100, "Remaining Unclaimed Tokens.");
         });
 
         it("Exchanges Wallet successfully claims remainder, and nothing is left unclaimed", async () => {
@@ -156,13 +156,6 @@ describe("Claiming Tests", function () {
             ).to.be.revertedWith("Start vesting time was already set.")
         });
 
-        it("removeReservedAllocations can not be called after vesting has hstarted", async () => {
-            let round = RoundType[vesting_rounds[parseInt(RoundType[users[0].round])]];
-            await expect(
-                governanceToken.connect(gameOwner).removeReservedAllocations(round, users[0].address)
-            ).to.be.revertedWith("Token vesting has begun.")
-        });
-
         it("vestingStartTime is equal to the latest block time after starting vesting", async () => {
             governanceToken.connect(gameOwner).beginVesting();
             const vestingStartTime = await governanceToken.connect(gameOwner).getVestingTime();
@@ -175,6 +168,13 @@ describe("Claiming Tests", function () {
             const timestampToNotExceed = BigNumber.from(latestTimeStamp-3);
             expect(vestingStartTime).to.be.below(timestampToCompare);
             expect(vestingStartTime).to.be.above(timestampToNotExceed);
+        });
+
+        it("removeReservedAllocations can not be called after vesting has started", async () => {
+            let round = RoundType[vesting_rounds[parseInt(RoundType[users[0].round])]];
+            await expect(
+                governanceToken.connect(gameOwner).removeReservedAllocations(round, users[0].address)
+            ).to.be.revertedWith("Token vesting has begun.")
         });
 
         it("cannot claim without having a balance", async () => {

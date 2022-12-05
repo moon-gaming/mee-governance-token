@@ -38,8 +38,8 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
     Distribution private teamDistribution;
     Distribution private treasuryDistribution;
 
-    uint constant private DAY_TO_SECONDS = 24 * 60 * 60;
-    uint constant private MONTH_TO_SECONDS = 30 * DAY_TO_SECONDS;
+    uint constant private DAY_TO_SECONDS = 1 days;
+    uint constant private MONTH_TO_SECONDS = 30 days;
 
     event ReserveTokensEvent(string indexed roundType, uint resserveAmount, address indexed to);
     event ClaimTokensEvent(string indexed roundType, uint balanceToRelease, address indexed to);
@@ -163,7 +163,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
     // @_amount is going be decimals() == default(18) digits
     function reserveTokens(string calldata _roundType, address _to, uint _amount) external
-    claimableRound(_roundType) onlyGameOwner {
+    onlyGameOwner claimableRound(_roundType) {
         RoundType roundType = getRoundTypeByKey(_roundType);
 
         reserveTokensInternal(roundType, _to, _amount);
@@ -258,12 +258,12 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
         require(exchangesWalletAddress != address(0), "Exchanges wallet address is 0x0");
 
-        // Initial minting of 40% of total supply for exchanges distribution
-        uint256 initialExchangesSupply = 60_000_000 * (10 ** _decimalUnits);
+        // Initial minting of 23% of total supply for exchanges distribution
+        uint256 initialExchangesSupply = 34_500_000 * (10 ** _decimalUnits);
         _mint(exchangesWalletAddress, initialExchangesSupply);
         roundDistribution[RoundType.EXCHANGES].totalRemaining -= initialExchangesSupply;
 
-        // Reserving rest of the 60% of the supply for exchanges distribution
+        // Reserving rest of the supply for exchanges distribution
         reserveTokensInternal(RoundType.EXCHANGES, exchangesWalletAddress, exchangesDistribution.supply - initialExchangesSupply);
 
         // Initial minting of 100% of total supply for public distribution
