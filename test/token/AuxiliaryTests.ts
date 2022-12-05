@@ -42,11 +42,9 @@ describe("Auxiliary Tests", function () {
     // Deploy contract once, and make some quick assumptions.
     before(async () => {
         const accounts = await ethers.getSigners();
-        [owner, gameOwner, publicWallet, exchangesWallet, playAndEarnWallet, socialWallet, teamWallet, treasuryWallet, advisorsWallet, ...addrs] = accounts;
+        [owner, gameOwner, ...addrs] = accounts;
 
-        publicWallet = addrs[0];
-        exchangesWallet = addrs[1];
-        advisorsWallet = addrs[2];
+        [publicWallet, exchangesWallet, playAndEarnWallet, socialWallet, teamWallet, treasuryWallet, advisorsWallet, ] = addrs;
 
         // Get the ContractFactory and Signers here.
         governanceToken = await deployToken("MEE Governance Token");
@@ -172,8 +170,7 @@ describe("Auxiliary Tests", function () {
 
             for (let i = 1; i <= 3; i++)
             {
-                console.log("Month " + i);
-                time.increase(time.duration.days(35));
+                time.increase(time.duration.days(30));
                 claimable = await contract.connect(advisorsWallet).getClaimableBalance(RoundType[RoundType.ADVISOR], advisorsWallet.address);
                 expect(claimable).to.equal(pow18.mul(7_500_000).mul(i), "Month" + i);
             }
