@@ -163,7 +163,7 @@ contract SaleRounds is TokenDistribution, GameOwner, ERC20 {
 
     // @_amount is going be decimals() == default(18) digits
     function reserveTokens(string calldata _roundType, address _to, uint _amount) external
-    claimableRound(_roundType) onlyGameOwner claimableRound(_roundType) {
+    onlyGameOwner claimableRound(_roundType) {
         RoundType roundType = getRoundTypeByKey(_roundType);
 
         reserveTokensInternal(roundType, _to, _amount);
