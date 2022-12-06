@@ -756,7 +756,6 @@ export const abi = [
 export async function initGovernanceToken(ethers: any, privateKey: string) {
     // call smart contract top mirror the record on blockchain
 
-
     let governanceTokenContract;
     try {
         governanceTokenContract = new ethers.Contract(process.env.GOVERNANCE_TOKEN, abi, await getAccount(ethers, privateKey));
