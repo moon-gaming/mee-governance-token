@@ -33,7 +33,7 @@ contract GameOwner is Ownable {
      * Getter method for gameOwnerAddress variable which returns address
      * @return address
      */
-    function getGameOwnerAddress() external view onlyGameOwner returns(address) {
+    function getGameOwnerAddress() external view returns(address) {
         return gameOwnerAddress;
     }
 
