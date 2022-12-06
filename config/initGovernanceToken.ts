@@ -767,20 +767,3 @@ export const abi = [
         "type": "function"
     }
 ];
-
-export async function initGovernanceToken(ethers: any) {
-    // call smart contract top mirror the record on blockchain
-
-    const [owner] = await ethers.getSigners();
-
-    let governanceTokenContract;
-    try {
-        governanceTokenContract = new ethers.Contract(process.env.GOVERNANCE_TOKEN, abi, owner);
-    } catch (err) {
-        console.error("Governance Contract init err:", err);
-    }
-
-    return governanceTokenContract;
-}
-
-export default initGovernanceToken;

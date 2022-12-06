@@ -1,11 +1,8 @@
-import {initGovernanceToken} from "../config/init";
 import {abi} from "../config/initGovernanceToken";
-
 import {task, types} from "hardhat/config";
-import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import * as investors from "../utils/test-investors.json";
 import {BigNumber} from "ethers";
 import {readFile} from 'fs/promises';
+import * as investors from "../utils/test-investors.json";
 
 
 task("works")
@@ -25,9 +22,9 @@ task("works")
 
 task("fails")
     .setAction(async (args, {ethers}) => {
-
         try {
             const [owner, game_owner] = await ethers.getSigners();
+            console.log("GAME_OWNER", game_owner);
             const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, game_owner);
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
 
