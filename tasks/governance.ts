@@ -177,8 +177,8 @@ task("totalClaimedForAllRounds")
     .setAction(async (args, {ethers}) => {
 
         try {
-            const [owner, gameOwner] = await ethers.getSigners();
-            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, gameOwner);
+            const [owner, game_owner] = await ethers.getSigners();
+            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, game_owner);
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
 
             console.log("RESULT:", await governanceToken?.getTotalClaimedForAllRounds());
