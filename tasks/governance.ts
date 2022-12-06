@@ -11,8 +11,8 @@ task("getGameOwner")
     .setAction(async (args, {ethers}) => {
 
         try {
-            const [owner, game_owner] = await ethers.getSigners();
-            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, game_owner);
+            const [owner] = await ethers.getSigners();
+            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, owner);
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
 
             console.log("GAME OWNER ADDRESS", await governanceToken?.callStatic.getGameOwnerAddress());
@@ -24,8 +24,8 @@ task("getGameOwner")
 task("makeAllocationsForInvestors")
     .setAction(async (args, {ethers}) => {
         try {
-            const [owner, game_owner] = await ethers.getSigners();
-            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, game_owner);
+            const [owner] = await ethers.getSigners();
+            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, owner);
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
 
             enum RoundType {
@@ -91,8 +91,8 @@ task("reserveTokens")
     .setAction(async (args, {ethers}) => {
 
         try {
-            const [owner, game_owner] = await ethers.getSigners();
-            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, game_owner);
+            const [owner] = await ethers.getSigners();
+            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, owner);
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
             console.log("ROUND TYPE", args.round);
             console.log("TO", args.to);
@@ -110,8 +110,8 @@ task("totalPending")
     .setAction(async (args, {ethers}) => {
 
         try {
-            const [owner, game_owner] = await ethers.getSigners();
-            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, game_owner);
+            const [owner] = await ethers.getSigners();
+            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, owner);
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
             console.log("ROUND TYPE", args.round);
             console.log("TO", args.to);
@@ -127,8 +127,8 @@ task("totalRemainingForSpecificRound")
     .setAction(async (args, {ethers}) => {
 
         try {
-            const [owner, game_owner] = await ethers.getSigners();
-            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, game_owner);
+            const [owner] = await ethers.getSigners();
+            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, owner);
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
             console.log("ROUND TYPE", args.round);
 
@@ -142,8 +142,8 @@ task("totalRemainingForAllRounds")
     .setAction(async (args, {ethers}) => {
 
         try {
-            const [owner, game_owner] = await ethers.getSigners();
-            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, game_owner);
+            const [owner] = await ethers.getSigners();
+            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, owner);
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
 
             console.log("RESULT:", await governanceToken?.getTotalRemainingForAllRounds());
@@ -156,8 +156,8 @@ task("totalClaimedForAllRounds")
     .setAction(async (args, {ethers}) => {
 
         try {
-            const [owner, game_owner] = await ethers.getSigners();
-            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, game_owner);
+            const [owner, gameOwner] = await ethers.getSigners();
+            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, gameOwner);
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
 
             console.log("RESULT:", await governanceToken?.getTotalClaimedForAllRounds());
