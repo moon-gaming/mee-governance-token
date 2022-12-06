@@ -43,7 +43,7 @@ task("getGameOwner")
 
         try {
             const [owner, game_owner] = await ethers.getSigners();
-            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, owner);
+            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, owner); //owner can be anything here, this is a public function
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
 
             console.log("GAME OWNER ADDRESS", await governanceToken?.callStatic.getGameOwnerAddress());
@@ -164,7 +164,7 @@ task("totalPending")
 
         try {
             const [owner, game_owner] = await ethers.getSigners();
-            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, owner);
+            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, game_owner);
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
             console.log("ROUND TYPE", args.round);
             console.log("TO", args.to);
@@ -181,7 +181,7 @@ task("totalRemainingForSpecificRound")
 
         try {
             const [owner, game_owner] = await ethers.getSigners();
-            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, owner);
+            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, game_owner);
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
             console.log("ROUND TYPE", args.round);
 
@@ -196,7 +196,7 @@ task("totalRemainingForAllRounds")
 
         try {
             const [owner, game_owner] = await ethers.getSigners();
-            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, owner);
+            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, game_owner);
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
 
             console.log("RESULT:", await governanceToken?.getTotalRemainingForAllRounds());
