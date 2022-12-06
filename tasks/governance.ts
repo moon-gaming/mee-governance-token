@@ -84,6 +84,25 @@ task("makeAllocationsForInvestorsFromUrl")
         }
     })
 
+task("removeReservedAllocations")
+    .addParam("round", "round type")
+    .addParam("to", "address")
+    .setAction(async (args, {ethers}) => {
+
+        try {
+            const [owner, game_owner] = await ethers.getSigners();
+            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, game_owner);
+            console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
+
+            console.log("ROUND TYPE", args.round);
+            console.log("TO", args.to);
+
+            console.log("RESULT:", await governanceToken?.removeReservedAllocations(args.round, args.to));
+        } catch (err) {
+            console.error("REMOVE RESERVED ALLOCATIONS ERR:", err);
+        }
+    })
+
 task("reserveTokens")
     .addParam("round", "round type")
     .addParam("to", "address")
