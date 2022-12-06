@@ -49,7 +49,7 @@ describe("Claiming Tests", function () {
             await governanceToken.connect(gameOwner).beginVesting();
         });
 
-        it("Exchanges Wallet successfully claims first 30M after 1 month, and 60M are remaining", async () => {
+        it("Exchanges Wallet successfully claims first 38.5M after 1 month, and 77M are remaining", async () => {
             let contract = governanceToken;
 
             let oldbalance = await contract.connect(exchangesWallet).balanceOf(exchangesWallet.address);
@@ -57,10 +57,10 @@ describe("Claiming Tests", function () {
 
             await contract.connect(exchangesWallet).claimTokens(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
             let balance = await contract.connect(exchangesWallet).balanceOf(exchangesWallet.address);
-            expect(balance.sub(oldbalance)).to.equal(pow18.mul(30_000_000), "New Tokens in Wallet.");
+            expect(balance.sub(oldbalance)).to.approximately(pow18.mul(38_500_000), 100, "New Tokens in Wallet.");
 
             let pending = await contract.connect(exchangesWallet).getTotalUnclaimed(RoundType[RoundType.EXCHANGES], exchangesWallet.address);
-            expect(pending).to.equal(pow18.mul(60_000_000), "Remaining Unclaimed Tokens.");
+            expect(pending).to.approximately(pow18.mul(77_000_000), 100, "Remaining Unclaimed Tokens.");
         });
 
         it("Exchanges Wallet successfully claims remainder, and nothing is left unclaimed", async () => {
