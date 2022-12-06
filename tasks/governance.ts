@@ -24,7 +24,6 @@ task("fails")
     .setAction(async (args, {ethers}) => {
         try {
             const [owner, game_owner] = await ethers.getSigners();
-            console.log("GAME_OWNER", game_owner);
             const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, game_owner || owner);
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
 
