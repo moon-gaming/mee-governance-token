@@ -70,8 +70,6 @@ task("makeAllocationsForInvestorsFromUrl")
 
             const pow18 = BigNumber.from("10").pow(18);
 
-            const reserve = pow18.mul(1_000);
-
             // @ts-ignore
             const importList = JSON.parse(await readFile(new URL(args.investorsListUrl)));
 
@@ -81,8 +79,8 @@ task("makeAllocationsForInvestorsFromUrl")
                 let round = RoundType[vesting_rounds[parseInt(RoundType[users[i].round])]];
                 console.log("ROUND TYPE: ", round);
                 console.log("TO: ", users[i].address);
-                console.log("AMOUNT: ", reserve);
-                await governanceToken.reserveTokens(round, users[i].address, reserve);
+                console.log("AMOUNT: ", pow18.mul(users[i].amount));
+                await governanceToken.reserveTokens(round, users[i].address, pow18.mul(users[i].amount));
             }
         } catch (err) {
             console.error("RESERVE TOKENS ERR: ", err);
