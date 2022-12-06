@@ -1,6 +1,5 @@
 import {initGovernanceToken} from "../config/init";
 import {task, types} from "hardhat/config";
-import {ethers} from "hardhat";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import * as investors from "../utils/test-investors.json";
 import {BigNumber} from "ethers";
@@ -91,7 +90,6 @@ task("makeAllocationsForInvestors")
             const users: any = investors.wallets;
 
             const pow18 = BigNumber.from("10").pow(18);
-
 
             for (let i = 0; i < users.length; i++) {
                 let round = RoundType[vesting_rounds[parseInt(RoundType[users[i].round])]];

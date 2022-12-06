@@ -2,6 +2,14 @@ const getAccount = async (ethers: any, privateKey: string) => {
     let provider;
     if (process.env.ENV === "dev") {
         provider = new ethers.providers.JsonRpcProvider();
+    } else if (process.env.ENV === "mumbai") {
+        const netObj = {
+            // name: 'MATIC_MUMBAI',
+            // name: 'polygon-mumbai',
+            name: 'maticmum',
+            chainId: 80001
+        }
+        provider = new ethers.providers.AlchemyProvider(netObj, process.env.ALCHEMY_API_KEY);
     } else {
         provider = new ethers.providers.AlchemyProvider("matic");
     }
