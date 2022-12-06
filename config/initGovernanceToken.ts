@@ -7,14 +7,14 @@ export const abi = [
                 "type": "string"
             },
             {
+                "internalType": "uint8",
+                "name": "_decimalUnits",
+                "type": "uint8"
+            },
+            {
                 "internalType": "string",
                 "name": "_tokenSymbol",
                 "type": "string"
-            },
-            {
-                "internalType": "uint256",
-                "name": "_decimalUnits",
-                "type": "uint256"
             },
             {
                 "internalType": "address",
@@ -163,27 +163,29 @@ export const abi = [
         "type": "event"
     },
     {
-        "inputs": [
-            {
-                "internalType": "string",
-                "name": "_roundType",
-                "type": "string"
-            },
-            {
-                "internalType": "address",
-                "name": "_address",
-                "type": "address"
-            }
-        ],
-        "name": "addAddressForDistribution",
+        "inputs": [],
+        "name": "IID_IERC165",
         "outputs": [
             {
-                "internalType": "bool",
+                "internalType": "bytes4",
                 "name": "",
-                "type": "bool"
+                "type": "bytes4"
             }
         ],
-        "stateMutability": "nonpayable",
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "IID_IERC20",
+        "outputs": [
+            {
+                "internalType": "bytes4",
+                "name": "",
+                "type": "bytes4"
+            }
+        ],
+        "stateMutability": "view",
         "type": "function"
     },
     {
@@ -313,54 +315,6 @@ export const abi = [
             }
         ],
         "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "string",
-                "name": "_roundType",
-                "type": "string"
-            },
-            {
-                "internalType": "address",
-                "name": "_address",
-                "type": "address"
-            },
-            {
-                "internalType": "uint256",
-                "name": "_index",
-                "type": "uint256"
-            }
-        ],
-        "name": "deleteAddressForDistribution",
-        "outputs": [
-            {
-                "internalType": "bool",
-                "name": "",
-                "type": "bool"
-            }
-        ],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "string",
-                "name": "_roundType",
-                "type": "string"
-            }
-        ],
-        "name": "getAddressList",
-        "outputs": [
-            {
-                "internalType": "address[]",
-                "name": "",
-                "type": "address[]"
-            }
-        ],
-        "stateMutability": "view",
         "type": "function"
     },
     {
@@ -513,6 +467,19 @@ export const abi = [
         "type": "function"
     },
     {
+        "inputs": [],
+        "name": "getVestingTime",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [
             {
                 "internalType": "address",
@@ -534,6 +501,19 @@ export const abi = [
             }
         ],
         "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "isERC20",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
         "type": "function"
     },
     {
@@ -560,6 +540,24 @@ export const abi = [
             }
         ],
         "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "string",
+                "name": "_roundType",
+                "type": "string"
+            },
+            {
+                "internalType": "address",
+                "name": "_to",
+                "type": "address"
+            }
+        ],
+        "name": "removeReservedAllocations",
+        "outputs": [],
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
@@ -642,6 +640,25 @@ export const abi = [
         "name": "setGameOwnerAddress",
         "outputs": [],
         "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes4",
+                "name": "interfaceId",
+                "type": "bytes4"
+            }
+        ],
+        "name": "supportsInterface",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "pure",
         "type": "function"
     },
     {
