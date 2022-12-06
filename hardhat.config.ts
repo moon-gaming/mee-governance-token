@@ -25,8 +25,6 @@ const envPath = require("fs").existsSync(`${process.env.ENV}.env`)
 
 require("dotenv").config({ path: path.resolve("production.env")});
 
-console.log(process.env.OWNER, process.env.GAME_OWNER);
-
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 export default {
