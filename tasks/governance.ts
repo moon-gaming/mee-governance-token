@@ -5,35 +5,6 @@ import {readFile} from 'fs/promises';
 import * as investors from "../utils/test-investors.json";
 
 
-task("works")
-    .setAction(async (args, {ethers}) => {
-
-        try {
-            const [owner, game_owner] = await ethers.getSigners();
-            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, owner);
-            console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
-
-            console.log("GAME OWNER ADDRESS", await governanceToken?.callStatic.getGameOwnerAddress());
-        } catch (err) {
-            console.error("GET GAME OWNER ERR:", err);
-        }
-    })
-
-
-task("fails")
-    .setAction(async (args, {ethers}) => {
-        try {
-            const [owner, game_owner] = await ethers.getSigners();
-            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, game_owner || owner);
-            console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
-
-            console.log("GAME OWNER ADDRESS", await governanceToken?.callStatic.getGameOwnerAddress());
-        } catch (err) {
-            console.error("GET GAME OWNER ERR:", err);
-        }
-    })
-
-
 task("getGameOwner")
     .setAction(async (args, {ethers}) => {
 
