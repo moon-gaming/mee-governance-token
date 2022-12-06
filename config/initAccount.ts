@@ -7,7 +7,7 @@ const getAccount = async (ethers: any, privateKey: string) => {
     }
 
     try {
-        console.log("PROVIDER:", (await provider.getNetwork()).name);
+        console.log("PROVIDER:", (await provider.getNetwork()));
     } catch (err) {
         console.error("PROVIDER err:", err);
     }

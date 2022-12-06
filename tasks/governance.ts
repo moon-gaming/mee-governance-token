@@ -4,6 +4,7 @@ import {ethers} from "hardhat";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import * as investors from "../utils/test-investors.json";
 import {BigNumber} from "ethers";
+import {readFile} from 'fs/promises';
 
 let exchangesWallet: SignerWithAddress;
 let publicWallet: SignerWithAddress;
@@ -92,6 +93,42 @@ task("makeAllocationsForInvestors")
             const pow18 = BigNumber.from("10").pow(18);
 
             const reserve = pow18.mul(1_000);
+
+            for (let i = 0; i < users.length; i++) {
+                let round = RoundType[vesting_rounds[parseInt(RoundType[users[i].round])]];
+                console.log("ROUND TYPE: ", round);
+                console.log("TO: ", users[i].address);
+                console.log("AMOUNT: ", reserve);
+                await governanceToken.reserveTokens(round, users[i].address, reserve);
+            }
+        } catch (err) {
+            console.error("RESERVE TOKENS ERR: ", err);
+        }
+    })
+
+task("makeAllocationsForInvestorsFromUrl")
+    .addParam("investorsListUrl", "round type")
+    .setAction(async (args, {ethers}) => {
+        try {
+            const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER!);
+
+            console.log("GOVERNANCE TOKEN ADDRESS: ", governanceToken?.address);
+
+            enum RoundType {
+                SEED, PRIVATE, PUBLIC, PLAYANDEARN, EXCHANGES, TREASURY, ADVISOR, TEAM, SOCIAL
+            }
+
+            let vesting_rounds: RoundType[] = [RoundType.SEED, RoundType.PRIVATE/*, RoundType.PLAYANDEARN, RoundType.EXCHANGES, RoundType.TREASURY, RoundType.ADVISOR, RoundType.TEAM, RoundType.SOCIAL*/];
+
+
+            const pow18 = BigNumber.from("10").pow(18);
+
+            const reserve = pow18.mul(1_000);
+
+            // @ts-ignore
+            const importList = JSON.parse(await readFile(new URL(args.investorsListUrl)));
+
+            const users: any = importList.wallets;
 
             for (let i = 0; i < users.length; i++) {
                 let round = RoundType[vesting_rounds[parseInt(RoundType[users[i].round])]];
