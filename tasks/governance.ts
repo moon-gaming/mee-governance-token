@@ -94,11 +94,14 @@ task("reserveTokens")
             const [owner] = await ethers.getSigners();
             const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, owner);
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
+
+            const pow18 = BigNumber.from("10").pow(18);
+
             console.log("ROUND TYPE", args.round);
             console.log("TO", args.to);
-            console.log("AMOUNT", args.amount);
+            console.log("AMOUNT", pow18.mul(args.amount));
 
-            console.log("RESULT:", await governanceToken?.reserveTokens(args.round, args.to, args.amount));
+            console.log("RESULT:", await governanceToken?.reserveTokens(args.round, args.to, pow18.mul(args.amount)));
         } catch (err) {
             console.error("RESERVE TOKENS ERR:", err);
         }
