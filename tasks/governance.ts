@@ -91,7 +91,7 @@ task("removeReservedAllocations")
 
         try {
             const [owner, game_owner] = await ethers.getSigners();
-            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, game_owner);
+            const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, owner);
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
 
             console.log("ROUND TYPE", args.round);
