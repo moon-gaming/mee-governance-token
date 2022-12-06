@@ -11,7 +11,7 @@ task("getGameOwner")
     .setAction(async (args, {ethers}) => {
 
         try {
-            const [owner] = await ethers.getSigners();
+            const [owner, game_owner] = await ethers.getSigners();
             const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, owner);
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
 
@@ -24,7 +24,7 @@ task("getGameOwner")
 task("makeAllocationsForInvestors")
     .setAction(async (args, {ethers}) => {
         try {
-            const [owner] = await ethers.getSigners();
+            const [owner, game_owner] = await ethers.getSigners();
             const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, owner);
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
 
@@ -131,7 +131,7 @@ task("totalPending")
     .setAction(async (args, {ethers}) => {
 
         try {
-            const [owner] = await ethers.getSigners();
+            const [owner, game_owner] = await ethers.getSigners();
             const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, owner);
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
             console.log("ROUND TYPE", args.round);
@@ -148,7 +148,7 @@ task("totalRemainingForSpecificRound")
     .setAction(async (args, {ethers}) => {
 
         try {
-            const [owner] = await ethers.getSigners();
+            const [owner, game_owner] = await ethers.getSigners();
             const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, owner);
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
             console.log("ROUND TYPE", args.round);
@@ -163,7 +163,7 @@ task("totalRemainingForAllRounds")
     .setAction(async (args, {ethers}) => {
 
         try {
-            const [owner] = await ethers.getSigners();
+            const [owner, game_owner] = await ethers.getSigners();
             const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, owner);
             console.log("GOVERNANCE TOKEN ADDRESS", governanceToken?.address);
 
