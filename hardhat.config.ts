@@ -14,13 +14,16 @@ require('hardhat-contract-sizer');
 require('hardhat-gas-reporter');
 require('hardhat-deploy');
 
+/*
 require("dotenv").config();
 
 process.env.ENV = process.env.ENV || "dev";
+process.env.ENV = "production";
 const envPath = require("fs").existsSync(`${process.env.ENV}.env`)
     ? `${process.env.ENV}.env` : `${process.env.ENV}.env.local`
+*/
 
-require("dotenv").config({ path: path.resolve(__dirname, envPath)});
+require("dotenv").config({ path: path.resolve("production.env")});
 
 console.log(process.env.OWNER, process.env.GAME_OWNER);
 

@@ -6,7 +6,7 @@ task("balance").setAction(async (args, {ethers}) => {
     try {
         const [owner, game_owner] = await ethers.getSigners();
         console.log("Game Owner", game_owner);
-        const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, game_owner);
+        const governanceToken = new ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, game_owner || owner);
         balance = await governanceToken?.balanceOf(process.env.OWNER_ADDRESS);
         console.log("BALANCE:", balance);
     } catch (err) {
