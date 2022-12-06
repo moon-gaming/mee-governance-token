@@ -12,6 +12,7 @@ require('solidity-coverage');
 require('hardhat-abi-exporter');
 require('hardhat-contract-sizer');
 require('hardhat-gas-reporter');
+require('hardhat-deploy');
 
 require("dotenv").config();
 
@@ -63,7 +64,7 @@ export default {
     tests: "./test",
     cache: "./cache",
     artifacts: "./artifacts",
-    //tasks: "./tasks"
+    tasks: "./tasks"
   },
   solidity: {
     version: "0.8.17",
