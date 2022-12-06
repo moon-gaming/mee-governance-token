@@ -14,7 +14,7 @@ require('hardhat-contract-sizer');
 require('hardhat-gas-reporter');
 require('hardhat-deploy');
 
-/*
+/* TODO: Remediation of configuration bug on deployment machine (probably affects all machines)
 require("dotenv").config();
 
 process.env.ENV = process.env.ENV || "dev";
