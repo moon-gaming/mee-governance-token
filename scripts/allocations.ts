@@ -4,9 +4,9 @@ import {abi} from "../config/initGovernanceToken";
 import * as investors from "../utils/test-investors.json";
 
 async function main() {
-    const [deployer, owner] = await hre.ethers.getSigners();
+    const [owner, game_owner] = await hre.ethers.getSigners();
 
-    const governanceToken = new hre.ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, owner);
+    const governanceToken = new hre.ethers.Contract(process.env.GOVERNANCE_TOKEN!, abi, game_owner);
 
     console.log("GOVERNANCE TOKEN ADDRESS: ", governanceToken?.address);
 
