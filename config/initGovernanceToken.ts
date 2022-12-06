@@ -1,5 +1,3 @@
-import getAccount from './initAccount'
-
 export const abi = [
     {
         "inputs": [
@@ -756,11 +754,11 @@ export const abi = [
 export async function initGovernanceToken(ethers: any) {
     // call smart contract top mirror the record on blockchain
 
-    const [owner, game_owner] = await ethers.getSigners();
+    const [owner] = await ethers.getSigners();
 
     let governanceTokenContract;
     try {
-        governanceTokenContract = new ethers.Contract(process.env.GOVERNANCE_TOKEN, abi, game_owner);
+        governanceTokenContract = new ethers.Contract(process.env.GOVERNANCE_TOKEN, abi, owner);
     } catch (err) {
         console.error("Governance Contract init err:", err);
     }
