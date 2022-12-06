@@ -23,6 +23,7 @@ async function main() {
     console.log("Governance Token deployment completed");
     console.log("Governance Token balance of deployer:", (await governanceToken.balanceOf(deployer.address)).toString());
 
+    /*
     // Staking Contract deployment
     console.log("Deploying Staking contract with the account:", deployer.address);
     console.log("Account balance:", (await deployer.getBalance()).toString());
@@ -36,6 +37,7 @@ async function main() {
     await stakingRewards.deployed();
 
     console.log("Staking Contact deployment completed");
+    */
 }
 
 main()

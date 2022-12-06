@@ -12,14 +12,18 @@ require('solidity-coverage');
 require('hardhat-abi-exporter');
 require('hardhat-contract-sizer');
 require('hardhat-gas-reporter');
+require('hardhat-deploy');
 
+/* TODO: Remediation of configuration bug on deployment machine (probably affects all machines)
 require("dotenv").config();
 
 process.env.ENV = process.env.ENV || "dev";
+process.env.ENV = "production";
 const envPath = require("fs").existsSync(`${process.env.ENV}.env`)
     ? `${process.env.ENV}.env` : `${process.env.ENV}.env.local`
+*/
 
-require("dotenv").config({ path: path.resolve(__dirname, envPath)});
+require("dotenv").config({ path: path.resolve("production.env")});
 
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
@@ -63,7 +67,7 @@ export default {
     tests: "./test",
     cache: "./cache",
     artifacts: "./artifacts",
-    //tasks: "./tasks"
+    tasks: "./tasks"
   },
   solidity: {
     version: "0.8.17",

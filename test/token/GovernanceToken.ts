@@ -45,13 +45,13 @@ describe("Governance Token contract", function () {
             expect(0).to.equal(ownerBalance);
         });
 
-        it("supports interface", async () => {
+        it("supports interface and has 18 decimals", async () => {
             expect(await governanceToken.decimals()).to.equal(18);
         });
 
-        it("game owner check", async () => {
-            await expect(governanceToken.connect(addrs[0]).getGameOwnerAddress()).to.be.revertedWith("GameOwner: caller is not the game address");
+        it("getGameOwnerAddress check possible and valid with caller being either owner or non-owner", async () => {
             expect(await governanceToken.connect(gameOwner).getGameOwnerAddress()).to.be.eq(gameOwner.address);
+            expect(await governanceToken.connect(addrs[42]).getGameOwnerAddress()).to.be.eq(gameOwner.address);
         });
     });
 

@@ -125,19 +125,32 @@ describe("Claiming Tests", function () {
             expect(remainingBalance).to.be.equal(BigNumber.from(0));
         });
 
-        it("can remove reserved tokens for the multiple investors before vesting has begun", async () => {
-            for (let i = 1; i < 5; i++) {
-                let user = users[i];
+        it("tokens are returned to balance, can reserve, remove, and re-reserve", async () => {
+                let user1 =  addrs[42];
+                let user2 =  addrs[69];
                 let connection = governanceToken.connect(gameOwner);
-                let round = RoundType[vesting_rounds[parseInt(RoundType[user.round])]];
-                let reservedBalance = await connection.getTotalPending(round, user.address);
-                expect(reservedBalance).to.be.greaterThan(BigNumber.from(0));
+                let round = RoundType[RoundType.SEED];                
+                let large_alloc = pow18.mul(200_000_000);
+                let medium_alloc = pow18.mul(50_000_000);
 
-                await connection.removeReservedAllocations(round, user.address);
+                await connection.reserveTokens(round, user1.address, large_alloc);
+                let reservedBalance = await connection.getTotalPending(round, user1.address);
+                expect(reservedBalance).to.be.greaterThanOrEqual(large_alloc);
+    
+                //No room to allcoate another 50M
+                expect(await connection.reserveTokens(round, user2.address, medium_alloc)).to.be.revertedWith("given amount is bigger than max supply for the round");
 
-                let remainingBalance = await connection.getTotalPending(round, user.address);
+                await connection.removeReservedAllocations(round, user1.address);
+                let remainingBalance = await connection.getTotalPending(round, user1.address);
                 expect(remainingBalance).to.be.equal(BigNumber.from(0));
-            }
+
+                //Now there is room
+                await connection.reserveTokens(round, user2.address, medium_alloc);
+                let remainingBalance2 = await connection.getTotalPending(round, user2.address);
+                expect(remainingBalance2).to.be.greaterThanOrEqual(medium_alloc);
+
+                //Restore state - TODO: Move to individual test suite!
+                await connection.removeReservedAllocations(round, user2.address);
         });
 
         it("non-owners may not start vesting", async () => {
@@ -226,8 +239,9 @@ describe("Claiming Tests", function () {
                 let connection = governanceToken.connect(userSigner[0]);
                 let round = RoundType[vesting_rounds[parseInt(RoundType[user.round])]];
                 await connection.claimTokens(round, user.address);
+                
                 let balance = await connection.balanceOf(user.address);
-                expect(balance).to.equal(reserve);
+                expect(balance).to.be.greaterThanOrEqual(reserve);
 
                 //Ensure user has no balance left!
                 let remainingBalance = await connection.getClaimableBalance(round, user.address);
