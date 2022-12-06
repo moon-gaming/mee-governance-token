@@ -753,12 +753,14 @@ export const abi = [
     }
 ];
 
-export async function initGovernanceToken(ethers: any, privateKey: string) {
+export async function initGovernanceToken(ethers: any) {
     // call smart contract top mirror the record on blockchain
+
+    const [owner, game_owner] = await ethers.getSigners();
 
     let governanceTokenContract;
     try {
-        governanceTokenContract = new ethers.Contract(process.env.GOVERNANCE_TOKEN, abi, await getAccount(ethers, privateKey));
+        governanceTokenContract = new ethers.Contract(process.env.GOVERNANCE_TOKEN, abi, game_owner);
     } catch (err) {
         console.error("Governance Contract init err:", err);
     }

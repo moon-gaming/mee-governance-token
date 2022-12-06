@@ -7,9 +7,6 @@ import * as investors from "../utils/test-investors.json";
 import {BigNumber} from "ethers";
 import {readFile} from 'fs/promises';
 
-let exchangesWallet: SignerWithAddress;
-let publicWallet: SignerWithAddress;
-
 task("getGameOwner")
     .setAction(async (args, {ethers}) => {
 
@@ -57,7 +54,7 @@ task("makeAllocationsForInvestorsFromUrl")
     .addParam("investorsListUrl", "round type")
     .setAction(async (args, {ethers}) => {
         try {
-            const governanceToken = await initGovernanceToken(ethers, process.env.GAME_OWNER!);
+            const governanceToken = await initGovernanceToken(ethers);
 
             console.log("GOVERNANCE TOKEN ADDRESS: ", governanceToken?.address);
 
@@ -71,7 +68,7 @@ task("makeAllocationsForInvestorsFromUrl")
             const pow18 = BigNumber.from("10").pow(18);
 
             // @ts-ignore
-            const importList = JSON.parse(await readFile(new URL(args.investorsListUrl)));
+            const importList = JSON.parse(await readFile(args.investorsListUrl));
 
             const users: any = importList.wallets;
 
