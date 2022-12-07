@@ -4,7 +4,7 @@ async function main() {
     const [deployer] = await hre.ethers.getSigners();
 
     // Governance Token deployment
-    console.log("Deploying Governance contract with the account:", deployer.address);
+    console.log("Deploying MEE contract with the account:", deployer.address);
     console.log("Account balance:", (await deployer.getBalance()).toString());
 
     const governanceTokenFactory = await hre.ethers.getContractFactory("GovernanceToken");
@@ -13,7 +13,7 @@ async function main() {
         process.env.SOCIAL_WALLET_ADDRESS, process.env.TEAM_WALLET_ADDRESS, process.env.TREASURY_WALLET_ADDRESS, process.env.ADVISORS_WALLET_ADDRESS];
 
     const governanceToken = await governanceTokenFactory.deploy(
-        "MEE Governance Token", 18, "MEE", process.env.GAME_OWNER_ADDRESS,
+        "MEE Utility Token", 18, "MEE", process.env.GAME_OWNER_ADDRESS,
         addressList,
         {gasLimit: 6e6});
 
