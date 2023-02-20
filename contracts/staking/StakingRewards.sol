@@ -23,13 +23,13 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     IERC20Upgradeable stakingToken;
 
     // Timestamp of when the rewards finish
-    uint256 public periodFinish = 0;
+    uint256 public periodFinish;
 
     // Reward to be paid out per second
-    uint256 public rewardRate = 0;
+    uint256 public rewardRate;
 
     // Duration of rewards to be paid out (in seconds/minutes/hours/days)
-    uint256 public rewardsDuration = 7 days;
+    uint256 public rewardsDuration;
 
     // Last updated time and reward finish time
     uint256 public lastUpdateTime;
@@ -76,6 +76,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     ) internal onlyInitializing {
         rewardsToken = IERC20Upgradeable(_rewardsToken);
         stakingToken = IERC20Upgradeable(_stakingToken);
+        rewardsDuration = 7 days;
     }
 
     /* ========== VIEWS ========== */

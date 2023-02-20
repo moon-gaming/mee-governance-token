@@ -13,6 +13,7 @@ require('hardhat-abi-exporter');
 require('hardhat-contract-sizer');
 require('hardhat-gas-reporter');
 require('hardhat-deploy');
+require('@openzeppelin/hardhat-upgrades');
 
 /* TODO: Remediation of configuration bug on deployment machine (probably affects all machines)
 require("dotenv").config();
