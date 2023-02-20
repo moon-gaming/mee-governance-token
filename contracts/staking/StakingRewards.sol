@@ -3,24 +3,24 @@
 pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "../interfaces/IStakingRewards.sol";
 
-contract StakingRewards is IStakingRewards, ReentrancyGuard, Pausable, Ownable {
+contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, PausableUpgradeable, OwnableUpgradeable {
     using SafeMath for uint256;
-    using SafeERC20 for IERC20;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     /* ========== STATE VARIABLES ========== */
 
     // Token which pays rewards
-    IERC20 immutable rewardsToken;
+    IERC20Upgradeable rewardsToken;
 
     // Token which is being staked
-    IERC20 immutable stakingToken;
+    IERC20Upgradeable stakingToken;
 
     // Timestamp of when the rewards finish
     uint256 public periodFinish = 0;
@@ -58,14 +58,24 @@ contract StakingRewards is IStakingRewards, ReentrancyGuard, Pausable, Ownable {
     event RewardsDurationUpdated(uint256 newDuration);
     event Recovered(address token, uint256 amount);
 
-    /* ========== CONSTRUCTOR ========== */
+    /* ========== Initializer ========== */
 
-    constructor(
+    function initialize(
         address _rewardsToken,
         address _stakingToken
-    ) ReentrancyGuard() {
-        rewardsToken = IERC20(_rewardsToken);
-        stakingToken = IERC20(_stakingToken);
+    ) public initializer {
+        __Ownable_init_unchained();
+        __Pausable_init_unchained();
+        __ReentrancyGuard_init_unchained();
+        __StakingRewards_init_unchained(_rewardsToken, _stakingToken);
+    }
+
+    function __StakingRewards_init_unchained(
+        address _rewardsToken,
+        address _stakingToken
+    ) internal onlyInitializing {
+        rewardsToken = IERC20Upgradeable(_rewardsToken);
+        stakingToken = IERC20Upgradeable(_stakingToken);
     }
 
     /* ========== VIEWS ========== */
@@ -158,7 +168,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuard, Pausable, Ownable {
     // Added to support recovering LP Rewards from other systems to be distributed to holders
     function recoverERC20(address tokenAddress, uint256 tokenAmount) external onlyOwner {
         require(tokenAddress != address(stakingToken), "Cannot withdraw the staking token");
-        IERC20(tokenAddress).safeTransfer(msg.sender, tokenAmount);
+        IERC20Upgradeable(tokenAddress).safeTransfer(msg.sender, tokenAmount);
         emit Recovered(tokenAddress, tokenAmount);
     }
 
