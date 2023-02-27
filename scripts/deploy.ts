@@ -29,7 +29,7 @@ async function main() {
 
     const stakingRewardsFactory = await hre.ethers.getContractFactory("StakingRewards");
     const stakingRewards = await hre.upgrades.deployProxy(stakingRewardsFactory, [
-        governanceToken.address, governanceToken.address
+        governanceToken.address
     ]);
     console.log("Staking Contract deployment in Progress:", stakingRewards.address);
     await stakingRewards.deployed();
