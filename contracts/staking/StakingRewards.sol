@@ -97,19 +97,21 @@ contract StakingRewards is
         LockInfo memory lockInfo = lockPeriod[lockType][landTier];
         info.push(
             StakeInfo(
-                lockInfo.minAmount * amount,
-                uint64(block.timestamp) + lockInfo.period,
-                landTier
+                lockInfo.minAmount * amount,                // Token Amount
+                uint64(block.timestamp) + lockInfo.period,  // Unlock Time
+                landTier                                    // Land Tier Option
             )
         );
 
+        // Lock MEE tokens into the staking contract
         stakingToken.safeTransferFrom(msg.sender, address(this), lockInfo.minAmount * amount);
+
         emit Staked(
-            msg.sender,
-            lockInfo.minAmount * amount,
-            amount,
-            lockType,
-            landTier
+            msg.sender,                     // Owner
+            lockInfo.minAmount * amount,    // Token Amount
+            amount,                         // Ticket Amount for Staking Option 1 or 1 for Staking Option 2
+            lockType,                       // Lottery or Land
+            landTier                        // Land Tier Option
         );
     }
 
@@ -119,15 +121,21 @@ contract StakingRewards is
         lockPeriodCheck(lockType, landTier)
     {
         StakeInfo[] storage info = stakeInfo[msg.sender][lockType];
+
+        // Calcaulate the balance to withdraw for the specific Land Tier and the Staking Option
         uint256 balance = 0;
         for (uint8 i = uint8(info.length) - 1; i >= 0; i--) {
             if (info[i].landTier == landTier) {
                 balance = balance.add(info[i].balance);
+
+                // Remove the storage variables from the Staking Information once we calculate the balance
                 info[info.length - 1] = info[i];
                 info.pop();
             }
         }
+        // Unlock Mee Token after lock period.
         stakingToken.safeTransfer(msg.sender, balance);
+
         emit Withdrawn(msg.sender, balance, lockType, landTier);
     }
 
@@ -155,6 +163,7 @@ contract StakingRewards is
 
     /* ========== MODIFIERS ========== */
 
+    // Modifier for checking if the lock period has ended or not
     modifier lockPeriodCheck(LockType lockType, LandTier landTier) {
         StakeInfo[] storage info = stakeInfo[msg.sender][lockType];
         for (uint8 i = 0; i < info.length; i++) {
