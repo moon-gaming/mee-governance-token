@@ -25,9 +25,9 @@ contract StakingRewards is
     IERC20Upgradeable stakingToken;
 
     // User address => Lock Type => Staked Information
-    mapping(address => mapping(LockType => StakeInfo[])) private stakeInfo;
+    mapping(address => mapping(LockType => StakeInfo)) private stakeInfo;
 
-    mapping(LockType => mapping(LandTier => LockInfo)) private lockPeriod;
+    mapping(LockType => LockInfo) private lockPeriod;
 
     /* ========== Initializer ========== */
 
@@ -45,110 +45,96 @@ contract StakingRewards is
         stakingToken = IERC20Upgradeable(_stakingToken);
 
         // Initializing Lock Period and Amount to stake for Land Ownership - Staking Option 2
-        lockPeriod[LockType.LAND][LandTier.V1_LAND] = LockInfo(90 days, 300 ether);
-        lockPeriod[LockType.LAND][LandTier.V2_LAND] = LockInfo(90 days, 300 ether);
-        lockPeriod[LockType.LAND][LandTier.V3_LAND] = LockInfo(90 days, 300 ether);
-        lockPeriod[LockType.LAND][LandTier.V4_LAND] = LockInfo(90 days, 300 ether);
-        lockPeriod[LockType.LAND][LandTier.V5_LAND] = LockInfo(90 days, 300 ether);
+        lockPeriod[LockType.LOCK_V1_LAND] = LockInfo(90 days, 300 ether);
+        lockPeriod[LockType.LOCK_V2_LAND] = LockInfo(90 days, 300 ether);
+        lockPeriod[LockType.LOCK_V3_LAND] = LockInfo(90 days, 300 ether);
+        lockPeriod[LockType.LOCK_V4_LAND] = LockInfo(90 days, 300 ether);
+        lockPeriod[LockType.LOCK_V5_LAND] = LockInfo(90 days, 300 ether);
         // Initializing Lock Period and Ticket Price for Lottery - Staking Option 1
-        lockPeriod[LockType.LOTTERY][LandTier.V1_LAND] = LockInfo(90 days, 1 ether);
-        lockPeriod[LockType.LOTTERY][LandTier.V2_LAND] = LockInfo(90 days, 1 ether);
-        lockPeriod[LockType.LOTTERY][LandTier.V3_LAND] = LockInfo(90 days, 1 ether);
-        lockPeriod[LockType.LOTTERY][LandTier.V4_LAND] = LockInfo(90 days, 1 ether);
-        lockPeriod[LockType.LOTTERY][LandTier.V5_LAND] = LockInfo(90 days, 1 ether);
+        lockPeriod[LockType.LOTTERY_V1_LAND] = LockInfo(30 days, 1 ether);
+        lockPeriod[LockType.LOTTERY_V2_LAND] = LockInfo(30 days, 1 ether);
+        lockPeriod[LockType.LOTTERY_V3_LAND] = LockInfo(30 days, 1 ether);
+        lockPeriod[LockType.LOTTERY_V4_LAND] = LockInfo(30 days, 1 ether);
+        lockPeriod[LockType.LOTTERY_V5_LAND] = LockInfo(30 days, 1 ether);
     }
 
     /* ========== VIEWS ========== */
 
     // Staked Amount of MEE token into specific Lottery or the second staking optioin
-    function balanceOf(
-        address account,
-        LockType lockType,
-        LandTier landTier
-    ) external view returns (uint256) {
-        uint256 balance = 0;
-        for (uint8 i = 0; i < stakeInfo[account][lockType].length; i++) {
-            if (stakeInfo[account][lockType][i].landTier == landTier) {
-                balance = balance.add(stakeInfo[account][lockType][i].balance);
-            }
-        }
-        return balance;
+    function balanceOf(address account, LockType lockType)
+        external
+        view
+        returns (uint256)
+    {
+        return stakeInfo[account][lockType].balance;
     }
 
     /* ========== MUTATIVE FUNCTIONS ========== */
 
-    function stake(
-        uint256 amount,
-        LockType lockType,
-        LandTier landTier
-    ) external nonReentrant whenNotPaused {
+    function stake(uint256 amount, LockType lockType)
+        external
+        nonReentrant
+        whenNotPaused
+    {
         // In case of Staking Option 1(Lottery), amount just represents the ticket amount
         // In case of Staking Option 2(Land), we don't use the amount variable but it should be 1 always
-        require((lockType == LockType.LOTTERY && amount > 0) || (lockType == LockType.LAND && amount == 1), "Wrong amount for Lottery or Land");
+        require(amount > 0, "Wrong amount for Lottery or Land");
 
         // Stake Information for the specific Staking Option for the user. Lottery or Land Option
-        StakeInfo[] storage info = stakeInfo[msg.sender][lockType];
+        StakeInfo storage info = stakeInfo[msg.sender][lockType];
 
-        // In case of Staking Option 1(Lottery), users can purchase more tickets or participate into other lotteries
-        // In case of Staking Option 2(Land), Staked Information length should be zero because users can only stake MEE tokens for only 1 Land Tier.
-        // Users can't stake MEE tokens for several Land Tiers
-        require(lockType == LockType.LOTTERY || info.length == 0, "Cannot stake for multiple lands");
-
-        LockInfo memory lockInfo = lockPeriod[lockType][landTier];
-        info.push(
-            StakeInfo(
-                lockInfo.minAmount * amount,                // Token Amount
-                uint64(block.timestamp) + lockInfo.period,  // Unlock Time
-                landTier                                    // Land Tier Option
-            )
-        );
+        LockInfo memory lockInfo = lockPeriod[lockType];
+        info.balance = info.balance + lockInfo.minAmount * amount;
+        info.unlockTime = uint64(block.timestamp) + lockInfo.period;
 
         // Lock MEE tokens into the staking contract
-        stakingToken.safeTransferFrom(msg.sender, address(this), lockInfo.minAmount * amount);
+        stakingToken.safeTransferFrom(
+            msg.sender,
+            address(this),
+            lockInfo.minAmount * amount
+        );
 
         emit Staked(
-            msg.sender,                     // Owner
-            lockInfo.minAmount * amount,    // Token Amount
-            amount,                         // Ticket Amount for Staking Option 1 or 1 for Staking Option 2
-            lockType,                       // Lottery or Land
-            landTier                        // Land Tier Option
+            msg.sender, // Owner
+            lockInfo.minAmount * amount, // Token Amount
+            amount, // Ticket Amount for Staking Option 1 or 1 for Staking Option 2
+            lockType // Lock Type
         );
     }
 
-    function withdraw(LockType lockType, LandTier landTier)
+    function withdraw(LockType lockType)
         public
         nonReentrant
-        lockPeriodCheck(lockType, landTier)
+        lockPeriodCheck(lockType)
     {
-        StakeInfo[] storage info = stakeInfo[msg.sender][lockType];
+        StakeInfo storage info = stakeInfo[msg.sender][lockType];
 
         // Calcaulate the balance to withdraw for the specific Land Tier and the Staking Option
-        uint256 balance = 0;
-        for (uint8 i = uint8(info.length) - 1; i >= 0; i--) {
-            if (info[i].landTier == landTier) {
-                balance = balance.add(info[i].balance);
-
-                // Remove the storage variables from the Staking Information once we calculate the balance
-                info[info.length - 1] = info[i];
-                info.pop();
-            }
-        }
+        uint256 balance = info.balance;
         // Unlock Mee Token after lock period.
         stakingToken.safeTransfer(msg.sender, balance);
 
-        emit Withdrawn(msg.sender, balance, lockType, landTier);
+        delete stakeInfo[msg.sender][lockType];
+
+        emit Withdrawn(msg.sender, balance, lockType);
     }
 
     // Update lock period for different tiers from Staking Option 1 & 2
-    function updateLockPeriod(LockType lockType, LandTier landTier, uint64 period) external onlyOwner {
+    function updateLockPeriod(LockType lockType, uint64 period)
+        external
+        onlyOwner
+    {
         require(period > 0, "Lock period is 0");
-        lockPeriod[lockType][landTier].period = period;
+        lockPeriod[lockType].period = period;
     }
 
     // Update the ticket price for Staking Option 1, and the minAmount limitation for Staking Option 2
-    function updateLockLimitation(LockType lockType, LandTier landTier, uint256 limit) external onlyOwner {
+    function updateLockLimitation(LockType lockType, uint256 limit)
+        external
+        onlyOwner
+    {
         require(limit > 0, "Limit should be bigger than 0");
-        lockPeriod[lockType][landTier].minAmount = limit;
+        lockPeriod[lockType].minAmount = limit;
     }
 
     // Added to support recovering LP Rewards from other systems to be distributed to holders
@@ -156,7 +142,10 @@ contract StakingRewards is
         external
         onlyOwner
     {
-        require(tokenAddress != address(stakingToken), "Cannot withdraw the staking token");
+        require(
+            tokenAddress != address(stakingToken),
+            "Cannot withdraw the staking token"
+        );
         IERC20Upgradeable(tokenAddress).safeTransfer(msg.sender, tokenAmount);
         emit Recovered(tokenAddress, tokenAmount);
     }
@@ -164,13 +153,9 @@ contract StakingRewards is
     /* ========== MODIFIERS ========== */
 
     // Modifier for checking if the lock period has ended or not
-    modifier lockPeriodCheck(LockType lockType, LandTier landTier) {
-        StakeInfo[] storage info = stakeInfo[msg.sender][lockType];
-        for (uint8 i = 0; i < info.length; i++) {
-            if (info[i].landTier == landTier) {
-                require(info[i].unlockTime > block.timestamp, "Lock period was not ended yet");
-            }
-        }
+    modifier lockPeriodCheck(LockType lockType) {
+        StakeInfo memory info = stakeInfo[msg.sender][lockType];
+        require(info.unlockTime > block.timestamp);
         _;
     }
 }
