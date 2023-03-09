@@ -46,16 +46,16 @@ contract StakingRewards is
 
         // Initializing Lock Period and Amount to stake for Land Ownership - Staking Option 2
         lockPeriod[LockType.LOCK_V1_LAND] = LockInfo(90 days, 300 ether);
-        lockPeriod[LockType.LOCK_V2_LAND] = LockInfo(90 days, 300 ether);
-        lockPeriod[LockType.LOCK_V3_LAND] = LockInfo(90 days, 300 ether);
-        lockPeriod[LockType.LOCK_V4_LAND] = LockInfo(90 days, 300 ether);
-        lockPeriod[LockType.LOCK_V5_LAND] = LockInfo(90 days, 300 ether);
+        lockPeriod[LockType.LOCK_V2_LAND] = LockInfo(90 days, 500 ether);
+        lockPeriod[LockType.LOCK_V3_LAND] = LockInfo(90 days, 1000 ether);
+        lockPeriod[LockType.LOCK_V4_LAND] = LockInfo(90 days, 2000 ether);
+        lockPeriod[LockType.LOCK_V5_LAND] = LockInfo(90 days, 5000 ether);
         // Initializing Lock Period and Ticket Price for Lottery - Staking Option 1
-        lockPeriod[LockType.LOTTERY_V1_LAND] = LockInfo(30 days, 1 ether);
-        lockPeriod[LockType.LOTTERY_V2_LAND] = LockInfo(30 days, 1 ether);
-        lockPeriod[LockType.LOTTERY_V3_LAND] = LockInfo(30 days, 1 ether);
-        lockPeriod[LockType.LOTTERY_V4_LAND] = LockInfo(30 days, 1 ether);
-        lockPeriod[LockType.LOTTERY_V5_LAND] = LockInfo(30 days, 1 ether);
+        lockPeriod[LockType.LOTTERY_V1_LAND] = LockInfo(30 days, 10 ether);
+        lockPeriod[LockType.LOTTERY_V2_LAND] = LockInfo(30 days, 15 ether);
+        lockPeriod[LockType.LOTTERY_V3_LAND] = LockInfo(30 days, 20 ether);
+        lockPeriod[LockType.LOTTERY_V4_LAND] = LockInfo(30 days, 30 ether);
+        lockPeriod[LockType.LOTTERY_V5_LAND] = LockInfo(30 days, 45 ether);
     }
 
     /* ========== VIEWS ========== */
@@ -98,7 +98,8 @@ contract StakingRewards is
             msg.sender, // Owner
             lockInfo.minAmount * amount, // Token Amount
             amount, // Ticket Amount for Staking Option 1 or 1 for Staking Option 2
-            lockType // Lock Type
+            lockType, // Lock Type
+            info.unlockTime
         );
     }
 

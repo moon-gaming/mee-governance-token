@@ -29,7 +29,7 @@ interface IStakingRewards {
 
     /* ========== EVENTS ========== */
 
-    event Staked(address indexed user, uint256 amount, uint256 ticketAmount, LockType lockType);
+    event Staked(address indexed user, uint256 amount, uint256 ticketAmount, LockType lockType, uint256 unlockTime);
     event Withdrawn(address indexed user, uint256 amount, LockType lockType);
     event Recovered(address token, uint256 amount);
 
