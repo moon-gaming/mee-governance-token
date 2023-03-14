@@ -27,7 +27,7 @@ contract StakingRewards is
     // User address => Lock Type => Staked Information
     mapping(address => mapping(LockType => StakeInfo)) private stakeInfo;
 
-    mapping(LockType => LockInfo) private lockPeriod;
+    mapping(LockType => LockInfo) public lockPeriod;
 
     /* ========== Initializer ========== */
 
@@ -78,7 +78,10 @@ contract StakingRewards is
     {
         // In case of Staking Option 1(Lottery), amount just represents the ticket amount
         // In case of Staking Option 2(Land), we don't use the amount variable but it should be 1 always
-        require(amount > 0, "Wrong amount for Lottery or Land");
+        require(amount > 0, "Invalid Amount");
+        if(lockType >= LockType.LOCK_V1_LAND) {
+            require(amount == 1, "Wrong amount for Early Access");
+        }
 
         // Stake Information for the specific Staking Option for the user. Lottery or Land Option
         StakeInfo storage info = stakeInfo[msg.sender][lockType];
@@ -109,9 +112,10 @@ contract StakingRewards is
         lockPeriodCheck(lockType)
     {
         StakeInfo storage info = stakeInfo[msg.sender][lockType];
-
         // Calcaulate the balance to withdraw for the specific Land Tier and the Staking Option
         uint256 balance = info.balance;
+
+        require(balance > 0, "Nothing to withdraw");
         // Unlock Mee Token after lock period.
         stakingToken.safeTransfer(msg.sender, balance);
 
@@ -156,7 +160,7 @@ contract StakingRewards is
     // Modifier for checking if the lock period has ended or not
     modifier lockPeriodCheck(LockType lockType) {
         StakeInfo memory info = stakeInfo[msg.sender][lockType];
-        require(info.unlockTime > block.timestamp);
+        require(info.unlockTime < block.timestamp, "Still in the lock period");
         _;
     }
 }
