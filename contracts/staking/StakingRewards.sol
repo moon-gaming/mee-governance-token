@@ -80,7 +80,7 @@ contract StakingRewards is
         // In case of Staking Option 2(Land), we don't use the amount variable but it should be 1 always
         require(amount > 0, "Invalid Amount");
         if(lockType >= LockType.LOCK_V1_LAND) {
-            require(amount == 1, "Wrong amount for Early Access");
+            require(amount == 1, "Can only lock exactly one");
         }
 
         // Stake Information for the specific Staking Option for the user. Lottery or Land Option

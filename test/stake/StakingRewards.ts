@@ -172,7 +172,7 @@ describe("StakingRewards contract", function () {
         });
 
         it("Should revert the transaction for wrong amount", async () => {
-            await expect(stakingRewards.stake(2, LockType.LOCK_V1_LAND)).to.be.rejectedWith('Wrong amount for Early Access');
+            await expect(stakingRewards.stake(2, LockType.LOCK_V1_LAND)).to.be.rejectedWith('Can only lock exactly one');
         });
 
         it("Should stake 300 MEE tokens for Land Tier 1 Early access", async () => {
