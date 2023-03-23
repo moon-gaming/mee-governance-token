@@ -45,17 +45,17 @@ contract StakingRewards is
         stakingToken = IERC20Upgradeable(_stakingToken);
 
         // Initializing Lock Period and Amount to stake for Land Ownership - Staking Option 2
-        lockPeriod[LockType.LOCK_V1_LAND] = LockInfo(90 days, 300 ether);
-        lockPeriod[LockType.LOCK_V2_LAND] = LockInfo(90 days, 500 ether);
-        lockPeriod[LockType.LOCK_V3_LAND] = LockInfo(90 days, 1000 ether);
-        lockPeriod[LockType.LOCK_V4_LAND] = LockInfo(90 days, 2000 ether);
-        lockPeriod[LockType.LOCK_V5_LAND] = LockInfo(90 days, 5000 ether);
+        lockPeriod[LockType.LOCK_0] = LockInfo(90 days, 300 ether);
+        lockPeriod[LockType.LOCK_1] = LockInfo(90 days, 500 ether);
+        lockPeriod[LockType.LOCK_2] = LockInfo(90 days, 1000 ether);
+        lockPeriod[LockType.LOCK_3] = LockInfo(90 days, 2000 ether);
+        lockPeriod[LockType.LOCK_4] = LockInfo(90 days, 5000 ether);
         // Initializing Lock Period and Ticket Price for Lottery - Staking Option 1
-        lockPeriod[LockType.LOTTERY_V1_LAND] = LockInfo(30 days, 10 ether);
-        lockPeriod[LockType.LOTTERY_V2_LAND] = LockInfo(30 days, 15 ether);
-        lockPeriod[LockType.LOTTERY_V3_LAND] = LockInfo(30 days, 20 ether);
-        lockPeriod[LockType.LOTTERY_V4_LAND] = LockInfo(30 days, 30 ether);
-        lockPeriod[LockType.LOTTERY_V5_LAND] = LockInfo(30 days, 45 ether);
+        lockPeriod[LockType.STAKE_0] = LockInfo(30 days, 10 ether);
+        lockPeriod[LockType.STAKE_1] = LockInfo(30 days, 15 ether);
+        lockPeriod[LockType.STAKE_2] = LockInfo(30 days, 20 ether);
+        lockPeriod[LockType.STAKE_3] = LockInfo(30 days, 30 ether);
+        lockPeriod[LockType.STAKE_4] = LockInfo(30 days, 45 ether);
     }
 
     /* ========== VIEWS ========== */
@@ -79,7 +79,7 @@ contract StakingRewards is
         // In case of Staking Option 1(Lottery), amount just represents the ticket amount
         // In case of Staking Option 2(Land), we don't use the amount variable but it should be 1 always
         require(amount > 0, "Invalid Amount");
-        if(lockType >= LockType.LOCK_V1_LAND) {
+        if(lockType >= LockType.LOCK_0) {
             require(amount == 1, "Can only lock exactly one");
         }
 

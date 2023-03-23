@@ -7,16 +7,38 @@ import { formatEther, parseEther } from "ethers/lib/utils";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 
 enum LockType {
-    LOTTERY_V1_LAND,
-    LOTTERY_V2_LAND,
-    LOTTERY_V3_LAND,
-    LOTTERY_V4_LAND,
-    LOTTERY_V5_LAND,
-    LOCK_V1_LAND,
-    LOCK_V2_LAND,
-    LOCK_V3_LAND,
-    LOCK_V4_LAND,
-    LOCK_V5_LAND
+    STAKE_0, 
+    STAKE_1, 
+    STAKE_2, 
+    STAKE_3, 
+    STAKE_4, 
+    STAKE_5, 
+    STAKE_6, 
+    STAKE_7, 
+    STAKE_8, 
+    STAKE_9, 
+    STAKE_A, 
+    STAKE_B, 
+    STAKE_C, 
+    STAKE_D, 
+    STAKE_E, 
+    STAKE_F,
+    LOCK_0, 
+    LOCK_1, 
+    LOCK_2, 
+    LOCK_3, 
+    LOCK_4, 
+    LOCK_5, 
+    LOCK_6, 
+    LOCK_7, 
+    LOCK_8, 
+    LOCK_9, 
+    LOCK_A, 
+    LOCK_B, 
+    LOCK_C, 
+    LOCK_D, 
+    LOCK_E, 
+    LOCK_F
 }
 
 const getDays = (day: number) => {
@@ -58,23 +80,23 @@ describe("StakingRewards contract", function () {
         });
 
         it("Check Lock Type and Peroid, Tokens to stake", async () => {
-            const v1_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_V1_LAND);
+            const v1_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_0);
             expect(v1_lock_info.minAmount).to.equal(parseEther("300"));
             expect(v1_lock_info.period).to.equal(getDays(90));
 
-            const v2_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_V2_LAND);
+            const v2_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_1);
             expect(v2_lock_info.minAmount).to.equal(parseEther("500"));
             expect(v2_lock_info.period).to.equal(getDays(90));
 
-            const v3_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_V3_LAND);
+            const v3_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_2);
             expect(v3_lock_info.minAmount).to.equal(parseEther("1000"));
             expect(v3_lock_info.period).to.equal(getDays(90));
 
-            const v4_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_V4_LAND);
+            const v4_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_3);
             expect(v4_lock_info.minAmount).to.equal(parseEther("2000"));
             expect(v4_lock_info.period).to.equal(getDays(90));
 
-            const v5_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_V5_LAND);
+            const v5_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_4);
             expect(v5_lock_info.minAmount).to.equal(parseEther("5000"));
             expect(v5_lock_info.period).to.equal(getDays(90));
 
@@ -84,22 +106,22 @@ describe("StakingRewards contract", function () {
     describe("Check Owner Functions", () => {
 
         it("Should update lock period", async () => {
-            await stakingRewards.updateLockPeriod(LockType.LOCK_V1_LAND, getDays(60));
-            const v1_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_V1_LAND);
+            await stakingRewards.updateLockPeriod(LockType.LOCK_0, getDays(60));
+            const v1_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_0);
             expect(v1_lock_info.minAmount).to.equal(parseEther("300"));
             expect(v1_lock_info.period).to.equal(getDays(60));
         });
 
         it("Should update staking amount for land early access", async () => {
-            await stakingRewards.updateLockLimitation(LockType.LOCK_V1_LAND, parseEther("400"));
-            const v1_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_V1_LAND);
+            await stakingRewards.updateLockLimitation(LockType.LOCK_0, parseEther("400"));
+            const v1_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_0);
             expect(v1_lock_info.minAmount).to.equal(parseEther("400"));
             expect(v1_lock_info.period).to.equal(getDays(90));
         });
 
         it("Should update ticket price for lottery lucky draw", async () => {
-            await stakingRewards.updateLockLimitation(LockType.LOTTERY_V1_LAND, parseEther("20"));
-            const v1_lottery_info = await stakingRewards.lockPeriod(LockType.LOTTERY_V1_LAND);
+            await stakingRewards.updateLockLimitation(LockType.STAKE_0, parseEther("20"));
+            const v1_lottery_info = await stakingRewards.lockPeriod(LockType.STAKE_0);
             expect(v1_lottery_info.minAmount).to.equal(parseEther("20"));
             expect(v1_lottery_info.period).to.equal(getDays(30));
         });
@@ -107,7 +129,7 @@ describe("StakingRewards contract", function () {
 
     describe("Check Lottery Staking", () => {
         it("Should revert the transaction on zero ticket amount", async () => {
-            await expect(stakingRewards.stake(0, LockType.LOTTERY_V1_LAND)).to.be.rejectedWith('Invalid Amount');
+            await expect(stakingRewards.stake(0, LockType.STAKE_0)).to.be.rejectedWith('Invalid Amount');
         });
 
         it("Should purchase 3 tickets", async () => {
@@ -115,10 +137,10 @@ describe("StakingRewards contract", function () {
             await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther("30"));
 
             // Purchase 3 tickets for V1 Land
-            await expect(stakingRewards.connect(addrs[1]).stake(3, LockType.LOTTERY_V1_LAND)).to.emit(stakingRewards, "Staked");
+            await expect(stakingRewards.connect(addrs[1]).stake(3, LockType.STAKE_0)).to.emit(stakingRewards, "Staked");
 
             // Check Locked MEE token balance from the staking contract for the selected lock type
-            expect(await stakingRewards.balanceOf(addrs[1].address, LockType.LOTTERY_V1_LAND)).to.be.equal(parseEther("30"));
+            expect(await stakingRewards.balanceOf(addrs[1].address, LockType.STAKE_0)).to.be.equal(parseEther("30"));
         });
 
         it("Should purchase same tier tickets serveral times", async () => {
@@ -126,17 +148,17 @@ describe("StakingRewards contract", function () {
             await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther("30"));
 
             // Purchase 3 tickets for V1 Land
-            await expect(stakingRewards.connect(addrs[1]).stake(3, LockType.LOTTERY_V1_LAND)).to.emit(stakingRewards, "Staked");
+            await expect(stakingRewards.connect(addrs[1]).stake(3, LockType.STAKE_0)).to.emit(stakingRewards, "Staked");
 
             // Check Locked MEE token balance from the staking contract
-            expect(await stakingRewards.balanceOf(addrs[1].address, LockType.LOTTERY_V1_LAND)).to.be.equal(parseEther("30"));
+            expect(await stakingRewards.balanceOf(addrs[1].address, LockType.STAKE_0)).to.be.equal(parseEther("30"));
 
             // Purchase 2 tickets for V1 Land again
             await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther("20"));
-            await expect(stakingRewards.connect(addrs[1]).stake(2, LockType.LOTTERY_V1_LAND)).to.emit(stakingRewards, "Staked");
+            await expect(stakingRewards.connect(addrs[1]).stake(2, LockType.STAKE_0)).to.emit(stakingRewards, "Staked");
 
             // Check Locked MEE token balance from the staking contract for the selected lock type
-            expect(await stakingRewards.balanceOf(addrs[1].address, LockType.LOTTERY_V1_LAND)).to.be.equal(parseEther("50"));
+            expect(await stakingRewards.balanceOf(addrs[1].address, LockType.STAKE_0)).to.be.equal(parseEther("50"));
         });
 
         it("Should revert tx for withdrawing tokens after 20 days for Lottery staking", async () => {
@@ -144,12 +166,12 @@ describe("StakingRewards contract", function () {
             await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther("30"));
 
             // Purchase 3 tickets for V1 Land
-            await expect(stakingRewards.connect(addrs[1]).stake(3, LockType.LOTTERY_V1_LAND)).to.emit(stakingRewards, "Staked");
+            await expect(stakingRewards.connect(addrs[1]).stake(3, LockType.STAKE_0)).to.emit(stakingRewards, "Staked");
 
             // Withdraw tokens after 20 days.
             await time.increase(getDays(20));
 
-            await expect(stakingRewards.connect(addrs[1]).withdraw(LockType.LOTTERY_V1_LAND)).to.be.rejectedWith('Still in the lock period');
+            await expect(stakingRewards.connect(addrs[1]).withdraw(LockType.STAKE_0)).to.be.rejectedWith('Still in the lock period');
         });
 
         it("Should withdraw tokens after the lock period", async () => {
@@ -157,22 +179,22 @@ describe("StakingRewards contract", function () {
             await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther("30"));
 
             // Purchase 3 tickets for V1 Land
-            await expect(stakingRewards.connect(addrs[1]).stake(3, LockType.LOTTERY_V1_LAND)).to.emit(stakingRewards, "Staked");
+            await expect(stakingRewards.connect(addrs[1]).stake(3, LockType.STAKE_0)).to.emit(stakingRewards, "Staked");
 
             // Withdraw tokens after 30 days.
             await time.increase(getDays(30));
 
-            await expect(stakingRewards.connect(addrs[1]).withdraw(LockType.LOTTERY_V1_LAND)).to.emit(stakingRewards, 'Withdrawn');
+            await expect(stakingRewards.connect(addrs[1]).withdraw(LockType.STAKE_0)).to.emit(stakingRewards, 'Withdrawn');
         });
     });
 
     describe("Check Early Access Staking", () => {
         it("Should revert the transaction on zero amount", async () => {
-            await expect(stakingRewards.stake(0, LockType.LOCK_V1_LAND)).to.be.rejectedWith('Invalid Amount');
+            await expect(stakingRewards.stake(0, LockType.LOCK_0)).to.be.rejectedWith('Invalid Amount');
         });
 
         it("Should revert the transaction for wrong amount", async () => {
-            await expect(stakingRewards.stake(2, LockType.LOCK_V1_LAND)).to.be.rejectedWith('Can only lock exactly one');
+            await expect(stakingRewards.stake(2, LockType.LOCK_0)).to.be.rejectedWith('Can only lock exactly one');
         });
 
         it("Should stake 300 MEE tokens for Land Tier 1 Early access", async () => {
@@ -180,10 +202,10 @@ describe("StakingRewards contract", function () {
             await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther("300"));
 
             // Stake tokens for V1 Land Early Access
-            await expect(stakingRewards.connect(addrs[1]).stake(1, LockType.LOCK_V1_LAND)).to.emit(stakingRewards, "Staked");
+            await expect(stakingRewards.connect(addrs[1]).stake(1, LockType.LOCK_0)).to.emit(stakingRewards, "Staked");
 
             // Check Locked MEE token balance from the staking contract for the selected lock type
-            expect(await stakingRewards.balanceOf(addrs[1].address, LockType.LOCK_V1_LAND)).to.be.equal(parseEther("300"));
+            expect(await stakingRewards.balanceOf(addrs[1].address, LockType.LOCK_0)).to.be.equal(parseEther("300"));
         });
 
         it("Should reverted with Nothing to Withdraw for non-stakers", async () => {
@@ -191,12 +213,12 @@ describe("StakingRewards contract", function () {
             await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther("300"));
 
             // Stake tokens for V1 Land Early Access
-            await expect(stakingRewards.connect(addrs[1]).stake(1, LockType.LOCK_V1_LAND)).to.emit(stakingRewards, "Staked");
+            await expect(stakingRewards.connect(addrs[1]).stake(1, LockType.LOCK_0)).to.emit(stakingRewards, "Staked");
 
             // Withdraw tokens after 90 days.
             await time.increase(getDays(90));
 
-            await expect(stakingRewards.connect(addrs[0]).withdraw(LockType.LOCK_V1_LAND)).to.be.revertedWith('Nothing to withdraw');
+            await expect(stakingRewards.connect(addrs[0]).withdraw(LockType.LOCK_0)).to.be.revertedWith('Nothing to withdraw');
         });
 
         it("Should withdraw tokens after the lock period", async () => {
@@ -204,12 +226,12 @@ describe("StakingRewards contract", function () {
             await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther("300"));
 
             // Stake tokens for V1 Land Early Access
-            await expect(stakingRewards.connect(addrs[1]).stake(1, LockType.LOCK_V1_LAND)).to.emit(stakingRewards, "Staked");
+            await expect(stakingRewards.connect(addrs[1]).stake(1, LockType.LOCK_0)).to.emit(stakingRewards, "Staked");
 
             // Withdraw tokens after 90 days.
             await time.increase(getDays(90));
 
-            await expect(stakingRewards.connect(addrs[1]).withdraw(LockType.LOCK_V1_LAND)).to.emit(stakingRewards, 'Withdrawn');
+            await expect(stakingRewards.connect(addrs[1]).withdraw(LockType.LOCK_0)).to.emit(stakingRewards, 'Withdrawn');
         });
     });
 });

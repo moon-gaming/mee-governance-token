@@ -5,16 +5,38 @@ pragma solidity 0.8.17;
 interface IStakingRewards {
     // enum, structs
     enum LockType {
-        LOTTERY_V1_LAND,
-        LOTTERY_V2_LAND,
-        LOTTERY_V3_LAND,
-        LOTTERY_V4_LAND,
-        LOTTERY_V5_LAND,
-        LOCK_V1_LAND,
-        LOCK_V2_LAND,
-        LOCK_V3_LAND,
-        LOCK_V4_LAND,
-        LOCK_V5_LAND
+        STAKE_0, 
+        STAKE_1, 
+        STAKE_2, 
+        STAKE_3, 
+        STAKE_4, 
+        STAKE_5, 
+        STAKE_6, 
+        STAKE_7, 
+        STAKE_8, 
+        STAKE_9, 
+        STAKE_A, 
+        STAKE_B, 
+        STAKE_C, 
+        STAKE_D, 
+        STAKE_E, 
+        STAKE_F,
+        LOCK_0, 
+        LOCK_1, 
+        LOCK_2, 
+        LOCK_3, 
+        LOCK_4, 
+        LOCK_5, 
+        LOCK_6, 
+        LOCK_7, 
+        LOCK_8, 
+        LOCK_9, 
+        LOCK_A, 
+        LOCK_B, 
+        LOCK_C, 
+        LOCK_D, 
+        LOCK_E, 
+        LOCK_F
     }
 
     struct StakeInfo {
