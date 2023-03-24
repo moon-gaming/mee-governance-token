@@ -217,12 +217,11 @@ describe("StakingRewards contract", function () {
             await expect(stakingRewards.connect(addrs[1]).withdraw(LockType.STAKE_0)).to.emit(stakingRewards, 'Withdrawn');
         });
 
-
         it("Disallows Staking into a Zero minAmount LockType", async () => {
             // Approve MEE token for staking Contract
             await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther("30"));
 
-            // Purchase 3 tickets for V1 Land
+            // Attempt to purchase 3 tickets for Stake
             await expect(stakingRewards.connect(addrs[1]).stake(3, LockType.STAKE_C)).to.be.rejectedWith("LockType is inactive.");
         });
 
@@ -264,6 +263,20 @@ describe("StakingRewards contract", function () {
             expect(await stakingRewards.balanceOf(addrs[1].address, LockType.LOCK_0)).to.be.equal(parseEther("300"));
         });
 
+        it("Will deduct the correct amount", async () => {
+            // Approve MEE token for staking Contract
+            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther("300"));
+
+            //Note down previous balance
+            const previous = await governanceToken.connect(addrs[1]).balanceOf(addrs[1].address);
+
+            // Stake tokens for V1 Land Early Access
+            await expect(stakingRewards.connect(addrs[1]).stake(1, LockType.LOCK_0)).to.emit(stakingRewards, "Staked");
+
+            //Verify correct amount deducted
+            expect(await governanceToken.connect(addrs[1]).balanceOf(addrs[1].address)).to.be.equal(previous.sub(parseEther("300")));        
+        });
+
         it("Should reverted with Nothing to Withdraw for non-stakers", async () => {
             // Approve MEE token for staking Contract
             await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther("300"));
@@ -277,9 +290,12 @@ describe("StakingRewards contract", function () {
             await expect(stakingRewards.connect(addrs[0]).withdraw(LockType.LOCK_0)).to.be.revertedWith('Nothing to withdraw');
         });
 
-        it("Should withdraw tokens after the lock period", async () => {
+        it("Can withdraw tokens after the lock period", async () => {
             // Approve MEE token for staking Contract
             await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther("300"));
+
+            //Note down previous balance
+            const previous = await governanceToken.connect(addrs[1]).balanceOf(addrs[1].address);
 
             // Stake tokens for V1 Land Early Access
             await expect(stakingRewards.connect(addrs[1]).stake(1, LockType.LOCK_0)).to.emit(stakingRewards, "Staked");
@@ -288,6 +304,24 @@ describe("StakingRewards contract", function () {
             await time.increase(getDays(90));
 
             await expect(stakingRewards.connect(addrs[1]).withdraw(LockType.LOCK_0)).to.emit(stakingRewards, 'Withdrawn');
+
+            //Ensure correct amount was transferred
+            expect(await governanceToken.connect(addrs[1]).balanceOf(addrs[1].address)).to.be.equal(previous);        
+        });
+
+        it("Withdraw the entire balance", async () => {
+            // Approve MEE token for staking Contract
+            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther("300"));
+
+            // Stake tokens for V1 Land Early Access
+            await expect(stakingRewards.connect(addrs[1]).stake(1, LockType.LOCK_0)).to.emit(stakingRewards, "Staked");
+
+            // Withdraw tokens after 123 days.
+            await time.increase(getDays(123));
+            await stakingRewards.connect(addrs[1]).withdraw(LockType.LOCK_0);
+
+            //Ensure zero tokens remain staked.
+            expect(await stakingRewards.connect(addrs[1]).balanceOf(addrs[1].address, LockType.LOCK_0)).to.be.equal(0);        
         });
     });
 });
