@@ -69,8 +69,16 @@ describe("StakingRewards contract", function () {
 
         stakingRewardsFactory = await ethers.getContractFactory("StakingRewards");
         stakingRewards = await upgrades.deployProxy(stakingRewardsFactory, [
-            governanceToken.address
+            governanceToken.address        
         ]);
+
+        //Distribute some coins from the exchanges wallet to the other testers
+        await Promise.all([
+            governanceToken.connect(addrs[1]).transfer(addrs[2].address, parseEther("654321")),
+            governanceToken.connect(addrs[1]).transfer(addrs[3].address, parseEther("200000")),
+            governanceToken.connect(addrs[1]).transfer(addrs[4].address, parseEther("50000")),
+            governanceToken.connect(addrs[1]).transfer(addrs[5].address, parseEther("123456"))
+            ]);
     });
 
     describe("Check Configuration", () => {
@@ -236,10 +244,12 @@ describe("StakingRewards contract", function () {
         it("Disallows Staking More Tokens than Available", async () => {
             // Approve MEE token for staking Contract            
             const everything = await governanceToken.connect(addrs[3]).balanceOf(addrs[3].address);
+            expect(everything).to.be.greaterThan(0, "Test wallet has no MEE.");
+
             await governanceToken.connect(addrs[3]).approve(stakingRewards.address, everything+parseEther("100"));
 
-            // Attempt to exceed available amount
-            await expect(stakingRewards.connect(addrs[3]).stake(everything+1, LockType.STAKE_0)).to.be.rejectedWith("ERC20: transfer amount exceeds balance");
+            // Attempt to exceed available amount, NB: hardcoded price from test fixture, is set to 20 MEE per ticket
+            await expect(stakingRewards.connect(addrs[3]).stake(everything.div(20)+1, LockType.STAKE_0)).to.be.rejectedWith("ERC20: transfer amount exceeds balance");
         });
     });
 
@@ -265,16 +275,16 @@ describe("StakingRewards contract", function () {
 
         it("Will deduct the correct amount", async () => {
             // Approve MEE token for staking Contract
-            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther("300"));
+            await governanceToken.connect(addrs[4]).approve(stakingRewards.address, parseEther("300"));
 
             //Note down previous balance
-            const previous = await governanceToken.connect(addrs[1]).balanceOf(addrs[1].address);
+            const previous = await governanceToken.connect(addrs[4]).balanceOf(addrs[4].address);
 
             // Stake tokens for V1 Land Early Access
-            await expect(stakingRewards.connect(addrs[1]).stake(1, LockType.LOCK_0)).to.emit(stakingRewards, "Staked");
+            await expect(stakingRewards.connect(addrs[4]).stake(1, LockType.LOCK_0)).to.emit(stakingRewards, "Staked");
 
             //Verify correct amount deducted
-            expect(await governanceToken.connect(addrs[1]).balanceOf(addrs[1].address)).to.be.equal(previous.sub(parseEther("300")));        
+            expect(await governanceToken.connect(addrs[4]).balanceOf(addrs[4].address)).to.be.equal(previous.sub(parseEther("300")));        
         });
 
         it("Should reverted with Nothing to Withdraw for non-stakers", async () => {
