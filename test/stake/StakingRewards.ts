@@ -80,27 +80,37 @@ describe("StakingRewards contract", function () {
         });
 
         it("Check Lock Type and Peroid, Tokens to stake", async () => {
-            const v1_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_0);
-            expect(v1_lock_info.minAmount).to.equal(parseEther("300"));
+            const v0_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_0);
+            expect(v0_lock_info.minAmount).to.equal(parseEther("300"));
+            expect(v0_lock_info.period).to.equal(getDays(90));
+
+            const v1_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_1);
+            expect(v1_lock_info.minAmount).to.equal(parseEther("500"));
             expect(v1_lock_info.period).to.equal(getDays(90));
 
-            const v2_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_1);
-            expect(v2_lock_info.minAmount).to.equal(parseEther("500"));
+            const v2_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_2);
+            expect(v2_lock_info.minAmount).to.equal(parseEther("1000"));
             expect(v2_lock_info.period).to.equal(getDays(90));
 
-            const v3_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_2);
-            expect(v3_lock_info.minAmount).to.equal(parseEther("1000"));
+            const v3_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_3);
+            expect(v3_lock_info.minAmount).to.equal(parseEther("2000"));
             expect(v3_lock_info.period).to.equal(getDays(90));
 
-            const v4_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_3);
-            expect(v4_lock_info.minAmount).to.equal(parseEther("2000"));
+            const v4_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_4);
+            expect(v4_lock_info.minAmount).to.equal(parseEther("5000"));
             expect(v4_lock_info.period).to.equal(getDays(90));
-
-            const v5_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_4);
-            expect(v5_lock_info.minAmount).to.equal(parseEther("5000"));
-            expect(v5_lock_info.period).to.equal(getDays(90));
-
         });
+
+        it("Initializes unspecified Locktypes to 0,0", async () => {
+            const v5_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_5);
+            expect(v5_lock_info.minAmount).to.equal(0);
+            expect(v5_lock_info.period).to.equal(0);
+
+            const sa_lock_info = await stakingRewards.lockPeriod(LockType.STAKE_A);
+            expect(sa_lock_info.minAmount).to.equal(0);
+            expect(sa_lock_info.period).to.equal(0);
+        });
+
     });
 
     describe("Check Owner Functions", () => {
@@ -119,15 +129,35 @@ describe("StakingRewards contract", function () {
             expect(v1_lock_info.period).to.equal(getDays(90));
         });
 
-        it("Should update ticket price for lottery lucky draw", async () => {
+        it("Should update ticket price for raffle lucky draw", async () => {
             await stakingRewards.updateLockLimitation(LockType.STAKE_0, parseEther("20"));
-            const v1_lottery_info = await stakingRewards.lockPeriod(LockType.STAKE_0);
-            expect(v1_lottery_info.minAmount).to.equal(parseEther("20"));
-            expect(v1_lottery_info.period).to.equal(getDays(30));
+            const v1_raffle_info = await stakingRewards.lockPeriod(LockType.STAKE_0);
+            expect(v1_raffle_info.minAmount).to.equal(parseEther("20"));
+            expect(v1_raffle_info.period).to.equal(getDays(30));
+        });
+
+        it("Initializes Unused LockTypes to 0", async () => {
+            const v1_raffle_info = await stakingRewards.lockPeriod(LockType.STAKE_F);
+            expect(v1_raffle_info.minAmount).to.equal(0);
+            expect(v1_raffle_info.period).to.equal(0);
+        });
+
+        it("Can update ticket price for a new lucky draw", async () => {
+            await stakingRewards.updateLockLimitation(LockType.STAKE_C, parseEther("69"));
+            const v1_raffle_info = await stakingRewards.lockPeriod(LockType.STAKE_C);
+            expect(v1_raffle_info.minAmount).to.equal(parseEther("69"));
+            expect(v1_raffle_info.period).to.equal(0);
+        });
+
+        it("Can update staking period for a new lucky draw", async () => {
+            await stakingRewards.updateLockPeriod(LockType.STAKE_D, getDays(42));
+            const v1_raffle_info = await stakingRewards.lockPeriod(LockType.STAKE_D);
+            expect(v1_raffle_info.minAmount).to.equal(0);
+            expect(v1_raffle_info.period).to.equal(getDays(42));
         });
     });
 
-    describe("Check Lottery Staking", () => {
+    describe("Check Raffle Staking", () => {
         it("Should revert the transaction on zero ticket amount", async () => {
             await expect(stakingRewards.stake(0, LockType.STAKE_0)).to.be.rejectedWith('Invalid Amount');
         });
@@ -161,7 +191,7 @@ describe("StakingRewards contract", function () {
             expect(await stakingRewards.balanceOf(addrs[1].address, LockType.STAKE_0)).to.be.equal(parseEther("50"));
         });
 
-        it("Should revert tx for withdrawing tokens after 20 days for Lottery staking", async () => {
+        it("Should revert tx for withdrawing tokens after 20 days for Raffle staking", async () => {
             // Approve MEE token for staking Contract
             await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther("30"));
 
@@ -185,6 +215,32 @@ describe("StakingRewards contract", function () {
             await time.increase(getDays(30));
 
             await expect(stakingRewards.connect(addrs[1]).withdraw(LockType.STAKE_0)).to.emit(stakingRewards, 'Withdrawn');
+        });
+
+
+        it("Disallows Staking into a Zero minAmount LockType", async () => {
+            // Approve MEE token for staking Contract
+            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther("30"));
+
+            // Purchase 3 tickets for V1 Land
+            await expect(stakingRewards.connect(addrs[1]).stake(3, LockType.STAKE_C)).to.be.rejectedWith("LockType is inactive.");
+        });
+
+        it("Disallows Staking More Tokens than Approved", async () => {
+            // Approve MEE token for staking Contract
+            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther("3000"));
+
+            // Attempt to exceed approved amount
+            await expect(stakingRewards.connect(addrs[1]).stake(9001, LockType.STAKE_0)).to.be.rejectedWith("ERC20: insufficient allowance");
+        });
+
+        it("Disallows Staking More Tokens than Available", async () => {
+            // Approve MEE token for staking Contract            
+            const everything = await governanceToken.connect(addrs[3]).balanceOf(addrs[3].address);
+            await governanceToken.connect(addrs[3]).approve(stakingRewards.address, everything+parseEther("100"));
+
+            // Attempt to exceed available amount
+            await expect(stakingRewards.connect(addrs[3]).stake(everything+1, LockType.STAKE_0)).to.be.rejectedWith("ERC20: transfer amount exceeds balance");
         });
     });
 

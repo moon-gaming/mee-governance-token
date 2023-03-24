@@ -50,7 +50,7 @@ contract StakingRewards is
         lockPeriod[LockType.LOCK_2] = LockInfo(90 days, 1000 ether);
         lockPeriod[LockType.LOCK_3] = LockInfo(90 days, 2000 ether);
         lockPeriod[LockType.LOCK_4] = LockInfo(90 days, 5000 ether);
-        // Initializing Lock Period and Ticket Price for Lottery - Staking Option 1
+        // Initializing Lock Period and Ticket Price for Raffle - Staking Option 1
         lockPeriod[LockType.STAKE_0] = LockInfo(30 days, 10 ether);
         lockPeriod[LockType.STAKE_1] = LockInfo(30 days, 15 ether);
         lockPeriod[LockType.STAKE_2] = LockInfo(30 days, 20 ether);
@@ -60,7 +60,7 @@ contract StakingRewards is
 
     /* ========== VIEWS ========== */
 
-    // Staked Amount of MEE token into specific Lottery or the second staking optioin
+    // Staked Amount of MEE token into specific Raffle or the second staking optioin
     function balanceOf(address account, LockType lockType)
         external
         view
@@ -76,17 +76,19 @@ contract StakingRewards is
         nonReentrant
         whenNotPaused
     {
-        // In case of Staking Option 1(Lottery), amount just represents the ticket amount
+        // In case of Staking Option 1(Raffle), amount just represents the ticket amount
         // In case of Staking Option 2(Land), we don't use the amount variable but it should be 1 always
         require(amount > 0, "Invalid Amount");
         if(lockType >= LockType.LOCK_0) {
             require(amount == 1, "Can only lock exactly one");
         }
 
-        // Stake Information for the specific Staking Option for the user. Lottery or Land Option
+        // Stake Information for the specific Staking Option for the user. Raffle or Land Option
         StakeInfo storage info = stakeInfo[msg.sender][lockType];
 
         LockInfo memory lockInfo = lockPeriod[lockType];
+        require(lockInfo.minAmount > 0, "LockType is inactive.");
+
         info.balance = info.balance + lockInfo.minAmount * amount;
         info.unlockTime = uint64(block.timestamp) + lockInfo.period;
 
