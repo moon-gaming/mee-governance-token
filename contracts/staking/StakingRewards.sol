@@ -45,17 +45,17 @@ contract StakingRewards is
         stakingToken = IERC20Upgradeable(_stakingToken);
 
         // Initializing Lock Period and Amount to stake for Land Ownership - Staking Option 2
-        lockPeriod[LockType.LOCK_0] = LockInfo(90 days, 300 ether);
-        lockPeriod[LockType.LOCK_1] = LockInfo(90 days, 500 ether);
-        lockPeriod[LockType.LOCK_2] = LockInfo(90 days, 1000 ether);
-        lockPeriod[LockType.LOCK_3] = LockInfo(90 days, 2000 ether);
-        lockPeriod[LockType.LOCK_4] = LockInfo(90 days, 5000 ether);
+        lockPeriod[LockType.LOCK_0] = LockInfo(90 days, 25000 ether);
+        lockPeriod[LockType.LOCK_1] = LockInfo(90 days, 75000 ether);
+        lockPeriod[LockType.LOCK_2] = LockInfo(90 days, 200000 ether);
+        lockPeriod[LockType.LOCK_3] = LockInfo(90 days, 1000000 ether);
+        lockPeriod[LockType.LOCK_4] = LockInfo(90 days, 3000000 ether);
         // Initializing Lock Period and Ticket Price for Raffle - Staking Option 1
-        lockPeriod[LockType.STAKE_0] = LockInfo(30 days, 10 ether);
-        lockPeriod[LockType.STAKE_1] = LockInfo(30 days, 15 ether);
-        lockPeriod[LockType.STAKE_2] = LockInfo(30 days, 20 ether);
-        lockPeriod[LockType.STAKE_3] = LockInfo(30 days, 30 ether);
-        lockPeriod[LockType.STAKE_4] = LockInfo(30 days, 45 ether);
+        lockPeriod[LockType.STAKE_0] = LockInfo(30 days, 1000 ether);
+        lockPeriod[LockType.STAKE_1] = LockInfo(30 days, 2000 ether);
+        lockPeriod[LockType.STAKE_2] = LockInfo(30 days, 3000 ether);
+        lockPeriod[LockType.STAKE_3] = LockInfo(30 days, 4000 ether);
+        lockPeriod[LockType.STAKE_4] = LockInfo(30 days, 5000 ether);
     }
 
     /* ========== VIEWS ========== */
