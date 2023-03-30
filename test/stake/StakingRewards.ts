@@ -78,7 +78,7 @@ describe("StakingRewards contract", function () {
             governanceToken.connect(addrs[1]).transfer(addrs[3].address, parseEther("200000")),
             governanceToken.connect(addrs[1]).transfer(addrs[4].address, parseEther("50000")),
             governanceToken.connect(addrs[1]).transfer(addrs[5].address, parseEther("123456"))
-            ]);
+        ]);
     });
 
     describe("Check Configuration", () => {
@@ -89,23 +89,23 @@ describe("StakingRewards contract", function () {
 
         it("Check Lock Type and Peroid, Tokens to stake", async () => {
             const v0_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_0);
-            expect(v0_lock_info.minAmount).to.equal(parseEther("300"));
+            expect(v0_lock_info.minAmount).to.equal(parseEther("25000"));
             expect(v0_lock_info.period).to.equal(getDays(90));
 
             const v1_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_1);
-            expect(v1_lock_info.minAmount).to.equal(parseEther("500"));
+            expect(v1_lock_info.minAmount).to.equal(parseEther("75000"));
             expect(v1_lock_info.period).to.equal(getDays(90));
 
             const v2_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_2);
-            expect(v2_lock_info.minAmount).to.equal(parseEther("1000"));
+            expect(v2_lock_info.minAmount).to.equal(parseEther("200000"));
             expect(v2_lock_info.period).to.equal(getDays(90));
 
             const v3_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_3);
-            expect(v3_lock_info.minAmount).to.equal(parseEther("2000"));
+            expect(v3_lock_info.minAmount).to.equal(parseEther("1000000"));
             expect(v3_lock_info.period).to.equal(getDays(90));
 
             const v4_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_4);
-            expect(v4_lock_info.minAmount).to.equal(parseEther("5000"));
+            expect(v4_lock_info.minAmount).to.equal(parseEther("3000000"));
             expect(v4_lock_info.period).to.equal(getDays(90));
         });
 
@@ -126,7 +126,7 @@ describe("StakingRewards contract", function () {
         it("Should update lock period", async () => {
             await stakingRewards.updateLockPeriod(LockType.LOCK_0, getDays(60));
             const v1_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_0);
-            expect(v1_lock_info.minAmount).to.equal(parseEther("300"));
+            expect(v1_lock_info.minAmount).to.equal(parseEther("25000"));
             expect(v1_lock_info.period).to.equal(getDays(60));
         });
 
@@ -171,37 +171,43 @@ describe("StakingRewards contract", function () {
         });
 
         it("Should purchase 3 tickets", async () => {
+            const v1_stake_info = await stakingRewards.lockPeriod(LockType.STAKE_0);
             // Approve MEE token for staking Contract
-            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther("30"));
+            const ticketPrice = formatEther(v1_stake_info.minAmount);
+            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther((parseInt(ticketPrice) * 3).toString()));
 
             // Purchase 3 tickets for V1 Land
             await expect(stakingRewards.connect(addrs[1]).stake(3, LockType.STAKE_0)).to.emit(stakingRewards, "Staked");
 
             // Check Locked MEE token balance from the staking contract for the selected lock type
-            expect(await stakingRewards.balanceOf(addrs[1].address, LockType.STAKE_0)).to.be.equal(parseEther("30"));
+            expect(await stakingRewards.balanceOf(addrs[1].address, LockType.STAKE_0)).to.be.equal(parseEther((parseInt(ticketPrice) * 3).toString()));
         });
 
         it("Should purchase same tier tickets serveral times", async () => {
+            const v1_stake_info = await stakingRewards.lockPeriod(LockType.STAKE_0);
+            const ticketPrice = formatEther(v1_stake_info.minAmount);
             // Approve MEE token for staking Contract
-            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther("30"));
+            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther((parseInt(ticketPrice) * 3).toString()));
 
             // Purchase 3 tickets for V1 Land
             await expect(stakingRewards.connect(addrs[1]).stake(3, LockType.STAKE_0)).to.emit(stakingRewards, "Staked");
 
             // Check Locked MEE token balance from the staking contract
-            expect(await stakingRewards.balanceOf(addrs[1].address, LockType.STAKE_0)).to.be.equal(parseEther("30"));
+            expect(await stakingRewards.balanceOf(addrs[1].address, LockType.STAKE_0)).to.be.equal(parseEther((parseInt(ticketPrice) * 3).toString()));
 
             // Purchase 2 tickets for V1 Land again
-            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther("20"));
+            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther((parseInt(ticketPrice) * 2).toString()));
             await expect(stakingRewards.connect(addrs[1]).stake(2, LockType.STAKE_0)).to.emit(stakingRewards, "Staked");
 
             // Check Locked MEE token balance from the staking contract for the selected lock type
-            expect(await stakingRewards.balanceOf(addrs[1].address, LockType.STAKE_0)).to.be.equal(parseEther("50"));
+            expect(await stakingRewards.balanceOf(addrs[1].address, LockType.STAKE_0)).to.be.equal(parseEther((parseInt(ticketPrice) * 5).toString()));
         });
 
         it("Should revert tx for withdrawing tokens after 20 days for Raffle staking", async () => {
+            const v1_stake_info = await stakingRewards.lockPeriod(LockType.STAKE_0);
+            const ticketPrice = formatEther(v1_stake_info.minAmount);
             // Approve MEE token for staking Contract
-            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther("30"));
+            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther((parseInt(ticketPrice) * 3).toString()));
 
             // Purchase 3 tickets for V1 Land
             await expect(stakingRewards.connect(addrs[1]).stake(3, LockType.STAKE_0)).to.emit(stakingRewards, "Staked");
@@ -213,8 +219,10 @@ describe("StakingRewards contract", function () {
         });
 
         it("Should withdraw tokens after the lock period", async () => {
+            const v1_stake_info = await stakingRewards.lockPeriod(LockType.STAKE_0);
+            const ticketPrice = formatEther(v1_stake_info.minAmount);
             // Approve MEE token for staking Contract
-            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther("30"));
+            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther((parseInt(ticketPrice) * 3).toString()));
 
             // Purchase 3 tickets for V1 Land
             await expect(stakingRewards.connect(addrs[1]).stake(3, LockType.STAKE_0)).to.emit(stakingRewards, "Staked");
@@ -226,16 +234,20 @@ describe("StakingRewards contract", function () {
         });
 
         it("Disallows Staking into a Zero minAmount LockType", async () => {
+            const v1_stake_info = await stakingRewards.lockPeriod(LockType.STAKE_0);
+            const ticketPrice = formatEther(v1_stake_info.minAmount);
             // Approve MEE token for staking Contract
-            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther("30"));
+            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther((parseInt(ticketPrice) * 3).toString()));
 
             // Attempt to purchase 3 tickets for Stake
             await expect(stakingRewards.connect(addrs[1]).stake(3, LockType.STAKE_C)).to.be.rejectedWith("LockType is inactive.");
         });
 
         it("Disallows Staking More Tokens than Approved", async () => {
+            const v1_stake_info = await stakingRewards.lockPeriod(LockType.STAKE_0);
+            const ticketPrice = formatEther(v1_stake_info.minAmount);
             // Approve MEE token for staking Contract
-            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther("3000"));
+            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther((parseInt(ticketPrice) * 9000).toString()));
 
             // Attempt to exceed approved amount
             await expect(stakingRewards.connect(addrs[1]).stake(9001, LockType.STAKE_0)).to.be.rejectedWith("ERC20: insufficient allowance");
@@ -262,20 +274,24 @@ describe("StakingRewards contract", function () {
             await expect(stakingRewards.stake(2, LockType.LOCK_0)).to.be.rejectedWith('Can only lock exactly one');
         });
 
-        it("Should stake 300 MEE tokens for Land Tier 1 Early access", async () => {
+        it("Should stake MEE tokens for Land Tier 1 Early access", async () => {
+            const v1_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_0);
+            const minAmount = formatEther(v1_lock_info.minAmount);
             // Approve MEE token for staking Contract
-            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther("300"));
+            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther((parseInt(minAmount) * 1).toString()));
 
             // Stake tokens for V1 Land Early Access
             await expect(stakingRewards.connect(addrs[1]).stake(1, LockType.LOCK_0)).to.emit(stakingRewards, "Staked");
 
             // Check Locked MEE token balance from the staking contract for the selected lock type
-            expect(await stakingRewards.balanceOf(addrs[1].address, LockType.LOCK_0)).to.be.equal(parseEther("300"));
+            expect(await stakingRewards.balanceOf(addrs[1].address, LockType.LOCK_0)).to.be.equal(parseEther((parseInt(minAmount) * 1).toString()));
         });
 
         it("Will deduct the correct amount", async () => {
+            const v1_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_0);
+            const minAmount = formatEther(v1_lock_info.minAmount);
             // Approve MEE token for staking Contract
-            await governanceToken.connect(addrs[4]).approve(stakingRewards.address, parseEther("300"));
+            await governanceToken.connect(addrs[4]).approve(stakingRewards.address, parseEther((parseInt(minAmount) * 1).toString()));
 
             //Note down previous balance
             const previous = await governanceToken.connect(addrs[4]).balanceOf(addrs[4].address);
@@ -284,12 +300,14 @@ describe("StakingRewards contract", function () {
             await expect(stakingRewards.connect(addrs[4]).stake(1, LockType.LOCK_0)).to.emit(stakingRewards, "Staked");
 
             //Verify correct amount deducted
-            expect(await governanceToken.connect(addrs[4]).balanceOf(addrs[4].address)).to.be.equal(previous.sub(parseEther("300")));        
+            expect(await governanceToken.connect(addrs[4]).balanceOf(addrs[4].address)).to.be.equal(previous.sub(parseEther((parseInt(minAmount) * 1).toString())));        
         });
 
         it("Should reverted with Nothing to Withdraw for non-stakers", async () => {
+            const v1_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_0);
+            const minAmount = formatEther(v1_lock_info.minAmount);
             // Approve MEE token for staking Contract
-            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther("300"));
+            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther((parseInt(minAmount) * 1).toString()));
 
             // Stake tokens for V1 Land Early Access
             await expect(stakingRewards.connect(addrs[1]).stake(1, LockType.LOCK_0)).to.emit(stakingRewards, "Staked");
@@ -301,8 +319,10 @@ describe("StakingRewards contract", function () {
         });
 
         it("Can withdraw tokens after the lock period", async () => {
+            const v1_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_0);
+            const minAmount = formatEther(v1_lock_info.minAmount);
             // Approve MEE token for staking Contract
-            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther("300"));
+            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther((parseInt(minAmount) * 1).toString()));
 
             //Note down previous balance
             const previous = await governanceToken.connect(addrs[1]).balanceOf(addrs[1].address);
@@ -320,8 +340,10 @@ describe("StakingRewards contract", function () {
         });
 
         it("Withdraw the entire balance", async () => {
+            const v1_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_0);
+            const minAmount = formatEther(v1_lock_info.minAmount);
             // Approve MEE token for staking Contract
-            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther("300"));
+            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther((parseInt(minAmount) * 1).toString()));
 
             // Stake tokens for V1 Land Early Access
             await expect(stakingRewards.connect(addrs[1]).stake(1, LockType.LOCK_0)).to.emit(stakingRewards, "Staked");
