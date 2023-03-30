@@ -111,6 +111,7 @@ contract StakingRewards is
     function withdraw(LockType lockType)
         public
         nonReentrant
+        whenNotPaused
         lockPeriodCheck(lockType)
     {
         StakeInfo storage info = stakeInfo[msg.sender][lockType];
@@ -155,6 +156,22 @@ contract StakingRewards is
         );
         IERC20Upgradeable(tokenAddress).safeTransfer(msg.sender, tokenAmount);
         emit Recovered(tokenAddress, tokenAmount);
+    }
+
+     // Pause from staking and withdrawing tokens
+    function pause()
+        external
+        onlyOwner
+    {
+        _pause();
+    }
+
+    // Un-Pause contract for staking and withdrawing tokens
+    function unPause()
+        external
+        onlyOwner
+    {
+        _unpause();
     }
 
     /* ========== MODIFIERS ========== */
