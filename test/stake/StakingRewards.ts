@@ -170,6 +170,21 @@ describe("StakingRewards contract", function () {
             await expect(stakingRewards.stake(0, LockType.STAKE_0)).to.be.rejectedWith('Invalid Amount');
         });
 
+        it("Should disallow STAKE_0 from staking MEE tokens", async () => {
+            await stakingRewards.updateLockLimitation(LockType.STAKE_0, 0);
+            const v1_stake_info = await stakingRewards.lockPeriod(LockType.STAKE_0);
+            const ticketPrice = formatEther(v1_stake_info.minAmount);
+
+            // Check the minAmount updated for STAKE V1 Land Tier
+            expect(ticketPrice).to.be.equal("0.0");
+
+            // Approve Tokens for staking
+            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther((parseInt(ticketPrice) * 3).toString()));
+
+            // Purchase 3 tickets for V1 Land
+            await expect(stakingRewards.connect(addrs[1]).stake(3, LockType.STAKE_0)).to.be.rejectedWith('LockType is inactive.');
+        });
+
         it("Should purchase 3 tickets", async () => {
             const v1_stake_info = await stakingRewards.lockPeriod(LockType.STAKE_0);
             // Approve MEE token for staking Contract
