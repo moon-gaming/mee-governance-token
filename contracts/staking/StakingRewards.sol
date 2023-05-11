@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+// Version: Staking 1.1.0
 
 pragma solidity 0.8.17;
 
@@ -141,7 +142,7 @@ contract StakingRewards is
         external
         onlyOwner
     {
-        require(limit > 0, "Limit should be bigger than 0");
+        // require(limit > 0, "Limit should be bigger than 0");
         lockPeriod[lockType].minAmount = limit;
     }
 
