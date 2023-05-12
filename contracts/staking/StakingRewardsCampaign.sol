@@ -25,10 +25,8 @@ contract StakingRewardsCampaign is
     IERC20Upgradeable stakingToken;
 
     // User address => Lock Type => Staked Information
-    mapping(address => mapping(uint64 => mapping(LockType => StakeInfo))) private stakeInfo;
-
-    mapping(LockType => LockInfo) public lockPeriod;
-    uint64 currentCampagin;
+    mapping(address => mapping(bytes32 => StakeInfo)) private stakeInfo;
+    mapping(bytes32 => LockInfo) public lockPeriod;
 
     /* ========== Initializer ========== */
 
@@ -44,52 +42,34 @@ contract StakingRewardsCampaign is
         onlyInitializing
     {
         stakingToken = IERC20Upgradeable(_stakingToken);
-        currentCampagin = 3;
-
-        // Initializing Lock Period and Amount to stake for Land Ownership - Staking Option 2
-        lockPeriod[LockType.LOCK_0] = LockInfo(90 days, 25000 ether);
-        lockPeriod[LockType.LOCK_1] = LockInfo(90 days, 75000 ether);
-        lockPeriod[LockType.LOCK_2] = LockInfo(90 days, 200000 ether);
-        lockPeriod[LockType.LOCK_3] = LockInfo(90 days, 1000000 ether);
-        lockPeriod[LockType.LOCK_4] = LockInfo(90 days, 3000000 ether);
-        // Initializing Lock Period and Ticket Price for Raffle - Staking Option 1
-        lockPeriod[LockType.STAKE_0] = LockInfo(30 days, 1000 ether);
-        lockPeriod[LockType.STAKE_1] = LockInfo(30 days, 2000 ether);
-        lockPeriod[LockType.STAKE_2] = LockInfo(30 days, 3000 ether);
-        lockPeriod[LockType.STAKE_3] = LockInfo(30 days, 4000 ether);
-        lockPeriod[LockType.STAKE_4] = LockInfo(30 days, 5000 ether);
     }
 
     /* ========== VIEWS ========== */
 
     // Staked Amount of MEE token into specific Raffle or the second staking optioin
-    function balanceOf(address account, uint64 campaignType, LockType lockType)
+    function balanceOf(address account, bytes32 lockType)
         external
         view
         returns (uint256)
     {
-        return stakeInfo[account][campaignType][lockType].balance;
+        return stakeInfo[account][lockType].balance;
     }
 
     /* ========== MUTATIVE FUNCTIONS ========== */
 
-    function stake(uint256 amount, uint64 campaignType, LockType lockType)
+    function stake(uint256 amount, bytes32 lockType)
         external
         nonReentrant
         whenNotPaused
     {
+        LockInfo memory lockInfo = lockPeriod[lockType];
         // In case of Staking Option 1(Raffle), amount just represents the ticket amount
         // In case of Staking Option 2(Land), we don't use the amount variable but it should be 1 always
-        require(amount > 0, "Invalid Amount");
-        if(lockType >= LockType.LOCK_0) {
-            require(amount == 1, "Can only lock exactly one");
-        }
+        require(amount >= lockInfo.minAmount, "Invalid Amount");
+        require(amount <= lockInfo.maxAmount || lockInfo.maxAmount == 0, "Invalid Amount");
 
         // Stake Information for the specific Staking Option for the user. Raffle or Land Option
-        StakeInfo storage info = stakeInfo[msg.sender][campaignType][lockType];
-
-        LockInfo memory lockInfo = lockPeriod[lockType];
-        require(lockInfo.minAmount > 0, "LockType is inactive.");
+        StakeInfo storage info = stakeInfo[msg.sender][lockType];
 
         info.balance = info.balance + lockInfo.minAmount * amount;
         info.unlockTime = uint64(block.timestamp) + lockInfo.period;
@@ -105,19 +85,18 @@ contract StakingRewardsCampaign is
             msg.sender, // Owner
             lockInfo.minAmount * amount, // Token Amount
             amount, // Ticket Amount for Staking Option 1 or 1 for Staking Option 2
-            campaignType,
             lockType, // Lock Type
             info.unlockTime
         );
     }
 
-    function withdraw(uint64 campaignType, LockType lockType)
+    function withdraw(bytes32 lockType)
         public
         nonReentrant
         whenNotPaused
-        lockPeriodCheck(campaignType, lockType)
+        lockPeriodCheck(lockType)
     {
-        StakeInfo storage info = stakeInfo[msg.sender][campaignType][lockType];
+        StakeInfo storage info = stakeInfo[msg.sender][lockType];
         // Calcaulate the balance to withdraw for the specific Land Tier and the Staking Option
         uint256 balance = info.balance;
 
@@ -125,13 +104,13 @@ contract StakingRewardsCampaign is
         // Unlock Mee Token after lock period.
         stakingToken.safeTransfer(msg.sender, balance);
 
-        delete stakeInfo[msg.sender][campaignType][lockType];
+        delete stakeInfo[msg.sender][lockType];
 
-        emit Withdrawn(msg.sender, balance, campaignType, lockType);
+        emit Withdrawn(msg.sender, balance, lockType);
     }
 
     // Update lock period for different tiers from Staking Option 1 & 2
-    function updateLockPeriod(LockType lockType, uint64 period)
+    function updateLockPeriod(bytes32 lockType, uint64 period)
         external
         onlyOwner
     {
@@ -140,7 +119,7 @@ contract StakingRewardsCampaign is
     }
 
     // Update the ticket price for Staking Option 1, and the minAmount limitation for Staking Option 2
-    function updateLockLimitation(LockType lockType, uint256 limit)
+    function updateLockLimitation(bytes32 lockType, uint256 limit)
         external
         onlyOwner
     {
@@ -180,8 +159,8 @@ contract StakingRewardsCampaign is
     /* ========== MODIFIERS ========== */
 
     // Modifier for checking if the lock period has ended or not
-    modifier lockPeriodCheck(uint64 campaignType, LockType lockType) {
-        StakeInfo memory info = stakeInfo[msg.sender][campaignType][lockType];
+    modifier lockPeriodCheck(bytes32 lockType) {
+        StakeInfo memory info = stakeInfo[msg.sender][lockType];
         require(info.unlockTime < block.timestamp, "Still in the lock period");
         _;
     }
