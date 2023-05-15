@@ -141,7 +141,7 @@ contract StakingRewards is
         external
         onlyOwner
     {
-        require(limit > 0, "Limit should be bigger than 0");
+        // require(limit > 0, "Limit should be bigger than 0");
         lockPeriod[lockType].minAmount = limit;
     }
 

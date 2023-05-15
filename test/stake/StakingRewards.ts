@@ -356,4 +356,47 @@ describe("StakingRewards contract", function () {
             expect(await stakingRewards.connect(addrs[1]).balanceOf(addrs[1].address, LockType.LOCK_0)).to.be.equal(0);        
         });
     });
+
+    describe("Check Staking Contract Pausable", () => {
+        it("Should pause staking MEE tokens(ex: for Land Tier 1 Early access)", async () => {
+            // Pause Contract
+            await stakingRewards.pause();
+
+            const v1_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_0);
+            const minAmount = formatEther(v1_lock_info.minAmount);
+            // Approve MEE token for staking Contract
+            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther((parseInt(minAmount) * 1).toString()));
+
+            await expect(stakingRewards.connect(addrs[1]).stake(1, LockType.LOCK_0)).to.be.rejectedWith("Pausable: paused");
+
+            await stakingRewards.unPause();
+            // Stake tokens for V1 Land Early Access
+            await expect(stakingRewards.connect(addrs[1]).stake(1, LockType.LOCK_0)).to.emit(stakingRewards, "Staked");
+
+            // Check Locked MEE token balance from the staking contract for the selected lock type
+            expect(await stakingRewards.balanceOf(addrs[1].address, LockType.LOCK_0)).to.be.equal(parseEther((parseInt(minAmount) * 1).toString()));
+        });
+
+        it("Pause Withdrawing tokens", async () => {
+            const v1_lock_info = await stakingRewards.lockPeriod(LockType.LOCK_0);
+            const minAmount = formatEther(v1_lock_info.minAmount);
+            // Approve MEE token for staking Contract
+            await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther((parseInt(minAmount) * 1).toString()));
+
+            // Stake tokens for V1 Land Early Access
+            await expect(stakingRewards.connect(addrs[1]).stake(1, LockType.LOCK_0)).to.emit(stakingRewards, "Staked");
+
+            // Pause Contract
+            await stakingRewards.pause();
+
+            // Withdraw tokens after 123 days.
+            await time.increase(getDays(123));
+            await expect(stakingRewards.connect(addrs[1]).withdraw(LockType.LOCK_0)).to.be.rejectedWith("Pausable: paused");
+            
+            await stakingRewards.unPause();
+            await stakingRewards.connect(addrs[1]).withdraw(LockType.LOCK_0);
+            //Ensure zero tokens remain staked.
+            expect(await stakingRewards.connect(addrs[1]).balanceOf(addrs[1].address, LockType.LOCK_0)).to.be.equal(0);        
+        });
+    });
 });

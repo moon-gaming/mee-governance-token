@@ -65,8 +65,9 @@ contract StakingRewardsCampaign is
         LockInfo memory lockInfo = lockPeriod[lockType];
         // In case of Staking Option 1(Raffle), amount just represents the ticket amount
         // In case of Staking Option 2(Land), we don't use the amount variable but it should be 1 always
-        require(amount >= lockInfo.minAmount, "Invalid Amount");
-        require(amount <= lockInfo.maxAmount || lockInfo.maxAmount == 0, "Invalid Amount");
+        require(amount >= 1, "Invalid Amount");
+        require(lockInfo.minAmount != 0, "Not Active");
+        require(amount * lockInfo.minAmount <= lockInfo.maxAmount || lockInfo.maxAmount == 0, "Invalid Amount");
 
         // Stake Information for the specific Staking Option for the user. Raffle or Land Option
         StakeInfo storage info = stakeInfo[msg.sender][lockType];
@@ -119,12 +120,12 @@ contract StakingRewardsCampaign is
     }
 
     // Update the ticket price for Staking Option 1, and the minAmount limitation for Staking Option 2
-    function updateLockLimitation(bytes32 lockType, uint256 limit)
+    function updateLockLimitation(bytes32 lockType, uint256 minLimit, uint256 maxLimit)
         external
         onlyOwner
     {
-        // require(limit > 0, "Limit should be bigger than 0");
-        lockPeriod[lockType].minAmount = limit;
+        lockPeriod[lockType].minAmount = minLimit;
+        lockPeriod[lockType].maxAmount = maxLimit;
     }
 
     // Added to support recovering LP Rewards from other systems to be distributed to holders
