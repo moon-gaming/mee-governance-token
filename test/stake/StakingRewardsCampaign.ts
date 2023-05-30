@@ -11,6 +11,8 @@ const getDays = (day: number) => {
 }
 
 const tier = ethers.utils.formatBytes32String("Lottery_3_202305")
+const tier_second = ethers.utils.formatBytes32String("Lottery_4_202305")
+
 
 describe("StakingRewards contract", function () {
     let governanceTokenFactory: ContractFactory;
@@ -109,6 +111,10 @@ describe("StakingRewards contract", function () {
             await expect(stakingRewards.stake(0, tier)).to.be.rejectedWith('Invalid Amount');
         });
 
+        it("Should revert the transaction on zero ticket amount", async () => {
+            await expect(stakingRewards.stake(1, tier_second)).to.be.rejectedWith('Not Active');
+        });
+            
         it("Should purchase 3 tickets", async () => {
             await stakingRewards.updateLockLimitation(tier, parseEther("20"), 0);
             const v1_stake_info = await stakingRewards.lockPeriod(tier);
