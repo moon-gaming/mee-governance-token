@@ -1,6 +1,6 @@
 import {expect} from "chai";
 import {ethers, upgrades} from "hardhat";
-import {BigNumber, Contract, ContractFactory} from "ethers";
+import {BigNumber, Contract, ContractFactory, utils} from "ethers";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import { days } from "@nomicfoundation/hardhat-network-helpers/dist/src/helpers/time/duration";
 import { formatEther, parseEther } from "ethers/lib/utils";
@@ -17,6 +17,7 @@ const tier_second = ethers.utils.formatBytes32String("Lottery_4_202305")
 describe("StakingRewards contract", function () {
     let governanceTokenFactory: ContractFactory;
     let governanceToken: Contract;
+    let mockupToken: Contract;
     let stakingRewardsFactory: ContractFactory;
     let stakingRewards: Contract;
     let owner: SignerWithAddress;
@@ -34,6 +35,9 @@ describe("StakingRewards contract", function () {
         governanceTokenFactory = await ethers.getContractFactory("GovernanceToken");
         const addressList = addrs.filter((_, index) => index < 7).map((addr) => addr.address);
         governanceToken = await governanceTokenFactory.deploy(
+            "MEE Governance Token", 18, "MEE", gameOwner.address, addressList);
+
+        mockupToken = await governanceTokenFactory.deploy(
             "MEE Governance Token", 18, "MEE", gameOwner.address, addressList);
 
         stakingRewardsFactory = await ethers.getContractFactory("StakingRewardsCampaign");
@@ -250,6 +254,15 @@ describe("StakingRewards contract", function () {
             await stakingRewards.connect(addrs[1]).withdraw(tier);
             //Ensure zero tokens remain staked.
             expect(await stakingRewards.connect(addrs[1]).balanceOf(addrs[1].address, tier)).to.be.equal(0);        
+        });
+
+        it("Recover ERC20 tokens", async () => {
+            await mockupToken.connect(addrs[1]).transfer(stakingRewards.address, utils.parseEther("10"));
+            // Reject if the caller is not the owner
+            await expect(stakingRewards.connect(addrs[1]).recoverERC20(mockupToken.address, utils.parseEther("10"))).to.be.rejectedWith("Ownable: caller is not the owner");
+
+            // Recover only for owner case
+            await expect(stakingRewards.connect(owner).recoverERC20(mockupToken.address, utils.parseEther("10"))).to.emit(stakingRewards, "Recovered");
         });
     });
 });
