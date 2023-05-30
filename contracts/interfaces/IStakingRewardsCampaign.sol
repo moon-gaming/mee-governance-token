@@ -11,7 +11,7 @@ interface IStakingRewardsCampaign {
 
     struct LockInfo {
         uint64 period;
-        uint256 minAmount;
+        uint256 increment;
         uint256 maxAmount;
     }
 

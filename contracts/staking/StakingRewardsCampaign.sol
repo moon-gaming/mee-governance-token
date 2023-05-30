@@ -66,25 +66,25 @@ contract StakingRewardsCampaign is
         // In case of Staking Option 1(Raffle), amount just represents the ticket amount
         // In case of Staking Option 2(Land), we don't use the amount variable but it should be 1 always
         require(amount >= 1, "Invalid Amount");
-        require(lockInfo.minAmount != 0, "Not Active");
-        require(amount * lockInfo.minAmount <= lockInfo.maxAmount || lockInfo.maxAmount == 0, "Invalid Amount");
+        require(lockInfo.increment != 0, "Not Active");
+        require(amount * lockInfo.increment <= lockInfo.maxAmount || lockInfo.maxAmount == 0, "Invalid Amount");
 
         // Stake Information for the specific Staking Option for the user. Raffle or Land Option
         StakeInfo storage info = stakeInfo[msg.sender][lockType];
 
-        info.balance = info.balance + lockInfo.minAmount * amount;
+        info.balance = info.balance + lockInfo.increment * amount;
         info.unlockTime = uint64(block.timestamp) + lockInfo.period;
 
         // Lock MEE tokens into the staking contract
         stakingToken.safeTransferFrom(
             msg.sender,
             address(this),
-            lockInfo.minAmount * amount
+            lockInfo.increment * amount
         );
 
         emit Staked(
             msg.sender, // Owner
-            lockInfo.minAmount * amount, // Token Amount
+            lockInfo.increment * amount, // Token Amount
             amount, // Ticket Amount for Staking Option 1 or 1 for Staking Option 2
             lockType, // Lock Type
             info.unlockTime
@@ -103,10 +103,9 @@ contract StakingRewardsCampaign is
 
         require(balance > 0, "Nothing to withdraw");
         // Unlock Mee Token after lock period.
-        stakingToken.safeTransfer(msg.sender, balance);
-
         delete stakeInfo[msg.sender][lockType];
 
+        stakingToken.safeTransfer(msg.sender, balance);
         emit Withdrawn(msg.sender, balance, lockType);
     }
 
@@ -119,12 +118,12 @@ contract StakingRewardsCampaign is
         lockPeriod[lockType].period = period;
     }
 
-    // Update the ticket price for Staking Option 1, and the minAmount limitation for Staking Option 2
+    // Update the ticket price for Staking Option 1, and the increment limitation for Staking Option 2
     function updateLockLimitation(bytes32 lockType, uint256 minLimit, uint256 maxLimit)
         external
         onlyOwner
     {
-        lockPeriod[lockType].minAmount = minLimit;
+        lockPeriod[lockType].increment = minLimit;
         lockPeriod[lockType].maxAmount = maxLimit;
     }
 
