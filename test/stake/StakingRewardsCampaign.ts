@@ -265,7 +265,11 @@ describe("StakingRewards contract", function () {
             await expect(stakingRewards.connect(addrs[1]).recoverERC20(mockupToken.address, utils.parseEther("10"))).to.be.rejectedWith("Ownable: caller is not the owner");
 
             // Recover only for owner case
+            const before = await mockupToken.connect(owner).balanceOf(owner.address);
             await expect(stakingRewards.connect(owner).recoverERC20(mockupToken.address, utils.parseEther("10"))).to.emit(stakingRewards, "Recovered");
+            
+            const after = await mockupToken.connect(owner).balanceOf(owner.address);
+            expect(after).to.be.equal(before + parseEther("10"));
         });
     });
 
