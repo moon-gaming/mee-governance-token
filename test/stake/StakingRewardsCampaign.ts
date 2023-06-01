@@ -5,13 +5,15 @@ import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import { days } from "@nomicfoundation/hardhat-network-helpers/dist/src/helpers/time/duration";
 import { formatEther, parseEther } from "ethers/lib/utils";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
+import { parse } from "path";
 
 const getDays = (day: number) => {
     return 24 * 60 * 60 * day;
 }
 
-const tier = ethers.utils.formatBytes32String("Lottery_3_202305")
+const tier_first = ethers.utils.formatBytes32String("Lottery_3_202305")
 const tier_second = ethers.utils.formatBytes32String("Lottery_4_202305")
+const tier_exploit = ethers.utils.formatBytes32String("exploit_attempt")
 
 
 describe("StakingRewards contract", function () {
@@ -50,7 +52,8 @@ describe("StakingRewards contract", function () {
             governanceToken.connect(addrs[1]).transfer(addrs[2].address, parseEther("654321")),
             governanceToken.connect(addrs[1]).transfer(addrs[3].address, parseEther("200000")),
             governanceToken.connect(addrs[1]).transfer(addrs[4].address, parseEther("50000")),
-            governanceToken.connect(addrs[1]).transfer(addrs[5].address, parseEther("123456"))
+            governanceToken.connect(addrs[1]).transfer(addrs[5].address, parseEther("123456")),
+            governanceToken.connect(addrs[1]).transfer(addrs[6].address, parseEther("10"))
         ]);
     });
 
@@ -61,7 +64,7 @@ describe("StakingRewards contract", function () {
         });
 
         it("Check Lock Type and Peroid, Tokens to stake", async () => {
-            const v0_lock_info = await stakingRewards.lockPeriod(tier);
+            const v0_lock_info = await stakingRewards.lockPeriod(tier_first);
             expect(v0_lock_info.increment).to.equal(parseEther("0"));
             expect(v0_lock_info.maxAmount).to.equal(parseEther("0"));
             expect(v0_lock_info.period).to.equal(getDays(0));
@@ -72,38 +75,38 @@ describe("StakingRewards contract", function () {
     describe("Check Owner Functions", () => {
 
         it("Should update lock period", async () => {
-            await stakingRewards.updateLockPeriod(tier, getDays(60));
-            const v1_lock_info = await stakingRewards.lockPeriod(tier);
+            await stakingRewards.updateLockPeriod(tier_first, getDays(60));
+            const v1_lock_info = await stakingRewards.lockPeriod(tier_first);
             expect(v1_lock_info.increment).to.equal(parseEther("0"));
             expect(v1_lock_info.maxAmount).to.equal(parseEther("0"));
             expect(v1_lock_info.period).to.equal(getDays(60));
         });
 
         it("Should update staking amount for land early access", async () => {
-            await stakingRewards.updateLockLimitation(tier, parseEther("400"), 0);
-            const v1_lock_info = await stakingRewards.lockPeriod(tier);
+            await stakingRewards.updateLockLimitation(tier_first, parseEther("400"), 0);
+            const v1_lock_info = await stakingRewards.lockPeriod(tier_first);
             expect(v1_lock_info.increment).to.equal(parseEther("400"));
             expect(v1_lock_info.maxAmount).to.equal(0);
             expect(v1_lock_info.period).to.equal(getDays(0));
         });
 
         it("Should update ticket price for raffle lucky draw", async () => {
-            await stakingRewards.updateLockLimitation(tier, parseEther("20"), parseEther("20"));
-            const v1_raffle_info = await stakingRewards.lockPeriod(tier);
+            await stakingRewards.updateLockLimitation(tier_first, parseEther("20"), parseEther("20"));
+            const v1_raffle_info = await stakingRewards.lockPeriod(tier_first);
             expect(v1_raffle_info.increment).to.equal(parseEther("20"));
             expect(v1_raffle_info.period).to.equal(0);
         });
 
         it("Can update ticket price for a new lucky draw", async () => {
-            await stakingRewards.updateLockLimitation(tier, parseEther("69"), 0);
-            const v1_raffle_info = await stakingRewards.lockPeriod(tier);
+            await stakingRewards.updateLockLimitation(tier_first, parseEther("69"), 0);
+            const v1_raffle_info = await stakingRewards.lockPeriod(tier_first);
             expect(v1_raffle_info.increment).to.equal(parseEther("69"));
             expect(v1_raffle_info.period).to.equal(0);
         });
 
         it("Can update staking period for a new lucky draw", async () => {
-            await stakingRewards.updateLockPeriod(tier, getDays(42));
-            const v1_raffle_info = await stakingRewards.lockPeriod(tier);
+            await stakingRewards.updateLockPeriod(tier_first, getDays(42));
+            const v1_raffle_info = await stakingRewards.lockPeriod(tier_first);
             expect(v1_raffle_info.increment).to.equal(0);
             expect(v1_raffle_info.period).to.equal(getDays(42));
         });
@@ -112,7 +115,7 @@ describe("StakingRewards contract", function () {
     describe("Check Raffle Staking", () => {
         
         it("Should revert the transaction on zero ticket amount", async () => {
-            await expect(stakingRewards.stake(0, tier)).to.be.rejectedWith('Invalid Amount');
+            await expect(stakingRewards.stake(0, tier_first)).to.be.rejectedWith('Invalid Amount');
         });
 
         it("Should revert the transaction on zero ticket amount", async () => {
@@ -120,87 +123,87 @@ describe("StakingRewards contract", function () {
         });
             
         it("Should purchase 3 tickets", async () => {
-            await stakingRewards.updateLockLimitation(tier, parseEther("20"), 0);
-            const v1_stake_info = await stakingRewards.lockPeriod(tier);
+            await stakingRewards.updateLockLimitation(tier_first, parseEther("20"), 0);
+            const v1_stake_info = await stakingRewards.lockPeriod(tier_first);
             // Approve MEE token for staking Contract
             const ticketPrice = formatEther(v1_stake_info.increment);
 
             await governanceToken.connect(addrs[2]).approve(stakingRewards.address, parseEther((parseInt(ticketPrice) * 3).toString()));
 
             // Purchase 3 tickets for V1 Land
-            await expect(stakingRewards.connect(addrs[2]).stake(3, tier)).to.emit(stakingRewards, "Staked");
+            await expect(stakingRewards.connect(addrs[2]).stake(3, tier_first)).to.emit(stakingRewards, "Staked");
 
             // Check Locked MEE token balance from the staking contract for the selected lock type
-            expect(await stakingRewards.balanceOf(addrs[2].address, tier)).to.be.equal(parseEther((parseInt(ticketPrice) * 3).toString()));
+            expect(await stakingRewards.balanceOf(addrs[2].address, tier_first)).to.be.equal(parseEther((parseInt(ticketPrice) * 3).toString()));
         });
 
         it("Should purchase same tier tickets serveral times", async () => {
-            await stakingRewards.updateLockLimitation(tier, parseEther("20"), 0);
-            const v1_stake_info = await stakingRewards.lockPeriod(tier);
+            await stakingRewards.updateLockLimitation(tier_first, parseEther("20"), 0);
+            const v1_stake_info = await stakingRewards.lockPeriod(tier_first);
             const ticketPrice = formatEther(v1_stake_info.increment);
             // Approve MEE token for staking Contract
             await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther((parseInt(ticketPrice) * 3).toString()));
 
             // Purchase 3 tickets for V1 Land
-            await expect(stakingRewards.connect(addrs[1]).stake(3, tier)).to.emit(stakingRewards, "Staked");
+            await expect(stakingRewards.connect(addrs[1]).stake(3, tier_first)).to.emit(stakingRewards, "Staked");
 
             // Check Locked MEE token balance from the staking contract
-            expect(await stakingRewards.balanceOf(addrs[1].address, tier)).to.be.equal(parseEther((parseInt(ticketPrice) * 3).toString()));
+            expect(await stakingRewards.balanceOf(addrs[1].address, tier_first)).to.be.equal(parseEther((parseInt(ticketPrice) * 3).toString()));
 
             // Purchase 2 tickets for V1 Land again
             await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther((parseInt(ticketPrice) * 2).toString()));
-            await expect(stakingRewards.connect(addrs[1]).stake(2, tier)).to.emit(stakingRewards, "Staked");
+            await expect(stakingRewards.connect(addrs[1]).stake(2, tier_first)).to.emit(stakingRewards, "Staked");
 
             // Check Locked MEE token balance from the staking contract for the selected lock type
-            expect(await stakingRewards.balanceOf(addrs[1].address, tier)).to.be.equal(parseEther((parseInt(ticketPrice) * 5).toString()));
+            expect(await stakingRewards.balanceOf(addrs[1].address, tier_first)).to.be.equal(parseEther((parseInt(ticketPrice) * 5).toString()));
         });
 
         it("Should revert tx for withdrawing tokens after 20 days for Raffle staking", async () => {
-            await stakingRewards.updateLockLimitation(tier, parseEther("20"), 0);
-            await stakingRewards.updateLockPeriod(tier, getDays(60));
-            const v1_stake_info = await stakingRewards.lockPeriod(tier);
+            await stakingRewards.updateLockLimitation(tier_first, parseEther("20"), 0);
+            await stakingRewards.updateLockPeriod(tier_first, getDays(60));
+            const v1_stake_info = await stakingRewards.lockPeriod(tier_first);
             const ticketPrice = formatEther(v1_stake_info.increment);
             // Approve MEE token for staking Contract
             await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther((parseInt(ticketPrice) * 3).toString()));
 
             // Purchase 3 tickets for V1 Land
-            await expect(stakingRewards.connect(addrs[1]).stake(3, tier)).to.emit(stakingRewards, "Staked");
+            await expect(stakingRewards.connect(addrs[1]).stake(3, tier_first)).to.emit(stakingRewards, "Staked");
 
             // Withdraw tokens after 20 days.
             await time.increase(getDays(20));
 
-            await expect(stakingRewards.connect(addrs[1]).withdraw(tier)).to.be.rejectedWith('Still in the lock period');
+            await expect(stakingRewards.connect(addrs[1]).withdraw(tier_first)).to.be.rejectedWith('Still in the lock period');
         });
 
         it("Should withdraw tokens after the lock period", async () => {
-            await stakingRewards.updateLockLimitation(tier, parseEther("20"), 0);
-            const v1_stake_info = await stakingRewards.lockPeriod(tier);
+            await stakingRewards.updateLockLimitation(tier_first, parseEther("20"), 0);
+            const v1_stake_info = await stakingRewards.lockPeriod(tier_first);
             const ticketPrice = formatEther(v1_stake_info.increment);
             // Approve MEE token for staking Contract
             await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther((parseInt(ticketPrice) * 3).toString()));
 
             // Purchase 3 tickets for V1 Land
-            await expect(stakingRewards.connect(addrs[1]).stake(3, tier)).to.emit(stakingRewards, "Staked");
+            await expect(stakingRewards.connect(addrs[1]).stake(3, tier_first)).to.emit(stakingRewards, "Staked");
 
             // Withdraw tokens after 30 days.
             await time.increase(getDays(30));
 
-            await expect(stakingRewards.connect(addrs[1]).withdraw(tier)).to.emit(stakingRewards, 'Withdrawn');
+            await expect(stakingRewards.connect(addrs[1]).withdraw(tier_first)).to.emit(stakingRewards, 'Withdrawn');
         });
 
         it("Disallows Staking More Tokens than Approved", async () => {
-            await stakingRewards.updateLockLimitation(tier, parseEther("20"), 0);
-            const v1_stake_info = await stakingRewards.lockPeriod(tier);
+            await stakingRewards.updateLockLimitation(tier_first, parseEther("20"), 0);
+            const v1_stake_info = await stakingRewards.lockPeriod(tier_first);
             const ticketPrice = formatEther(v1_stake_info.increment);
             // Approve MEE token for staking Contract
             await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther((parseInt(ticketPrice) * 9000).toString()));
 
             // Attempt to exceed approved amount
-            await expect(stakingRewards.connect(addrs[1]).stake(9001, tier)).to.be.rejectedWith("ERC20: insufficient allowance");
+            await expect(stakingRewards.connect(addrs[1]).stake(9001, tier_first)).to.be.rejectedWith("ERC20: insufficient allowance");
         });
 
         it("Disallows Staking More Tokens than Available", async () => {
-            await stakingRewards.updateLockLimitation(tier, parseEther("20"), 0);
+            await stakingRewards.updateLockLimitation(tier_first, parseEther("20"), 0);
             // Approve MEE token for staking Contract            
             const everything = await governanceToken.connect(addrs[3]).balanceOf(addrs[3].address);
             expect(everything).to.be.greaterThan(0, "Test wallet has no MEE.");
@@ -208,7 +211,7 @@ describe("StakingRewards contract", function () {
             await governanceToken.connect(addrs[3]).approve(stakingRewards.address, everything+parseEther("100"));
 
             // Attempt to exceed available amount, NB: hardcoded price from test fixture, is set to 20 MEE per ticket
-            await expect(stakingRewards.connect(addrs[3]).stake(everything.div(20)+1, tier)).to.be.rejectedWith("ERC20: transfer amount exceeds balance");
+            await expect(stakingRewards.connect(addrs[3]).stake(everything.div(20)+1, tier_first)).to.be.rejectedWith("ERC20: transfer amount exceeds balance");
         });
     });
 
@@ -217,43 +220,43 @@ describe("StakingRewards contract", function () {
             // Pause Contract
             await stakingRewards.pause();
 
-            await stakingRewards.updateLockLimitation(tier, parseEther("20"), 0);
-            const v1_lock_info = await stakingRewards.lockPeriod(tier);
+            await stakingRewards.updateLockLimitation(tier_first, parseEther("20"), 0);
+            const v1_lock_info = await stakingRewards.lockPeriod(tier_first);
             const increment = formatEther(v1_lock_info.increment);
             // Approve MEE token for staking Contract
             await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther((parseInt(increment) * 1).toString()));
 
-            await expect(stakingRewards.connect(addrs[1]).stake(1, tier)).to.be.rejectedWith("Pausable: paused");
+            await expect(stakingRewards.connect(addrs[1]).stake(1, tier_first)).to.be.rejectedWith("Pausable: paused");
 
             await stakingRewards.unPause();
             // Stake tokens for V1 Land Early Access
-            await expect(stakingRewards.connect(addrs[1]).stake(1, tier)).to.emit(stakingRewards, "Staked");
+            await expect(stakingRewards.connect(addrs[1]).stake(1, tier_first)).to.emit(stakingRewards, "Staked");
 
             // Check Locked MEE token balance from the staking contract for the selected lock type
-            expect(await stakingRewards.balanceOf(addrs[1].address, tier)).to.be.equal(parseEther((parseInt(increment) * 1).toString()));
+            expect(await stakingRewards.balanceOf(addrs[1].address, tier_first)).to.be.equal(parseEther((parseInt(increment) * 1).toString()));
         });
 
         it("Pause Withdrawing tokens", async () => {
-            await stakingRewards.updateLockLimitation(tier, parseEther("20"), 0);
-            await stakingRewards.updateLockPeriod(tier, getDays(60));
-            const v1_lock_info = await stakingRewards.lockPeriod(tier);
+            await stakingRewards.updateLockLimitation(tier_first, parseEther("20"), 0);
+            await stakingRewards.updateLockPeriod(tier_first, getDays(60));
+            const v1_lock_info = await stakingRewards.lockPeriod(tier_first);
             const increment = formatEther(v1_lock_info.increment);
             // Approve MEE token for staking Contract
             await governanceToken.connect(addrs[1]).approve(stakingRewards.address, parseEther((parseInt(increment) * 1).toString()));
 
             // Stake tokens for V1 Land Early Access
-            await expect(stakingRewards.connect(addrs[1]).stake(1, tier)).to.emit(stakingRewards, "Staked");
+            await expect(stakingRewards.connect(addrs[1]).stake(1, tier_first)).to.emit(stakingRewards, "Staked");
             // Pause Contract
             await stakingRewards.pause();
 
             // Withdraw tokens after 123 days.
             await time.increase(getDays(123));
-            await expect(stakingRewards.connect(addrs[1]).withdraw(tier)).to.be.rejectedWith("Pausable: paused");
+            await expect(stakingRewards.connect(addrs[1]).withdraw(tier_first)).to.be.rejectedWith("Pausable: paused");
             
             await stakingRewards.unPause();
-            await stakingRewards.connect(addrs[1]).withdraw(tier);
+            await stakingRewards.connect(addrs[1]).withdraw(tier_first);
             //Ensure zero tokens remain staked.
-            expect(await stakingRewards.connect(addrs[1]).balanceOf(addrs[1].address, tier)).to.be.equal(0);        
+            expect(await stakingRewards.connect(addrs[1]).balanceOf(addrs[1].address, tier_first)).to.be.equal(0);        
         });
 
         it("Recover ERC20 tokens", async () => {
@@ -265,4 +268,27 @@ describe("StakingRewards contract", function () {
             await expect(stakingRewards.connect(owner).recoverERC20(mockupToken.address, utils.parseEther("10"))).to.emit(stakingRewards, "Recovered");
         });
     });
+
+
+    describe("Order of Operation Tests", () => {
+
+        it("Can only stake if has enough tokens", async () => {
+            await stakingRewards.updateLockPeriod(tier_exploit, 1);
+            await stakingRewards.updateLockLimitation(tier_exploit, 1, 0);
+
+            //Ensure test is run with correct parameters.
+            const balance = await governanceToken.connect(addrs[6]).balanceOf(addrs[6].address);
+            expect(balance).to.be.lessThan(parseEther("100"));
+            expect(balance).to.be.greaterThanOrEqual(parseEther("10"));
+
+            //Try to stake more than we have.
+            await governanceToken.connect(addrs[6]).approve(stakingRewards.address, parseEther("200"));
+            await expect(stakingRewards.connect(addrs[6]).stake(parseEther("100"), tier_exploit)).to.be.rejectedWith("ERC20: transfer amount exceeds balance");
+
+            //Verify we still have a zero stake!
+            const stake = await stakingRewards.connect(addrs[6]).balanceOf(addrs[6].address, tier_exploit);
+            expect(stake).to.be.equal(0);
+        });
+    });
+
 });

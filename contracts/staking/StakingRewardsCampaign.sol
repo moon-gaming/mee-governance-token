@@ -69,18 +69,17 @@ contract StakingRewardsCampaign is
         require(lockInfo.increment != 0, "Not Active");
         require(amount * lockInfo.increment <= lockInfo.maxAmount || lockInfo.maxAmount == 0, "Invalid Amount");
 
-        // Stake Information for the specific Staking Option for the user. Raffle or Land Option
-        StakeInfo storage info = stakeInfo[msg.sender][lockType];
-
-        info.balance = info.balance + lockInfo.increment * amount;
-        info.unlockTime = uint64(block.timestamp) + lockInfo.period;
-
         // Lock MEE tokens into the staking contract
         stakingToken.safeTransferFrom(
             msg.sender,
             address(this),
             lockInfo.increment * amount
         );
+
+        // Stake Information for the specific Staking Option for the user. Raffle or Land Option
+        StakeInfo storage info = stakeInfo[msg.sender][lockType];
+        info.balance = info.balance + lockInfo.increment * amount;
+        info.unlockTime = uint64(block.timestamp) + lockInfo.period;
 
         emit Staked(
             msg.sender, // Owner
