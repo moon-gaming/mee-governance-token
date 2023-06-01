@@ -215,7 +215,7 @@ describe("StakingRewards contract", function () {
         });
     });
 
-    describe("Check Staking Contract Pausable", () => {
+    describe("Owner Admin Interface", () => {
         it("Should pause staking MEE tokens(ex: for Land Tier 1 Early access)", async () => {
             // Pause Contract
             await stakingRewards.pause();
@@ -259,15 +259,27 @@ describe("StakingRewards contract", function () {
             expect(await stakingRewards.connect(addrs[1]).balanceOf(addrs[1].address, tier_first)).to.be.equal(0);        
         });
 
-        it("Recover ERC20 tokens", async () => {
+        it("Non-Owner may not Recover ERC20", async () => {
             await mockupToken.connect(addrs[1]).transfer(stakingRewards.address, utils.parseEther("10"));
             // Reject if the caller is not the owner
             await expect(stakingRewards.connect(addrs[1]).recoverERC20(mockupToken.address, utils.parseEther("10"))).to.be.rejectedWith("Ownable: caller is not the owner");
+        });
 
-            // Recover only for owner case
+        it("Owner can Recover ERC20 in the precise amount", async () => {
+            await mockupToken.connect(addrs[1]).transfer(stakingRewards.address, utils.parseEther("10"));
+
+            // Try to recover some of the balance
+            const before_contract = await mockupToken.connect(owner).balanceOf(stakingRewards.address);
             const before = await mockupToken.connect(owner).balanceOf(owner.address);
+            
+            // Recover the tokens
             await expect(stakingRewards.connect(owner).recoverERC20(mockupToken.address, utils.parseEther("10"))).to.emit(stakingRewards, "Recovered");
             
+            //Check if the contract balance is reduced by the amount recovered
+            const after_contract = await mockupToken.connect(owner).balanceOf(stakingRewards.address);
+            expect(after_contract + parseEther("10")).to.be.equal(before_contract);
+
+            //Check if the owner balance is increased by the amount recovered
             const after = await mockupToken.connect(owner).balanceOf(owner.address);
             expect(after).to.be.equal(before + parseEther("10"));
         });
