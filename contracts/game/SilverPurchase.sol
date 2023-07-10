@@ -15,7 +15,7 @@ contract SilverPurchase is Ownable, Pausable {
     address public immutable usdcTokenAddress;
     PackageInfo[] public packageInfo;
 
-    event Purchased(address indexed sender, uint256 amount);
+    event Purchased(address indexed sender, uint256 index, uint256 price, uint256 amount);
     event Withdrawn(address indexed sender, uint256 amount);
 
     constructor(address _usdcTokenAddress) {
@@ -37,7 +37,7 @@ contract SilverPurchase is Ownable, Pausable {
     function purchase(uint256 index) external whenNotPaused {
         PackageInfo memory package = packageInfo[index];
         IERC20(usdcTokenAddress).transferFrom(msg.sender, address(this), package.price);
-        emit Purchased(msg.sender, package.silver);
+        emit Purchased(msg.sender, index, package.price, package.silver);
     }
 
     function withdraw(address tokenAddress) external onlyOwner {
