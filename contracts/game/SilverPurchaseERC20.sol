@@ -43,7 +43,7 @@ contract SilverPurchaseERC20 is AccessControlUpgradeable, PausableUpgradeable {
         // 200 USDC for 200,000 Silvers
         packageInfo["200USD"] = PackageInfo(200e6, 200000);
         // 450 USDC for 500,000 Silvers
-        packageInfo["200USD"] = PackageInfo(450e6, 500000);
+        packageInfo["450USD"] = PackageInfo(450e6, 500000);
     }
 
     function purchase(string memory index) external whenNotPaused {
