@@ -17,7 +17,7 @@ contract SilverPurchaseERC20 is AccessControlUpgradeable, PausableUpgradeable {
     mapping(string => PackageInfo) public packageInfo;
 
     event Purchased(address indexed sender, uint256 price, uint256 amount);
-    event Withdrawn(address indexed sender, address tokenm, uint256 amount);
+    event Withdrawn(address indexed sender, address token, uint256 amount);
 
     function initialize(address _usdcTokenAddress) public initializer {
         __Pausable_init_unchained();
