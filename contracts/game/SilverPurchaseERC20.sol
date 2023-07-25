@@ -16,7 +16,7 @@ contract SilverPurchaseERC20 is AccessControlUpgradeable, PausableUpgradeable {
     address public usdcTokenAddress;
     mapping(string => PackageInfo) public packageInfo;
 
-    event Purchased(address indexed sender, uint256 price, uint256 amount);
+    event Purchased(address indexed sender, string sku, uint256 price, uint256 amount);
     event Withdrawn(address indexed sender, address token, uint256 amount);
 
     function initialize(address _usdcTokenAddress) public initializer {
@@ -35,22 +35,22 @@ contract SilverPurchaseERC20 is AccessControlUpgradeable, PausableUpgradeable {
 
         // USDC decimals : 6 
         // 10 USDC for 10,000 Silvers
-        packageInfo["10USD"] = PackageInfo(10e6, 10000);
+        packageInfo["silver-10k"] = PackageInfo(10e6, 10000);
         // 50 USDC for 50,000 Silvers
-        packageInfo["50USD"] = PackageInfo(50e6, 50000);
+        packageInfo["silver-50k"] = PackageInfo(50e6, 50000);
         // 100 USDC for 100,000 Silvers
-        packageInfo["100USD"] = PackageInfo(100e6, 100000);
+        packageInfo["silver-100k"] = PackageInfo(100e6, 100000);
         // 200 USDC for 200,000 Silvers
-        packageInfo["200USD"] = PackageInfo(200e6, 200000);
+        packageInfo["silver-200k"] = PackageInfo(200e6, 200000);
         // 450 USDC for 500,000 Silvers
-        packageInfo["450USD"] = PackageInfo(450e6, 500000);
+        packageInfo["silver-500k"] = PackageInfo(450e6, 500000);
     }
 
     function purchase(string memory index) external whenNotPaused {
         PackageInfo memory package = packageInfo[index];
         require(package.price > 0 && package.silver > 0, "Package is not purchasable");
         IERC20Upgradeable(usdcTokenAddress).transferFrom(msg.sender, address(this), package.price);
-        emit Purchased(msg.sender, package.price, package.silver);
+        emit Purchased(msg.sender, index, package.price, package.silver);
     }
 
     function withdraw(address tokenAddress) external onlyRole(WITHDRAW_ROLE) {
