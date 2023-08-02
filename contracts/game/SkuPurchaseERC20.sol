@@ -57,10 +57,10 @@ contract SkuPurchaseERC20 is AccessControlUpgradeable, PausableUpgradeable {
         emit Purchased(msg.sender, sku, skuAmount, usdAmount, amount);
     }
 
-    function withdraw(address tokenAddress) external onlyRole(WITHDRAW_ROLE) {
+    function withdraw(address tokenAddress, address valutAddress) external onlyRole(WITHDRAW_ROLE) {
         uint256 balance = IERC20Upgradeable(tokenAddress).balanceOf(address(this));
-        IERC20Upgradeable(tokenAddress).transfer(msg.sender, balance);
-        emit Withdrawn(msg.sender, tokenAddress, balance);
+        IERC20Upgradeable(tokenAddress).transfer(valutAddress, balance);
+        emit Withdrawn(valutAddress, tokenAddress, balance);
     }
 
     function updatePackage(string memory sku, uint256 price, uint256 amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
