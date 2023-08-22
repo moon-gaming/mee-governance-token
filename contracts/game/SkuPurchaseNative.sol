@@ -13,6 +13,7 @@ contract SkuPurchaseNative is AccessControlUpgradeable, PausableUpgradeable {
         uint256 amount;
     }
     AggregatorV3Interface internal maticPriceFeed;
+    address payable vaultAddress;
 
     bytes32 public constant WITHDRAW_ROLE = keccak256("WITHDRAW_ROLE");
     mapping(string => PackageInfo) public packageInfo;
@@ -33,31 +34,36 @@ contract SkuPurchaseNative is AccessControlUpgradeable, PausableUpgradeable {
         _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
         _grantRole(WITHDRAW_ROLE, _msgSender());
         maticPriceFeed = AggregatorV3Interface(0xAB594600376Ec9fD91F8e885dADF0CE036862dE0);
-
+        vaultAddress = payable(address(0xb8B405ffB4741f72a22AD44E595D3F1dC004BB29));
         // USDC decimals : 6 
         // 10 USDC for 10,000 Silver
-        packageInfo["silver-10k"] = PackageInfo(10e6, 10000);
+        packageInfo["silver-10k"] = PackageInfo(10e6, 100000);
         // 50 USDC for 50,000 Silver
-        packageInfo["silver-50k"] = PackageInfo(50e6, 50000);
+        packageInfo["silver-50k"] = PackageInfo(50e6, 500000);
         // 100 USDC for 100,000 Silver
-        packageInfo["silver-100k"] = PackageInfo(100e6, 100000);
+        packageInfo["silver-100k"] = PackageInfo(100e6, 1000000);
         // 200 USDC for 200,000 Silver
-        packageInfo["silver-200k"] = PackageInfo(200e6, 200000);
+        packageInfo["silver-200k"] = PackageInfo(200e6, 2000000);
         // 450 USDC for 500,000 Silver
-        packageInfo["silver-500k"] = PackageInfo(450e6, 500000);
+        packageInfo["silver-500k"] = PackageInfo(450e6, 5000000);
     }
 
     function purchase(string memory sku, uint256 skuAmount) external payable whenNotPaused {
         PackageInfo memory package = packageInfo[sku];
+        uint256 totalPaid = msg.value;
         require(package.price > 0 && package.amount > 0, "Package is not purchasable");
 
-        uint256 maticPrice = getMaticPrice();
-        uint256 maticValue = package.price * 1e20 / maticPrice;
+        uint256 maticPrice = getMaticPrice(sku);
+        uint256 maticValue = maticPrice * skuAmount;
         uint256 amount = package.amount * skuAmount;
-        require(msg.value >= maticValue, "Insufficient Balance");
+        require(totalPaid >= maticValue, "Insufficient Matic Sent");
         
-        (bool sent, bytes memory data) = payable(msg.sender).call{value: msg.value - maticValue}("");
-        require(sent, "Failed to re-pay");
+        (bool sent0, ) = vaultAddress.call{value: maticValue}("");
+        require(sent0, "Failed to send");
+        if(totalPaid - maticValue > 0) {
+            (bool sent1, ) = payable(msg.sender).call{value: totalPaid - maticValue}("");
+            require(sent1, "Failed to refund");
+        }
         emit Purchased(msg.sender, sku, skuAmount, maticValue, amount);
     }
 
@@ -87,7 +93,7 @@ contract SkuPurchaseNative is AccessControlUpgradeable, PausableUpgradeable {
         _unpause();
     }
 
-    function getMaticPrice() public view returns (uint256) {
+    function getMaticPrice(string memory sku) public view returns (uint256) {
         (
             uint80 roundID, 
             int price,
@@ -95,6 +101,8 @@ contract SkuPurchaseNative is AccessControlUpgradeable, PausableUpgradeable {
             uint timeStamp,
             uint80 answeredInRound
         ) = maticPriceFeed.latestRoundData();
-        return uint256(price);
+        PackageInfo memory package = packageInfo[sku];
+        uint256 maticPrice = (package.price * 1e20 / uint256(price));
+        return maticPrice;
     }
 }
