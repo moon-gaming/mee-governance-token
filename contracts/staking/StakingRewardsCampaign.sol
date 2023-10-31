@@ -90,6 +90,47 @@ contract StakingRewardsCampaign is
         );
     }
 
+    function upgrade(bytes32 lockTypeFrom, bytes32 lockTypeTo)
+        external
+        nonReentrant
+        whenNotPaused
+    {
+        StakeInfo storage info = stakeInfo[msg.sender][lockTypeFrom];
+        // Calcaulate the balance to re-use for the specific Land Tier and the Staking Option
+        uint256 balance = info.balance;
+
+        LockInfo memory lockInfo = lockPeriod[lockTypeTo];
+        require(balance > 0 && balance < lockInfo.increment, "Unable to downgrade or upgrade");
+
+        // In case of Staking Option 2(Land), we don't use the amount variable but it should be 1 always
+        require(lockInfo.increment != 0, "Not Active");
+        require(lockInfo.increment <= lockInfo.maxAmount || lockInfo.maxAmount == 0, "Invalid Amount");
+
+        uint256 requiredBalance = lockInfo.increment - balance;
+        // Add more MEE tokens into the staking contract
+        stakingToken.safeTransferFrom(
+            msg.sender,
+            address(this),
+            requiredBalance
+        );
+        // Remove the old staked postion
+        delete stakeInfo[msg.sender][lockTypeFrom];
+        emit Withdrawn(msg.sender, balance, lockTypeFrom);
+
+        // Stake Information for the specific Staking Option for the user. Land Option
+        StakeInfo storage newInfo = stakeInfo[msg.sender][lockTypeTo];
+        newInfo.balance = newInfo.balance + lockInfo.increment;
+        info.unlockTime = uint64(block.timestamp) + lockInfo.period;
+
+        emit Staked(
+            msg.sender, // Owner
+            lockInfo.increment, // Token Amount
+            1, // Ticket Amount for Staking Option 1 or 1 for Staking Option 2
+            lockTypeTo, // Lock Type
+            info.unlockTime
+        );
+    }
+
     function withdraw(bytes32 lockType)
         public
         nonReentrant

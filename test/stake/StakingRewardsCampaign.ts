@@ -11,8 +11,8 @@ const getDays = (day: number) => {
     return 24 * 60 * 60 * day;
 }
 
-const tier_first = ethers.utils.formatBytes32String("Lottery_3_202305")
-const tier_second = ethers.utils.formatBytes32String("Lottery_4_202305")
+const tier_first = ethers.utils.formatBytes32String("VIP_3_202305")
+const tier_second = ethers.utils.formatBytes32String("VIP_4_202305")
 const tier_exploit = ethers.utils.formatBytes32String("exploit_attempt")
 
 
@@ -212,6 +212,81 @@ describe("StakingRewards contract", function () {
 
             // Attempt to exceed available amount, NB: hardcoded price from test fixture, is set to 20 MEE per ticket
             await expect(stakingRewards.connect(addrs[3]).stake(everything.div(20)+1, tier_first)).to.be.rejectedWith("ERC20: transfer amount exceeds balance");
+        });
+    });
+
+    describe("Check VIP Staking", () => {
+        
+        it("Should revert the transaction on zero amount", async () => {
+            await expect(stakingRewards.stake(0, tier_first)).to.be.rejectedWith('Invalid Amount');
+        });
+
+        it("Should revert the transaction for non-configured tier", async () => {
+            await expect(stakingRewards.stake(1, tier_second)).to.be.rejectedWith('Not Active');
+        });
+            
+        it("Should stake Mee tokens for the VIP rank", async () => {
+            await stakingRewards.updateLockLimitation(tier_first, parseEther("20"), 0);
+            const v1_stake_info = await stakingRewards.lockPeriod(tier_first);
+            // Approve MEE token for staking Contract
+            const vipPrice = formatEther(v1_stake_info.increment);
+
+            await governanceToken.connect(addrs[2]).approve(stakingRewards.address, parseEther((parseInt(vipPrice)).toString()));
+
+            // Stake for the first option
+            await expect(stakingRewards.connect(addrs[2]).stake(1, tier_first)).to.emit(stakingRewards, "Staked");
+
+            // Check Locked MEE token balance from the staking contract for the selected lock type
+            expect(await stakingRewards.balanceOf(addrs[2].address, tier_first)).to.be.equal(parseEther((parseInt(vipPrice)).toString()));
+        });
+
+        it("Should upgrade the VIP rank", async () => {
+            await stakingRewards.updateLockLimitation(tier_first, parseEther("20"), 0);
+            const v1_stake_info = await stakingRewards.lockPeriod(tier_first);
+
+            await stakingRewards.updateLockLimitation(tier_second, parseEther("40"), 0);
+            const v2_stake_info = await stakingRewards.lockPeriod(tier_second);
+
+            // Approve MEE token for staking Contract
+            const vipPriceV1 = formatEther(v1_stake_info.increment);
+            const vipPriceV2 = formatEther(v2_stake_info.increment);
+
+            await governanceToken.connect(addrs[2]).approve(stakingRewards.address, parseEther((parseInt(vipPriceV1)).toString()));
+
+            // Stake for the first option
+            await expect(stakingRewards.connect(addrs[2]).stake(1, tier_first)).to.emit(stakingRewards, "Staked");
+
+            // Upgrade from first tier to second tier
+            await governanceToken.connect(addrs[2]).approve(stakingRewards.address, parseEther((parseInt(vipPriceV2) - parseInt(vipPriceV1)).toString()));
+
+            await expect(stakingRewards.connect(addrs[2]).upgrade(tier_first, tier_second)).to.emit(stakingRewards, "Staked");
+
+            // Check Locked MEE token balance from the staking contract for the selected lock type
+            expect(await stakingRewards.balanceOf(addrs[2].address, tier_first)).to.be.equal("0");
+            expect(await stakingRewards.balanceOf(addrs[2].address, tier_second)).to.be.equal(parseEther((parseInt(vipPriceV2)).toString()));
+        });
+
+        it("Should not allow downgrade", async () => {
+            await stakingRewards.updateLockLimitation(tier_first, parseEther("20"), 0);
+            const v1_stake_info = await stakingRewards.lockPeriod(tier_first);
+
+            await stakingRewards.updateLockLimitation(tier_second, parseEther("40"), 0);
+            const v2_stake_info = await stakingRewards.lockPeriod(tier_second);
+
+            // Approve MEE token for staking Contract
+            const vipPriceV1 = formatEther(v1_stake_info.increment);
+            const vipPriceV2 = formatEther(v2_stake_info.increment);
+
+            await governanceToken.connect(addrs[2]).approve(stakingRewards.address, parseEther((parseInt(vipPriceV2)).toString()));
+
+            // Stake for the second option
+            await expect(stakingRewards.connect(addrs[2]).stake(1, tier_second)).to.emit(stakingRewards, "Staked");
+
+            // Downgrade from second tier to first tier
+            await expect(stakingRewards.connect(addrs[2]).upgrade(tier_second, tier_first)).to.be.rejectedWith('Unable to downgrade or upgrade');
+            // Check Locked MEE token balance from the staking contract for the selected lock type
+            expect(await stakingRewards.balanceOf(addrs[2].address, tier_first)).to.be.equal("0");
+            expect(await stakingRewards.balanceOf(addrs[2].address, tier_second)).to.be.equal(parseEther((parseInt(vipPriceV2)).toString()));
         });
     });
 
