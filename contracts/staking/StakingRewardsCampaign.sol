@@ -63,11 +63,12 @@ contract StakingRewardsCampaign is
         whenNotPaused
     {
         LockInfo memory lockInfo = lockPeriod[lockType];
+        StakeInfo storage info = stakeInfo[msg.sender][lockType];
         // In case of Staking Option 1(Raffle), amount just represents the ticket amount
         // In case of Staking Option 2(Land), we don't use the amount variable but it should be 1 always
         require(amount >= 1, "Invalid Amount");
         require(lockInfo.increment != 0, "Not Active");
-        require(amount * lockInfo.increment <= lockInfo.maxAmount || lockInfo.maxAmount == 0, "Invalid Amount");
+        require(info.balance + amount * lockInfo.increment <= lockInfo.maxAmount || lockInfo.maxAmount == 0, "Invalid Amount");
 
         // Lock MEE tokens into the staking contract
         stakingToken.safeTransferFrom(
@@ -77,7 +78,7 @@ contract StakingRewardsCampaign is
         );
 
         // Stake Information for the specific Staking Option for the user. Raffle or Land Option
-        StakeInfo storage info = stakeInfo[msg.sender][lockType];
+        
         info.balance = info.balance + lockInfo.increment * amount;
         info.unlockTime = uint64(block.timestamp) + lockInfo.period;
 
