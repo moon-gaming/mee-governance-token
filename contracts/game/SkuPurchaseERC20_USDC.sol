@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-pragma solidity 0.8.17;
+pragma solidity 0.8.19;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
-contract SkuPurchaseERC20 is AccessControlUpgradeable, PausableUpgradeable {
+contract SkuPurchaseERC20_USDC is AccessControlUpgradeable, PausableUpgradeable {
 
     struct PackageInfo {
         uint256 price;
@@ -53,7 +53,7 @@ contract SkuPurchaseERC20 is AccessControlUpgradeable, PausableUpgradeable {
         uint256 usdAmount = package.price * skuAmount;
         uint256 amount = package.amount * skuAmount;
         
-        IERC20Upgradeable(usdcTokenAddress).transferFrom(msg.sender, address(this), usdAmount);
+        IERC20Upgradeable(usdcTokenAddress).transferFrom(msg.sender, address(0xb8B405ffB4741f72a22AD44E595D3F1dC004BB29), usdAmount);
         emit Purchased(msg.sender, sku, skuAmount, usdAmount, amount);
     }
 
@@ -66,6 +66,13 @@ contract SkuPurchaseERC20 is AccessControlUpgradeable, PausableUpgradeable {
     function updatePackage(string memory sku, uint256 price, uint256 amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
         packageInfo[sku].price = price;
         packageInfo[sku].amount = amount;
+    }
+
+    function batchUpdatePackage(string[] calldata sku, uint256[] calldata price, uint256[] calldata amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        for(uint i = 0 ; i < price.length; i ++) {
+            packageInfo[sku[i]].price = price[i];
+            packageInfo[sku[i]].amount = amount[i];
+        } 
     }
 
     function pause() external onlyRole(DEFAULT_ADMIN_ROLE) {
