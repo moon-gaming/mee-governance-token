@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-pragma solidity 0.8.17;
+pragma solidity 0.8.19;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
@@ -83,6 +83,13 @@ contract SkuPurchaseNative is AccessControlUpgradeable, PausableUpgradeable {
     function updatePackage(string memory sku, uint256 price, uint256 amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
         packageInfo[sku].price = price;
         packageInfo[sku].amount = amount;
+    }
+
+    function batchUpdatePackage(string[] calldata sku, uint256[] calldata price, uint256[] calldata amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        for(uint i = 0 ; i < price.length; i ++) {
+            packageInfo[sku[i]].price = price[i];
+            packageInfo[sku[i]].amount = amount[i];
+        } 
     }
 
     function pause() external onlyRole(DEFAULT_ADMIN_ROLE) {
