@@ -2,9 +2,9 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
-contract TokenDistributor is Ownable {
+contract TokenDistributor is AccessControlUpgradeable {
     struct EventDetail {
         uint256 expirePeriod;
         uint256 amount;
@@ -22,20 +22,36 @@ contract TokenDistributor is Ownable {
     mapping(bytes32 => EventDetail) public eventInfo;
     mapping(address => bytes32) public walletToUser;
 
-    event TokensAllocated(bytes32[] userHash, address[][] walletList, bytes32 eventType);
-    event TokensClaimed(address indexed wallet, bytes32[] eventList);
+    bytes32 public constant BACK_OFFICE_ROLE = keccak256("BACK_OFFICE_ROLE");
 
-    constructor(IERC20 _token) {
-        token = _token;
+    event TokensAllocated(bytes32[] userHash, address[][] walletList, bytes32 eventType);
+    event TokensClaimed(bytes32 userHash, address indexed wallet, bytes32[] eventList);
+    event EventAdded(bytes32 eventType, uint256 amount, uint256 period);
+
+    function initialize(IERC20 _token) public initializer {
+        __AccessControl_init_unchained();
+        __SkuPurchaseERC20_init_unchained(_token);
     }
 
-    function addEvent(bytes32 eventType, uint256 amount, uint256 expirePeriod) external onlyOwner { 
+    function __SkuPurchaseERC20_init_unchained(IERC20 _token)
+        internal
+        onlyInitializing
+    {
+        token = _token;
+
+        _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
+        _grantRole(BACK_OFFICE_ROLE, _msgSender());
+    }
+
+    function addEvent(bytes32 eventType, uint256 amount, uint256 expirePeriod) external onlyRole(BACK_OFFICE_ROLE) { 
         require(amount > 0, "Zero value");
         eventInfo[eventType] = EventDetail(expirePeriod, amount);
+
+        emit EventAdded(eventType, amount, expirePeriod);
     }
 
     // Allocate tokens to multiple users
-    function allocateTokens(address[][] calldata walletsList, bytes32 eventType) external onlyOwner {
+    function allocateTokens(address[][] calldata walletsList, bytes32 eventType) external onlyRole(BACK_OFFICE_ROLE) {
         require(eventInfo[eventType].amount > 0, "Event was not created yet");
         bytes32[] memory userHash = new bytes32[](walletsList.length);
 
@@ -84,7 +100,7 @@ contract TokenDistributor is Ownable {
 
         require(token.transfer(wallet, amount), "Token transfer failed");
 
-        emit TokensClaimed(wallet, eventList);
+        emit TokensClaimed(userHash, wallet, eventList);
     }
 
     // Compute a unique hash for a user based on their wallets
@@ -93,7 +109,11 @@ contract TokenDistributor is Ownable {
     }
 
     // Owner can withdraw unclaimed tokens after a certain period
-    function withdrawUnclaimedTokens(uint256 amount) external onlyOwner {
+    function withdrawUnclaimedTokens(uint256 amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(token.transfer(msg.sender, amount), "Token transfer failed");
+    }
+
+    function grantAccess(address account) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _grantRole(BACK_OFFICE_ROLE, account);
     }
 }
